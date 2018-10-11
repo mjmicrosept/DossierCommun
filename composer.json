@@ -1,0 +1,78 @@
+{
+    "name": "yiisoft/yii2-app-basic",
+    "description": "Yii 2 Basic Project Template",
+    "keywords": ["yii2", "framework", "basic", "project template"],
+    "homepage": "http://www.yiiframework.com/",
+    "type": "project",
+    "license": "BSD-3-Clause",
+    "support": {
+        "issues": "https://github.com/yiisoft/yii2/issues?state=open",
+        "forum": "http://www.yiiframework.com/forum/",
+        "wiki": "http://www.yiiframework.com/wiki/",
+        "irc": "irc://irc.freenode.net/yii",
+        "source": "https://github.com/yiisoft/yii2"
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=5.4.0",
+        "yiisoft/yii2": "~2.0.14",
+        "yiisoft/yii2-bootstrap": "~2.0.0",
+        "yiisoft/yii2-swiftmailer": "~2.0.0",
+        "almasaeed2010/adminlte": "~2.4",
+        "dmstr/yii2-adminlte-asset": "2.*",
+        "webvimark/module-user-management": "*",
+        "kartik-v/yii2-grid": "*",
+        "kartik-v/yii2-widget-activeform": "*",
+        "kartik-v/yii2-widget-alert": "*",
+        "kartik-v/yii2-widget-datepicker": "*",
+        "kartik-v/yii2-widget-timepicker": "*",
+        "kartik-v/yii2-widget-fileinput": "*",
+        "kartik-v/yii2-widget-select2": "*",
+        "kartik-v/yii2-widget-switchinput": "*",
+        "kartik-v/yii2-mpdf": "*",
+        "kartik-v/yii2-tree-manager": "@dev",
+        "kartik-v/yii2-date-range": "*",
+        "kartik-v/yii2-builder": "@dev",
+        "kartik-v/yii2-editable": "dev-master",
+        "kartik-v/yii2-detail-view": "dev-master",
+        "wbraganca/yii2-fancytree-widget": "dev-master",
+        "kartik-v/yii2-dropdown-x": "^1.2",
+        "kartik-v/yii2-tabs-x": "*",
+        "zxbodya/yii2-elfinder": "*@dev",
+        "yiisoft/yii2-httpclient": "~2.0.0",
+        "yii2mod/yii2-sweet-alert": "dev-master",
+        "himiklab/yii2-recaptcha-widget" : "*"
+    },
+    "require-dev": {
+        "yiisoft/yii2-codeception": "*",
+        "yiisoft/yii2-debug": "*",
+        "yiisoft/yii2-gii": "*",
+        "yiisoft/yii2-faker": "*"
+    },
+    "scripts": {
+        "post-create-project-cmd": [
+            "yii\\composer\\Installer::postCreateProject"
+        ]
+    },
+    "config": {
+        "process-timeout": 1800,
+        "fxp-asset": {
+            "yii\\composer\\Installer::postCreateProject": {
+                "setPermission": [
+                    {
+                        "runtime": "0777",
+                        "web/assets": "0777",
+                        "yii": "0755"
+                    }
+                ],
+                "generateCookieValidationKey": [
+                    "config/web.php"
+                ]
+            },
+            "installer-paths": {
+                "npm-asset-library": "vendor/npm",
+                "bower-asset-library": "vendor/bower"
+            }
+        }
+    }
+}

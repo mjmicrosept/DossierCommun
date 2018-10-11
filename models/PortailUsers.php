@@ -1,0 +1,110 @@
+<?php
+
+namespace app\models;
+
+use Yii;
+
+/**
+ * This is the model class for table "portail_users".
+ *
+ * @property int $id
+ * @property int $id_user
+ * @property int $id_client
+ * @property int $id_labo
+ * @property string $date_create
+ */
+class PortailUsers extends \yii\db\ActiveRecord
+{
+    /**
+     * {@inheritdoc}
+     */
+    public static function tableName()
+    {
+        return 'portail_users';
+    }
+
+    /**
+     * Crée un nouvel enregistrement
+     * @param $id_user
+     * @param $id_labo
+     * @param $id_client
+     */
+    public static function createNewEntry($id_user,$id_labo,$id_client){
+        $model = new PortailUsers();
+        $model->id_user = $id_user;
+        $model->id_labo = $id_labo;
+        $model->id_client = $id_client;
+        $model->save();
+    }
+
+    /**
+     * Met à jour un enregistrement
+     * @param $id_user
+     * @param $id_labo
+     * @param $id_client
+     */
+    public static function updateEntry($id_user,$id_labo,$id_client){
+        $model = self::find()->andFilterWhere(['id_user'=>$id_user])->one();
+        $model->id_client = $id_client;
+        $model->id_labo = $id_labo;
+        $model->save();
+    }
+
+    /**
+     * Supprime un enregistrement
+     * @param $id_user
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public static function deleteEntry($id_user){
+        $model = self::find()->andFilterWhere(['id_user'=>$id_user])->one();
+        if(!is_null($model))
+            $model->delete();
+    }
+
+    /**
+     * Retourne l'identifiant du labo affecté à l'utilisateur
+     * @param $iduser
+     * @return mixed
+     */
+    public static function getIdLaboUser($iduser){
+        $model = self::find()->andFilterWhere(['id_user'=> $iduser])->one();
+        return $model->id_labo;
+    }
+
+    /**
+     * Retourne l'identifiant du client affecté à l'utilisateur
+     * @param $iduser
+     * @return mixed
+     */
+    public static function getIdClientUser($iduser){
+        $model = self::find()->andFilterWhere(['id_user'=> $iduser])->one();
+        return $model->id_client;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function rules()
+    {
+        return [
+            [['id_user'], 'required'],
+            [['id_user', 'id_client', 'id_labo'], 'integer'],
+            [['date_create'], 'safe'],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels()
+    {
+        return [
+            'id' => 'ID',
+            'id_user' => 'Id User',
+            'id_client' => 'Id Client',
+            'id_labo' => 'Id Labo',
+            'date_create' => 'Date Create',
+        ];
+    }
+}
