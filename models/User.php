@@ -270,7 +270,7 @@ class User extends \webvimark\modules\UserManagement\models\User
                         $error = true;
                     else
                     {
-                        if(Yii::$app->user->isSuperadmin && User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+                        if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
                             PortailUsers::createNewEntry($this->id, intval($request_post['paramLabo']), null);
                         }
                         else {
@@ -286,7 +286,7 @@ class User extends \webvimark\modules\UserManagement\models\User
                         $error = true;
                     else
                     {
-                        if(Yii::$app->user->isSuperadmin && User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+                        if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
                             PortailUsers::createNewEntry($this->id,intval($request_post['paramLabo']),null);
                         else {
                             //On récupère le labo de la personne connectée
@@ -301,7 +301,7 @@ class User extends \webvimark\modules\UserManagement\models\User
                         $error = true;
                     else
                     {
-                        if(Yii::$app->user->isSuperadmin && User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+                        if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
                             PortailUsers::createNewEntry($this->id,null,intval($request_post['paramClient']));
                         else {
                             //On récupère le labo de la personne connectée
@@ -316,7 +316,7 @@ class User extends \webvimark\modules\UserManagement\models\User
                         $error = true;
                     else
                     {
-                        if(Yii::$app->user->isSuperadmin && User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+                        if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
                             PortailUsers::createNewEntry($this->id,null,intval($request_post['paramClient']));
                         else {
                             //On récupère le labo de la personne connectée
@@ -376,7 +376,7 @@ class User extends \webvimark\modules\UserManagement\models\User
                             if ($old_role == User::TYPE_PORTAIL_ADMIN) {
                                 PortailUsers::createNewEntry($this->id, intval($request_post['paramLabo']), null);
                             } else {
-                                if(Yii::$app->user->isSuperadmin && User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+                                if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
                                     PortailUsers::updateEntry($this->id, intval($request_post['paramLabo']), null);
                                 else {
                                     //On récupère le labo de la personne connectée
@@ -397,7 +397,7 @@ class User extends \webvimark\modules\UserManagement\models\User
                             if ($old_role == User::TYPE_PORTAIL_ADMIN) {
                                 PortailUsers::createNewEntry($this->id, intval($request_post['paramLabo']), null);
                             } else {
-                                if(Yii::$app->user->isSuperadmin && User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+                                if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
                                     PortailUsers::updateEntry($this->id, intval($request_post['paramLabo']), null);
                                 else {
                                     //On récupère le labo de la personne connectée
@@ -418,7 +418,7 @@ class User extends \webvimark\modules\UserManagement\models\User
                             if ($old_role == User::TYPE_PORTAIL_ADMIN) {
                                 PortailUsers::createNewEntry($this->id, null, intval($request_post['paramClient']));
                             } else {
-                                if(Yii::$app->user->isSuperadmin && User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+                                if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
                                     PortailUsers::updateEntry($this->id, null, intval($request_post['paramClient']));
                                 else {
                                     //On récupère le labo de la personne connectée
@@ -440,7 +440,7 @@ class User extends \webvimark\modules\UserManagement\models\User
                             if ($old_role == User::TYPE_PORTAIL_ADMIN) {
                                 PortailUsers::createNewEntry($this->id, null, intval($request_post['paramClient']));
                             } else {
-                                if(Yii::$app->user->isSuperadmin && User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+                                if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
                                     PortailUsers::updateEntry($this->id, null, intval($request_post['paramClient']));
                                 else {
                                     //On récupère le labo de la personne connectée

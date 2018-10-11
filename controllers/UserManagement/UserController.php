@@ -59,13 +59,29 @@ class UserController extends AdminDefaultController
             }
 
             if(isset(Yii::$app->request->post()['radioPermission'])){
+                //Test de choix sur les listes déroulantes
+                if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+                    if (Yii::$app->request->post()['radioPermission'] != User::TYPE_PORTAIL_ADMIN) {
+                        if (Yii::$app->request->post()['radioPermission'] == User::TYPE_LABO_ADMIN || Yii::$app->request->post()['radioPermission'] == User::TYPE_LABO_USER) {
+                            if (intval(Yii::$app->request->post()['paramLabo']) == 0 || Yii::$app->request->post()['paramLabo'] == '') {
+                                Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLLabo'));
+                                return $this->renderIsAjax('create', ['model' => $model]);
+                            }
+                        } else {
+                            if (intval(Yii::$app->request->post()['paramClient']) == 0 || Yii::$app->request->post()['paramClient'] == '') {
+                                Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLClient'));
+                                return $this->renderIsAjax('create', ['model' => $model]);
+                            }
+                        }
+                    }
+                }
+
                 $createUser = $model->createUserWithPermission(Yii::$app->request->post());
-                if($createUser) {
+                if ($createUser) {
                     Yii::$app->session->setFlash('success', Yii::t('microsept', 'UserCreateSuccess'));
                     return $this->redirect(['index']);
-                }
-                else
-                    Yii::$app->session->setFlash('danger', Yii::t('microsept','UserCreateError'));
+                } else
+                    Yii::$app->session->setFlash('danger', Yii::t('microsept', 'UserCreateError'));
             }
 		}
 
@@ -100,14 +116,47 @@ class UserController extends AdminDefaultController
                 }
             }
 
-            if(isset(Yii::$app->request->post()['radioPermission'])){
-                $createUser = $model->updateUserWithPermission(Yii::$app->request->post(),$role);
-                if($createUser) {
-                    Yii::$app->session->setFlash('success', Yii::t('microsept', 'UserUpdateSuccess'));
-                    return $this->redirect(['index']);
+            if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+                if (isset(Yii::$app->request->post()['radioPermission'])) {
+                    //Test de choix sur les listes déroulantes
+                    if (Yii::$app->request->post()['radioPermission'] != User::TYPE_PORTAIL_ADMIN) {
+                        if (Yii::$app->request->post()['radioPermission'] == User::TYPE_LABO_ADMIN || Yii::$app->request->post()['radioPermission'] == User::TYPE_LABO_USER) {
+                            if (intval(Yii::$app->request->post()['paramLabo']) == 0 || Yii::$app->request->post()['paramLabo'] == '') {
+                                Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLLabo'));
+                                if(User::isPortailAdmin($model->id)){
+                                    return $this->renderIsAjax('update', ['model'=>$model,'id'=>$model->id, 'assignment' => User::getUserAssignment($model->id),'modifadmin'=>true]);
+                                }
+                                else {
+                                    if (User::isLaboAdmin($model->id) || User::isLaboUser($model->id))
+                                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idLabo' => $idLabo, 'assignment' => User::getUserAssignment($model->id)]);
+                                    else
+                                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
+                                }
+                            }
+                        } else {
+                            if (intval(Yii::$app->request->post()['paramClient']) == 0 || Yii::$app->request->post()['paramClient'] == '') {
+                                Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLClient'));
+                                if(User::isPortailAdmin($model->id)){
+                                    return $this->renderIsAjax('update', ['model'=>$model,'id'=>$model->id, 'assignment' => User::getUserAssignment($model->id),'modifadmin'=>true]);
+                                }
+                                else {
+                                    if (User::isLaboAdmin($model->id) || User::isLaboUser($model->id))
+                                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idLabo' => $idLabo, 'assignment' => User::getUserAssignment($model->id)]);
+                                    else
+                                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
+                                }
+                            }
+                        }
+                    }
+
+                    $createUser = $model->updateUserWithPermission(Yii::$app->request->post(), $role);
+                    if ($createUser) {
+                        Yii::$app->session->setFlash('success', Yii::t('microsept', 'UserUpdateSuccess'));
+                        return $this->redirect(['index']);
+                    } else {
+                        Yii::$app->session->setFlash('danger', Yii::t('microsept', 'UserCreateError'));
+                    }
                 }
-                else
-                    Yii::$app->session->setFlash('danger', Yii::t('microsept','UserCreateError'));
             }
         }
 

@@ -130,5 +130,7 @@ return [
     "Update" => "Mettre à jour",
     "UserCreateSuccess"=>"L'utilisateur a été crée avec succès",
     "UserUpdateSuccess"=>"L'utilisateur a été mis à jour avec succès",
-    "UserCreateError"=>"Une erreur s'est produite, veuillez contacter l'administrateur"
+    "UserCreateError"=>"Une erreur s'est produite, veuillez contacter l'administrateur",
+    "UserCreateDDLLabo"=>"Vous devez choisir un laboratoire à affecter à cet utilisateur",
+    "UserCreateDDLClient"=>"Vous devez choisir un client à affecter à cet utilisateur"
 ];
