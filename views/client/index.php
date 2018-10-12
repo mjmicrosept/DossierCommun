@@ -64,8 +64,6 @@ $this->params['breadcrumbs'][] = $this->title;
                     'description:ntext',
                     'user_create',
                     'date_create',
-
-                    //['class' => 'yii\grid\ActionColumn'],
                     ['class' => 'yii\grid\ActionColumn',
                         'template'=>'{view}{update}{delete}',
                         'buttons' => [

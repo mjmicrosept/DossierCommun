@@ -7,6 +7,9 @@ use app\models\Labo;
 use app\models\LaboSearch;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use app\models\PortailUsers;
+use yii\helpers\Json;
+use yii\web\Response;
 
 /**
  * LaboController implements the CRUD actions for Labo model.
@@ -154,9 +157,42 @@ class LaboController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        //$this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+    /**
+     * Suppression du client après vérification de la non exsistance d'utilisateurs affectés
+     * @return array|Response
+     * @throws NotFoundHttpException
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionDeleteLabo(){
+        $errors = false;
+        $affected = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $laboId = $_data['modelId'];
+        //On vérifie d'abord si un utilisateur est affecté au client si c'est le cas on empêche la suppression
+        $listUsers = PortailUsers::getUsersPortalList(intval($laboId),PortailUsers::TYPE_USER_LABO);
+        if(count($listUsers) != 0){
+            $errors = true;
+            $affected = true;
+        }
+        else{
+            //On supprime le client
+            $model = $this->findModel(intval($laboId));
+            if($model->delete()) {
+                Yii::$app->session->setFlash('success', 'Le laboratoire <b>' . $model->raison_sociale . '</b> à bien été supprimé');
+            }
+            else{
+                Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de la suppression du laboratoire  <b>' . $model->raison_sociale . '</b>');
+            }
+            return $this->redirect(['index']);
+        }
+        return ['errors'=>$errors,'affected'=>$affected];
     }
 
     /**
