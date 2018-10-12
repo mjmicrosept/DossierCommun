@@ -6,9 +6,13 @@ use Yii;
 use app\models\Client;
 use app\models\ClientSearch;
 use app\models\User;
+use app\models\PortailUsers;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Json;
+use yii\web\Response;
 
 /**
  * ClientController implements the CRUD actions for Client model.
@@ -152,9 +156,45 @@ class ClientController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        //On vérifie d'abord si un utilisateur est affecté au client si c'est le cas on empêche la suppression
+
+        //$this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    /**
+     * Suppression du client après vérification de la non exsistance d'utilisateurs affectés
+     * @return array|Response
+     * @throws NotFoundHttpException
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
+    public function actionDeleteClient(){
+        $errors = false;
+        $affected = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $clientId = $_data['modelId'];
+        //On vérifie d'abord si un utilisateur est affecté au client si c'est le cas on empêche la suppression
+        $listUsers = PortailUsers::getUsersPortalList(intval($clientId),PortailUsers::TYPE_USER_CLIENT);
+        if(count($listUsers) != 0){
+            $errors = true;
+            $affected = true;
+        }
+        else{
+            //On supprime le client
+            $model = $this->findModel(intval($clientId));
+            if($model->delete()) {
+                Yii::$app->session->setFlash('success', 'Le client <b>' . $model->name . '</b> à bien été supprimé');
+            }
+            else{
+                Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de la suppression du client  <b>' . $model->name . '</b>');
+            }
+            return $this->redirect(['index']);
+        }
+        return ['errors'=>$errors,'affected'=>$affected];
     }
 
     /**

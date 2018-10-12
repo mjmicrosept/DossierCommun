@@ -1,10 +1,25 @@
 <?php
 
 use webvimark\modules\UserManagement\components\GhostHtml;
+use app\assets\components\SweetAlert\SweetAlertAsset;
 use yii\widgets\DetailView;
+use yii\helpers\Url;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Client */
+
+SweetAlertAsset::register($this);
+
+$baseUrl = Yii::$app->request->baseUrl;
+$urlDelete = Url::to(['/client/delete-client']);
+
+$this->registerJS(<<<JS
+    var url = {
+        deleteClient:'{$urlDelete}',
+    };
+JS
+);
+
 
 $this->title = $model->name;
 $this->params['breadcrumbs'][] = ['label' => 'Clients', 'url' => ['index']];
@@ -29,19 +44,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                 'data-intro' => Yii::t('microsept', 'Edit client'),
                             ]
                         ) ?>
-                        <?= GhostHtml::a(
-                            '<i class="fa fa-trash"></i>&nbsp;' . Yii::t('microsept', 'Delete'),
-                            ['delete', 'id' => $model->id],
-                            [
-                                'class' => 'btn btn-danger',
-                                'data' => [
-                                    'confirm' => Yii::t('microsept', 'Delete client'),
-                                    'method' => 'post',
-                                ],
-                                'data-step' => '3',
-                                'data-intro' => Yii::t('microsept', 'Delete client'),
-                            ]
-                        ) ?>
+                        <button class="btn btn-danger btn_delete"><i class="fa fa-trash"></i>&nbsp;Supprimer</button>
                     </div>
                 </div>
 
@@ -54,7 +57,10 @@ $this->params['breadcrumbs'][] = $this->title;
                 'attributes' => [
                     'name',
                     'description:ntext',
-                    'user_create',
+                    [
+                        'attribute' => 'user_create',
+                        'value' => \app\models\User::findOne(['id' => $model->user_create])->username,
+                    ],
                     'date_create',
                     [
                         'attribute' => 'active',
@@ -66,3 +72,41 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
     </div>
 </div>
+
+<?php
+
+$this->registerJs(<<<JS
+
+    $('.btn_delete').click(function(){
+        swal({
+          title: 'Supprimer le client ?',
+          text: "Toute suppression est définitive!",
+          type: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Oui',
+          cancelButtonText: 'Non',
+          allowOutsideClick: false
+        }).then(function (dismiss) {
+          if (dismiss == true) {
+            var data = JSON.stringify({
+                modelId : {$model->id},
+            });
+            $.post(url.deleteClient, {data:data}, function(response) {
+                if(response.affected){
+                    swal(
+                      'Suppression impossible',
+                      'Un ou plusieurs utilisateurs sont affectés à ce client',
+                      'error'
+                    )
+                }
+            });
+          }
+        });
+    });
+JS
+);
+
+?>
+

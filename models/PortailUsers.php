@@ -15,6 +15,8 @@ use Yii;
  */
 class PortailUsers extends \yii\db\ActiveRecord
 {
+    const TYPE_USER_LABO = 0;
+    const TYPE_USER_CLIENT = 1;
     /**
      * {@inheritdoc}
      */
@@ -80,6 +82,21 @@ class PortailUsers extends \yii\db\ActiveRecord
     public static function getIdClientUser($iduser){
         $model = self::find()->andFilterWhere(['id_user'=> $iduser])->one();
         return $model->id_client;
+    }
+
+    /**
+     * Retourne la liste des utilisateurs du portail en fonction du type recherché
+     * @param $idSearch id du type à rechercher
+     * @param $type type à rechercher (labo / client)
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public static function getUsersPortalList($idSearch,$type){
+        if($type == self::TYPE_USER_LABO){
+            return self::find()->andFilterWhere(['id_labo'=>$idSearch])->all();
+        }
+        else{
+            return self::find()->andFilterWhere(['id_client'=>$idSearch])->all();
+        }
     }
 
     /**
