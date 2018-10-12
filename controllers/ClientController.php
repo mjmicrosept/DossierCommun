@@ -4,6 +4,8 @@ namespace app\controllers;
 
 use app\models\AppCommon;
 use app\models\ClientDossier;
+use app\models\Labo;
+use app\models\LaboClientAssign;
 use Yii;
 use app\models\Client;
 use app\models\ClientSearch;
@@ -94,6 +96,12 @@ class ClientController extends Controller
 
                 //On crée une entrée dans la table client_dossier pour enregistrer le nom du dossier nouvellement crée
                 ClientDossier::createNewEntry($model->id,$folderName);
+
+                //On crée une affectation inactive sur la table des affectation labo/client
+                $laboList = Labo::find()->all();
+                foreach ($laboList as $item) {
+                    LaboClientAssign::createNewEntry($item->id,$model->id);
+                }
             }
             catch(Exception $e){
                 Yii::trace($model->errors);

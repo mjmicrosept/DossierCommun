@@ -20,6 +20,7 @@ class LayoutMainAsset extends AssetBundle
         'css/site.css',
         'css/animate.min.css',
         'css/all-skin.css',
+        'css/loader.css',
     ];
     public $js = [
         'js/layouts.main.js',

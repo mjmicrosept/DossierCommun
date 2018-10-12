@@ -5,7 +5,7 @@ namespace app\models;
 use Yii;
 
 /**
- * This is the model class for table "portail_users".
+ * Modèle les utilisateurs du portail
  *
  * @property int $id
  * @property int $id_user

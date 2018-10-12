@@ -101,6 +101,7 @@ return [
     "Client date create" => "Crée le",
     "Client active" => "Actif",
     "Clients"=>"Clients",
+    "ClientList"=>"Liste des clients",
     "Username" => "Utilisateur",
     "Remember me" => "Se souvenir de moi",
     "PortailAdmin" => "Admin du portail",
@@ -114,6 +115,7 @@ return [
     "Infos client" => "Informations sur le client",
     "Labos"=>"Laboratoires",
     "LaboCreate" => "Création d'un laboratoire",
+    "LaboList" => "Liste des laboratoires",
     "Labo_update" => "Mise à jour du laboratoire",
     "Labo raison sociale" => "Raison sociale",
     "Labo adresse" => "Adresse",
@@ -132,5 +134,6 @@ return [
     "UserUpdateSuccess"=>"L'utilisateur a été mis à jour avec succès",
     "UserCreateError"=>"Une erreur s'est produite, veuillez contacter l'administrateur",
     "UserCreateDDLLabo"=>"Vous devez choisir un laboratoire à affecter à cet utilisateur",
-    "UserCreateDDLClient"=>"Vous devez choisir un client à affecter à cet utilisateur"
+    "UserCreateDDLClient"=>"Vous devez choisir un client à affecter à cet utilisateur",
+    "Affectation_client"=>"Affectations clients"
 ];

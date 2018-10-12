@@ -35,6 +35,7 @@ return [
         'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
         'items' => [
             ['label' => '<span class="fa fa-list"></span> Liste', 'url' => ['/labo/index']],
+            ['label' => '<span class="fa fa-exchange"></span> Affectation clients', 'url' => ['/labo/affectation']],
         ],
     ],
     [

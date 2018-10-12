@@ -5,7 +5,7 @@ namespace app\models;
 use Yii;
 
 /**
- * This is the model class for table "client_dossier".
+ * Modele des dossiers crées pour client.
  *
  * @property int $id
  * @property int $id_client

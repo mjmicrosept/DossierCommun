@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\models\Client;
+use app\models\LaboClientAssign;
 use Yii;
 use app\models\Labo;
 use app\models\LaboSearch;
@@ -90,6 +92,11 @@ class LaboController extends Controller
             }
 
             if ($isValid) {
+                //On enregistre tous les clients sur le labo dans la table des affectations mais pour le moment en non afecté
+                $clientList = Client::find()->andFilterWhere(['active'=>1])->all();
+                foreach ($clientList as $item) {
+                    LaboClientAssign::createNewEntry($model->id,$item->id);
+                }
                 Yii::$app->session->setFlash('success', 'Le laboratoire <b>'. $model->raison_sociale .'</b> à bien été créé');
                 return $this->redirect(['index']);
             }
@@ -193,6 +200,81 @@ class LaboController extends Controller
             return $this->redirect(['index']);
         }
         return ['errors'=>$errors,'affected'=>$affected];
+    }
+
+    public function actionAffectation(){
+        return $this->render('affectation/affectation', [
+        ]);
+    }
+
+    /**
+     * Récupère la liste des clients assigés au labo
+     * @return array
+     */
+    public function actionGetAffectationClient(){
+        $errors = false;
+        $affected = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $laboId = $_data['modelId'];
+
+        //On va chercher les clients affectés à ce labo
+        $clientList = LaboClientAssign::find()->andFilterWhere(['id_labo'=>intval($laboId)])->andFilterWhere(['assign'=>1])->all();
+
+
+        return ['clientList'=>$clientList];
+    }
+
+    /**
+     * Affecte ou non le(s) client(s) au labo
+     * @return array
+     */
+    public function actionSetAffectationClient(){
+        $errors = false;
+        $affected = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $laboId = $_data['idlabo'];
+        $clientList = $_data['clientList'];
+
+        if(count($clientList) == 0){
+            //on désactive tous les clients affectés à ce labo
+            $clientAssign = LaboClientAssign::find()->andFilterWhere(['id_labo'=>intval($laboId)])->andFilterWhere(['assign'=>1])->all();
+            foreach ($clientAssign as $item) {
+                $item->assingn = 0;
+                if(!$item->save())
+                    $errors = true;
+            }
+        }
+        else{
+            for($i = 0;$i < count($clientList);$i++){
+                //on affecte le client au labo
+                $client = LaboClientAssign::find()->andFilterWhere(['id_labo'=>intval($laboId)])->andFilterWhere(['id_client'=>intval($clientList[$i])])->one();
+                $client->assign = 1;
+                if(!$client->save())
+                    $errors = true;
+            }
+        }
+
+        //En terme de temps de réponse plutôt qu'une usine à gaz pour traiter tous les cas et les boucles imbriqués on désactive tous les clients du labo et on ne re affecte que ceux cochés
+        $clientAssign = LaboClientAssign::find()->andFilterWhere(['id_labo'=>intval($laboId)])->andFilterWhere(['assign'=>1])->all();
+        foreach ($clientAssign as $item) {
+            $item->assign = 0;
+            if(!$item->save())
+                $errors = true;
+        }
+        if(count($clientList) != 0){
+            for($i = 0;$i < count($clientList);$i++){
+                //on affecte le client au labo
+                $client = LaboClientAssign::find()->andFilterWhere(['id_labo'=>intval($laboId)])->andFilterWhere(['id_client'=>intval($clientList[$i])])->one();
+                $client->assign = 1;
+                if(!$client->save())
+                    $errors = true;
+            }
+        }
+        return ['errors'=>$errors];
     }
 
     /**
