@@ -10,4 +10,11 @@ return [
     'roleLaboUser'=>'labo_user',
     'roleClientAdmin'=>'client_admin',
     'roleClientUser'=>'client_user',
+
+    //PATH
+    'dossierAdmin'=>dirname(__DIR__) .'/web/dossiers_clients/admin/',
+    'dossierTemplate'=>dirname(__DIR__) .'/web/dossiers_clients/admin/template',
+    'dossierClients'=>dirname(__DIR__) .'/web/dossiers_clients/actifs/',
+    'dossierArchive'=>dirname(__DIR__) .'/web/dossiers_clients/archive/',
+    'dossierRoot'=>dirname(__DIR__) .'/web/dossiers_clients/',
 ];

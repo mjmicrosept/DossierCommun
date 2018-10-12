@@ -2,6 +2,8 @@
 
 namespace app\controllers;
 
+use app\models\AppCommon;
+use app\models\ClientDossier;
 use Yii;
 use app\models\Client;
 use app\models\ClientSearch;
@@ -81,12 +83,17 @@ class ClientController extends Controller
 
             $model->active = 1;
             try {
-                //Yii::trace(Yii::$app->request->post());
                 if(!isset(Yii::$app->request->post()['Client']['active']))
                     $model->active = 0;
-                //Yii::trace($model->active);
 
                 $isValid = $model->save();
+
+                //On crée le dossier physique du client sur le serveur
+                $folderName = AppCommon::Gen_UUID();
+                $this->createClientFolder($folderName);
+
+                //On crée une entrée dans la table client_dossier pour enregistrer le nom du dossier nouvellement crée
+                ClientDossier::createNewEntry($model->id,$folderName);
             }
             catch(Exception $e){
                 Yii::trace($model->errors);
@@ -195,6 +202,21 @@ class ClientController extends Controller
             return $this->redirect(['index']);
         }
         return ['errors'=>$errors,'affected'=>$affected];
+    }
+
+    /**
+     * Création du dossier client
+     * @param $clientName
+     */
+    protected function createClientFolder($folderName){
+        if(!is_null($folderName) && $folderName != ''){
+            //On va d'abord chercher non pas si il existe un dossier du même nom (car il peut avoir été archivé donc retourner false) mais
+            // si un enregistrement existe avec ce nom de dossier
+            $clientDossier = ClientDossier::find()->andFilterWhere(['dossier_name'=>$folderName])->all();
+            if(count($clientDossier) == 0){
+                mkdir(Yii::$app->params['dossierClients'].$folderName);
+            }
+        }
     }
 
     /**
