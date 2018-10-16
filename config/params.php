@@ -17,4 +17,11 @@ return [
     'dossierClients'=>dirname(__DIR__) .'/web/dossiers_clients/actifs/',
     'dossierArchive'=>dirname(__DIR__) .'/web/dossiers_clients/archive/',
     'dossierRoot'=>dirname(__DIR__) .'/web/dossiers_clients/',
+
+    //URL
+    'urlAdmin'=>Yii::$app->request->baseUrl .'/dossiers_clients/admin/',
+    'urlTemplate'=>Yii::$app->request->baseUrl .'/dossiers_clients/admin/template',
+    'urlClients'=>Yii::$app->request->baseUrl .'/dossiers_clients/actifs/',
+    'urlArchive'=>Yii::$app->request->baseUrl .'/dossiers_clients/archive/',
+    'urlRoot'=>Yii::$app->request->baseUrl .'/dossiers_clients/',
 ];

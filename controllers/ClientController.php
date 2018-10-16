@@ -11,7 +11,6 @@ use app\models\Client;
 use app\models\ClientSearch;
 use app\models\User;
 use app\models\PortailUsers;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;

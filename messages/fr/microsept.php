@@ -7,6 +7,7 @@
  */
 return [
     "Login"=>"Identifiant",
+    "ToLogin"=>"S'identifier",
     "Roles"=>"Rôles",
     "E-mail confirmed"=>"E-mail confirmé",
     "Registration IP"=>"IP enregistrée",
@@ -135,5 +136,19 @@ return [
     "UserCreateError"=>"Une erreur s'est produite, veuillez contacter l'administrateur",
     "UserCreateDDLLabo"=>"Vous devez choisir un laboratoire à affecter à cet utilisateur",
     "UserCreateDDLClient"=>"Vous devez choisir un client à affecter à cet utilisateur",
-    "Affectation_client"=>"Affectations clients"
+    "Affectation_client"=>"Affectations clients",
+    "Result_Analyses"=>"Résultats d'analyses",
+    "Janv"=>"Janvier",
+    "Fev"=>"Février",
+    "Ma"=>"Mars",
+    "Avr"=>"Avril",
+    "Mai"=>"Mai",
+    "Ju"=>"Juin",
+    "Jui"=>"Juillet",
+    "Ao"=>"Aout",
+    "Sept"=>"Septembre",
+    "Oct"=>"Octobre",
+    "Nov"=>"Novembre",
+    "Dec"=>"Décembre",
+    "Resultat_De"=>"Résultats de la période : "
 ];

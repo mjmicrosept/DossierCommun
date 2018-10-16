@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4ad047389b286fd127c2fb1d6d4962bb",
+    "content-hash": "f566790f582caa3a4b32e117d226f5bb",
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
@@ -240,6 +240,35 @@
                 "plugins"
             ],
             "time": "2017-11-21T11:46:23+00:00"
+        },
+        {
+            "name": "bower-asset/intro.js",
+            "version": "v2.9.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/usablica/intro.js.git",
+                "reference": "b46bbcd8af46be2ae3b43aba850334b12ff03cdb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/usablica/intro.js/zipball/b46bbcd8af46be2ae3b43aba850334b12ff03cdb",
+                "reference": "b46bbcd8af46be2ae3b43aba850334b12ff03cdb",
+                "shasum": ""
+            },
+            "type": "bower-asset-library",
+            "extra": {
+                "bower-asset-main": [
+                    "intro.js",
+                    "introjs.css"
+                ]
+            },
+            "description": "A better way for new feature introduction and step-by-step users guide for your website and project.",
+            "keywords": [
+                "demo",
+                "intro",
+                "introduction"
+            ],
+            "time": "2018-04-25T12:08:43+00:00"
         },
         {
             "name": "bower-asset/jquery",
@@ -668,6 +697,51 @@
                 "yii2"
             ],
             "time": "2015-01-27T10:53:51+00:00"
+        },
+        {
+            "name": "devleaks/yii2-introjs",
+            "version": "1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/devleaks/yii2-introjs.git",
+                "reference": "36e501805f0867079438ac4a33b3c54d8ef9cd2b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/devleaks/yii2-introjs/zipball/36e501805f0867079438ac4a33b3c54d8ef9cd2b",
+                "reference": "36e501805f0867079438ac4a33b3c54d8ef9cd2b",
+                "shasum": ""
+            },
+            "require": {
+                "bower-asset/intro.js": "*",
+                "yiisoft/yii2": "*",
+                "yiisoft/yii2-bootstrap": "*"
+            },
+            "type": "yii2-extension",
+            "autoload": {
+                "psr-4": {
+                    "devleaks\\introjs\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Pierre M",
+                    "email": "devleaks.be@gmail.com"
+                }
+            ],
+            "description": "Yii2 asset bundle wrapper around introjs library",
+            "keywords": [
+                "extension",
+                "help",
+                "introjs",
+                "webtour",
+                "yii2"
+            ],
+            "time": "2014-12-04T16:28:53+00:00"
         },
         {
             "name": "dmstr/yii2-adminlte-asset",
@@ -1525,16 +1599,16 @@
         },
         {
             "name": "kartik-v/yii2-mpdf",
-            "version": "v1.0.4",
+            "version": "v1.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kartik-v/yii2-mpdf.git",
-                "reference": "55730921fa30c76c4434f9f90e172dadbb982f7c"
+                "reference": "908c8d15aec62cd0ae81a1ce8c1eadcc18c8f7fc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kartik-v/yii2-mpdf/zipball/55730921fa30c76c4434f9f90e172dadbb982f7c",
-                "reference": "55730921fa30c76c4434f9f90e172dadbb982f7c",
+                "url": "https://api.github.com/repos/kartik-v/yii2-mpdf/zipball/908c8d15aec62cd0ae81a1ce8c1eadcc18c8f7fc",
+                "reference": "908c8d15aec62cd0ae81a1ce8c1eadcc18c8f7fc",
                 "shasum": ""
             },
             "require": {
@@ -1573,7 +1647,7 @@
                 "utf8",
                 "yii2"
             ],
-            "time": "2018-10-09T03:44:17+00:00"
+            "time": "2018-10-13T07:38:33+00:00"
         },
         {
             "name": "kartik-v/yii2-popover-x",
@@ -2472,16 +2546,16 @@
         },
         {
             "name": "wbraganca/yii2-fancytree-widget",
-            "version": "dev-master",
+            "version": "1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/wbraganca/yii2-fancytree-widget.git",
-                "reference": "d01ffd33f4568666d91b65839e57292bf2fb2272"
+                "reference": "97fd3b72aacb067efce839076f8000d43dd06cae"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/wbraganca/yii2-fancytree-widget/zipball/d01ffd33f4568666d91b65839e57292bf2fb2272",
-                "reference": "d01ffd33f4568666d91b65839e57292bf2fb2272",
+                "url": "https://api.github.com/repos/wbraganca/yii2-fancytree-widget/zipball/97fd3b72aacb067efce839076f8000d43dd06cae",
+                "reference": "97fd3b72aacb067efce839076f8000d43dd06cae",
                 "shasum": ""
             },
             "require": {
@@ -2519,7 +2593,7 @@
                 "yii2",
                 "yii2-fancytree-widget"
             ],
-            "time": "2015-11-08T14:46:38+00:00"
+            "time": "2015-11-08T14:15:16+00:00"
         },
         {
             "name": "webvimark/bootstrap-switch",
@@ -3445,7 +3519,6 @@
         "kartik-v/yii2-builder": 20,
         "kartik-v/yii2-editable": 20,
         "kartik-v/yii2-detail-view": 20,
-        "wbraganca/yii2-fancytree-widget": 20,
         "zxbodya/yii2-elfinder": 20
     },
     "prefer-stable": false,

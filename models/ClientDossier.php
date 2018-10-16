@@ -25,6 +25,19 @@ class ClientDossier extends \yii\db\ActiveRecord
     }
 
     /**
+     * Renvoie le nom du dossier affilié au client
+     * @param $idClient
+     * @return mixed|null
+     */
+    public static function getDossierName($idClient){
+        $model = self::find()->andFilterWhere(['id_client'=>$idClient])->one();
+        if(!is_null($model))
+            return $model->dossier_name;
+        else
+            return null;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function rules()

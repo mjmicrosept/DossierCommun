@@ -25,6 +25,19 @@ class Client extends \yii\db\ActiveRecord
     }
 
     /**
+     * Retourne le chemin physique du dossier du client
+     * @return null|string
+     */
+    public function getFolderPath(){
+        $dossierName = ClientDossier::getDossierName($this->id);
+        if(is_null($dossierName))
+            return null;
+        else{
+            return $dossierName;
+        }
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function rules()

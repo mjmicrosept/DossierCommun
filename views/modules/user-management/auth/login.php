@@ -46,7 +46,7 @@ $web = Yii::getAlias('@web');
                 <?php endif; ?>
 
                 <?= Html::submitButton(
-                    Yii::t('microsept','Login'),
+                    Yii::t('microsept','ToLogin'),
                     ['class' => 'btn btn-lg btn-primary btn-block']
                 ) ?>
 

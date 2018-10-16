@@ -52,25 +52,16 @@ class User extends \webvimark\modules\UserManagement\models\User
     ];
 
 
-    protected static $aUserClient = [];
-
-    /***
-     * @return mixed
-     */
-    public function getUserClient(){
-        if (!isset(self::$aUserClient[Yii::$app->currentClient->dbName][$this->id])) {
-            self::$aUserClient[Yii::$app->currentClient->dbName][$this->id] = UserClient::findOne($this->id);
-        }
-        return self::$aUserClient[Yii::$app->currentClient->dbName][$this->id];
-    }
-
     /**
      * @return ActiveQuery
      */
     public function getClient()
     {
-        return $this->hasMany(Client::className(), ['id' => 'id_client'])
-            ->viaTable('user_client', ['id_user' => 'id']);
+        $portailUser = PortailUsers::find()->andFilterWhere(['id_user'=>$this->id])->one();
+        if(!is_null($portailUser))
+            return Client::find()->andFilterWhere(['id'=>$portailUser->id_client])->one();
+        else
+            return null;
     }
 
     /**
@@ -88,7 +79,10 @@ class User extends \webvimark\modules\UserManagement\models\User
      * @return Client
      */
     public function getLastClient() {
-        return $this->client[0];
+        if(!is_null($this->client))
+            return $this->client[0];
+        else
+            return null;
     }
 
     /**

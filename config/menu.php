@@ -50,16 +50,15 @@ return [
     ],
     [
         'label' => '<a href="#"><i class="fa fa-file"></i>
-                                    <span>Résultats d\'analyses</span>
+                                    <span>Documents</span>
                                 <i class="fa fa-angle-left pull-right"></i></a>',
         'options' => ['class' => ' treeview'],
         'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
 //        'linkTemplate' => '<a target="{target}" href="{url}">{label}</a>',
         'items' => [
-            ['label' => '<span class="fa fa-exchange"></span> Transactions', 'url' => ['/transaction/index', 'sort' =>'-created_at']],
-            ['label' => '<span class="fa fa-refresh"></span> Régularisation', 'url' => ['/regularisation/index']],
-            ['label' => '<span class="fa fa-book"></span> Nomenclature', 'url' => ['/nomenclature/index']],
-            ['label' => '<span class="fa fa-cubes"></span> Palettes', 'url' => ['/palette-type/index']],
+            ['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
+            ['label' => '<span class="fa fa-cloud-upload"></span> Upload', 'url' => ['/document/upload']],
+            ['label' => '<span class="fa fa-tag"></span> Résultats d\'analyses', 'url' => ['/document/result-analyse-index']],
         ],
 //        'visible' => Yii::$app->user->isSuperAdmin
     ],
