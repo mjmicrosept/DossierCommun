@@ -18,6 +18,8 @@ class AppCommon
      * @var array
      */
     public static $aListMonth = [
+        '.'=>'',
+        '..'=>'',
         '01' => 'Janv',
         '02' => 'Fev',
         '03' => 'Ma',
@@ -65,20 +67,34 @@ class AppCommon
     public static function dataFancytreeClientActif($level=0, $path,$folderClientName) {
         $node = [];
         $folder = opendir ($path);
-
-        while ($file = readdir ($folder)) {
-            if ($file != "." && $file != "..") {
-                $pathfile = $path.'/'.$file;
-                $keyFile = $folderClientName.'/'.$file;
-                if(filetype($pathfile) != 'file'){
-                    $node[] = [
-                        'title' => $level == 0 ? $file : Yii::t('microsept',self::$aListMonth[$file]),
-                        'key' => $keyFile,
-                        'expanded' => false,
-                        'editable' => true,
-                        'icon' => $level == 0 ? 'fa fa-folder-open' : 'fa fa-folder',
-                        'children' => self::dataFancytreeClientActif($level + 1, $pathfile,$keyFile)
-                    ];
+        if($level < 2) {
+            while ($file = readdir($folder)) {
+                $title = '';
+                $icon = '';
+                if ($level == 0) {
+                    $title = $file;
+                }
+                else {
+                    if ($level == 1) {
+                        $pathfile = $path . '/' . $file;
+                        if (filetype($pathfile) != 'file') {
+                            $title = Yii::t('microsept', self::$aListMonth[$file]);
+                        }
+                    }
+                }
+                if ($file != "." && $file != "..") {
+                    $pathfile = $path . '/' . $file;
+                    $keyFile = $folderClientName . '/' . $file;
+                    if (filetype($pathfile) != 'file') {
+                        $node[] = [
+                            'title' => $title,
+                            'key' => $keyFile,
+                            'expanded' => false,
+                            'editable' => true,
+                            'icon' => $level == 0 ? 'fa fa-folder-open' : 'fa fa-folder',
+                            'children' => self::dataFancytreeClientActif($level + 1, $pathfile, $keyFile)
+                        ];
+                    }
                 }
             }
         }
@@ -91,20 +107,28 @@ class AppCommon
      * @param $dir
      * @return string
      */
-    public static function getFoldersFile($dir){
+    public static function getFoldersFile($dir,$parent = null){
         $result = '';
         $folder = opendir (Yii::$app->params['dossierClients'].$dir);
 
+        $index = 0;
         while ($file = readdir ($folder)) {
             if ($file != "." && $file != "..") {
                 $pathfile = Yii::$app->params['dossierClients'].$dir.'/'.$file;
                 if(filetype($pathfile) == 'file'){
-                    $result .= '<a href="'.Yii::$app->params["urlClients"].$dir.'/'.$file .'" target="_blank"><i class="fa fa-eye"></i></a>';
+                    if(!is_null($parent) && $index == 0)
+                        $result .= $parent;
+                    //V1.2
+
+                    //V1.1
+                    $result .= '<a href="'.Yii::$app->params["urlClients"].$dir.'/'.$file .'" target="_blank" style="margin-left:20px;"><i class="fa fa-eye"></i></a>';
                     $result .= '<a href="/index.php/document/download?path='.$dir.'/'.$file .'" data-method="post" style="margin-left:10px;margin-right:10px;"><i class="fa fa-save"></i></a>';
                     $result .= '<label>';
                     $result .= $file;
                     $result .= '</label>';
                     $result .= '<br>';
+
+                    //V1.0
                     /*$result .= '<label>';
                     $result .= '<input type="checkbox" class="btn-chk-list-document" name="documentList[]" value="'.$dir.'/'.$file.'" style="margin-right:20px;">';
                     $result .= $file;
@@ -113,6 +137,14 @@ class AppCommon
                     $result .= '<a href="/index.php/document/download?id='.$dir.'/'.$file .'" data-method="post" style="margin-left:10px;"><i class="fa fa-save"></i></a>';
                     $result .= '<br>';*/
                 }
+                else{
+                    $labo = Labo::find()->andFilterWhere(['id'=>intval($file)])->one();
+                    if(!is_null($labo)){
+                        $resultLabo = '<label>'.$labo->raison_sociale.'</label><br>';
+                        $result .= self::getFoldersFile($dir.'/'.$file,$resultLabo);
+                    }
+                }
+                $index++;
             }
         }
         closedir ($folder);
