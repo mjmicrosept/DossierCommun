@@ -24,4 +24,6 @@ return [
     'urlClients'=>Yii::$app->request->baseUrl .'/dossiers_clients/actifs/',
     'urlArchive'=>Yii::$app->request->baseUrl .'/dossiers_clients/archive/',
     'urlRoot'=>Yii::$app->request->baseUrl .'/dossiers_clients/',
+
+    'arboClientFirstYear'=>2007,
 ];

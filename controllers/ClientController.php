@@ -101,6 +101,10 @@ class ClientController extends Controller
                 foreach ($laboList as $item) {
                     LaboClientAssign::createNewEntry($item->id,$model->id);
                 }
+
+                //Création de l'arborescence physique
+                Client::createArboClient($model->id,$folderName);
+
             }
             catch(Exception $e){
                 Yii::trace($model->errors);

@@ -38,6 +38,54 @@ class Client extends \yii\db\ActiveRecord
     }
 
     /**
+     * Fonction de création de l'arborescence client complète
+     * @param $idClient
+     * @param $folderClient
+     */
+    public static function createArboClient($idClient,$folderClient){
+        $firstYear = Yii::$app->params['arboClientFirstYear'];
+        $currentYear = strval(\date('Y'));
+        $currentMonth = strval(\date('m'));
+        for($i = $firstYear; $i <= date('Y');$i++){
+            //Création du dossier de l'année
+            if(!is_dir(Yii::$app->params['dossierClients'].$folderClient.'/'.$i))
+                mkdir(Yii::$app->params['dossierClients'].$folderClient.'/'.$i);
+            //On boucle une nouvelle fois pour les mois
+            for($j = 1; $j <= 12 ; $j++){
+                $monthTitle = '';
+
+                if($j < 10)
+                    $monthTitle = '0' . strval($j);
+                else
+                    $monthTitle = strval($j);
+
+                if(!is_dir(Yii::$app->params['dossierClients'].$folderClient.'/'.$i.'/'.$monthTitle)) {
+                    if(strval($i) == $currentYear){
+                        if($j <= intval($currentMonth)) {
+                            mkdir(Yii::$app->params['dossierClients'] . $folderClient . '/' . $i . '/' . $monthTitle);
+                            //On cherche tous les laboratoires associés au client
+                            $aLaboClient = LaboClientAssign::find()->andFilterWhere(['id_client'=>$idClient])->all();
+                            foreach ($aLaboClient as $item) {
+                                if(!is_dir(Yii::$app->params['dossierClients'].$folderClient.'/'.$i.'/'.$monthTitle.'/'. strval($item->id_labo)))
+                                    mkdir(Yii::$app->params['dossierClients'].$folderClient.'/'.$i.'/'.$monthTitle.'/'. strval($item->id_labo));
+                            }
+                        }
+                    }
+                    else{
+                        mkdir(Yii::$app->params['dossierClients'] . $folderClient . '/' . $i . '/' . $monthTitle);
+                        //On cherche tous les laboratoires associés au client
+                        $aLaboClient = LaboClientAssign::find()->andFilterWhere(['id_client'=>$idClient])->all();
+                        foreach ($aLaboClient as $item) {
+                            if(!is_dir(Yii::$app->params['dossierClients'].$folderClient.'/'.$i.'/'.$monthTitle.'/'. strval($item->id_labo)))
+                                mkdir(Yii::$app->params['dossierClients'].$folderClient.'/'.$i.'/'.$monthTitle.'/'. strval($item->id_labo));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function rules()
