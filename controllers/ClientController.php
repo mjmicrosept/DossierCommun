@@ -103,7 +103,7 @@ class ClientController extends Controller
                 }
 
                 //Création de l'arborescence physique
-                Client::createArboClient($model->id,$folderName);
+                //Client::createArboClient($model->id,$folderName);
 
             }
             catch(Exception $e){

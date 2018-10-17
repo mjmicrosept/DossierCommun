@@ -52,13 +52,14 @@ class DocumentController extends Controller
     public function actionResultAnalyseIndex(){
         $client = User::getCurrentUser()->getClient();
         $folderClient = $client->getFolderPath();
+        $tree = AppCommon::dataFancytreeClientActif(0,Yii::$app->params['dossierClients'].$folderClient,$folderClient,true);
         $data = [[
             'title' => 'Années',
             'key' => 1,
             'expanded' => true,
             'editable' => false,
             'icon' => 'fa fa-calendar',
-            'children' => AppCommon::dataFancytreeClientActif(0,Yii::$app->params['dossierClients'].$folderClient,$folderClient)
+            'children' => $tree['exist'] ? $tree['node'] : ''
         ]];
 
         return $this->render('analyses', ['data' => $data]);

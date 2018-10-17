@@ -64,42 +64,44 @@ class AppCommon
      * @param $path
      * @return array
      */
-    public static function dataFancytreeClientActif($level=0, $path,$folderClientName) {
+    public static function dataFancytreeClientActif($level=0, $path,$folderClientName,$exist) {
         $node = [];
         $folder = opendir ($path);
-        if($level < 2) {
-            while ($file = readdir($folder)) {
-                $title = '';
-                $icon = '';
-                if ($level == 0) {
-                    $title = $file;
-                }
-                else {
-                    if ($level == 1) {
-                        $pathfile = $path . '/' . $file;
-                        if (filetype($pathfile) != 'file') {
-                            $title = Yii::t('microsept', self::$aListMonth[$file]);
-                        }
+
+        while ($file = readdir($folder)) {
+            $title = '';
+            $icon = '';
+            if ($level == 0) {
+                $title = $file;
+            }
+            else {
+                if ($level == 1) {
+                    $pathfile = $path . '/' . $file;
+                    if (filetype($pathfile) != 'file') {
+                        $title = Yii::t('microsept', self::$aListMonth[$file]);
                     }
                 }
-                if ($file != "." && $file != "..") {
-                    $pathfile = $path . '/' . $file;
-                    $keyFile = $folderClientName . '/' . $file;
+            }
+            if ($file != "." && $file != "..") {
+                $pathfile = $path . '/' . $file;
+                $keyFile = $folderClientName . '/' . $file;
+                if($level < 2){
                     if (filetype($pathfile) != 'file') {
+                        $tree = self::dataFancytreeClientActif($level + 1, $pathfile, $keyFile, $exist);
                         $node[] = [
                             'title' => $title,
                             'key' => $keyFile,
                             'expanded' => false,
                             'editable' => true,
                             'icon' => $level == 0 ? 'fa fa-folder-open' : 'fa fa-folder',
-                            'children' => self::dataFancytreeClientActif($level + 1, $pathfile, $keyFile)
+                            'children' => $tree['exist'] ? $tree['node'] : ''
                         ];
                     }
                 }
             }
         }
         closedir ($folder);
-        return $node;
+        return ['node'=>$node,'exist'=>$exist];
     }
 
     /**
