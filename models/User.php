@@ -53,7 +53,7 @@ class User extends \webvimark\modules\UserManagement\models\User
 
 
     /**
-     * @return ActiveQuery
+     * @return array|null|\yii\db\ActiveRecord
      */
     public function getClient()
     {
@@ -65,7 +65,18 @@ class User extends \webvimark\modules\UserManagement\models\User
     }
 
     /**
-     * @return ActiveQuery
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public function getLabo(){
+        $portailUser = PortailUsers::find()->andFilterWhere(['id_user'=>$this->id])->one();
+        if(!is_null($portailUser))
+            return Labo::find()->andFilterWhere(['id'=>$portailUser->id_labo])->one();
+        else
+            return null;
+    }
+
+    /**
+     * @return array|null|\yii\db\ActiveRecord
      */
     public function getPortalAssign()
     {

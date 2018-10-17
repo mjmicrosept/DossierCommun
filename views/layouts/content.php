@@ -29,5 +29,5 @@ use dmstr\widgets\Alert;
     <div class="pull-right hidden-xs">
         <b>Version</b> <?= Yii::$app->version ?>
     </div>
-    <strong>Copyright &copy; <?= date('Y') ?> <a href="http://konvex-it.fr/">Microsept</a>.</strong> All rights reserved.
+    <strong>Copyright &copy; <?= date('Y') ?> <a href="http://www.reseaufrancelabo.fr//">RFL</a>.</strong> All rights reserved.
 </footer>

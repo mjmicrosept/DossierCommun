@@ -41,8 +41,18 @@ class DocumentController extends Controller
 
     }
 
+    /**
+     * Page d'upload des fichiers d'un labo
+     * @return string
+     */
     public function actionUpload(){
+        $labo = User::getCurrentUser()->getLabo();
 
+        return $this->render('upload',
+            [
+                'labo' => $labo,
+            ]
+        );
     }
 
     /**
@@ -83,6 +93,7 @@ class DocumentController extends Controller
     }
 
     /**
+     * Téléchargement d'un document
      * @param $path
      */
     public function actionDownload($path){

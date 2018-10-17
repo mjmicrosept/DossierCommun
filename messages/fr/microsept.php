@@ -150,5 +150,6 @@ return [
     "Oct"=>"Octobre",
     "Nov"=>"Novembre",
     "Dec"=>"Décembre",
-    "Resultat_De"=>"Résultats de la période : "
+    "Resultat_De"=>"Résultats de la période : ",
+    "Upload_Labo"=>"Upload"
 ];
