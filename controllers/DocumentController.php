@@ -9,6 +9,7 @@
 namespace app\controllers;
 
 use app\models\Client;
+use app\models\ClientDossier;
 use app\models\Labo;
 use app\models\LaboClientAssign;
 use app\models\PortailUsers;
@@ -95,10 +96,81 @@ class DocumentController extends Controller
 
     public function actionFileUpload(){
         Yii::$app->response->format = Response::FORMAT_JSON;
+        //Récupération des variables
+        $error = [];
+        $errorkey = [];
+        $idLabo = null;
+        $idClient = null;
+        $year = null;
+        $month = null;
+        if(isset($_POST['idLabo']))
+            $idLabo = $_POST['idLabo'];
+        if(isset($_POST['idClient']))
+            $idClient = $_POST['idClient'];
+        if(isset($_POST['year']))
+            $year = strval($_POST['year']);
+        if(isset($_POST['month'])) {
+            if(intval($_POST['month']) < 10)
+                $month = '0'.strval($_POST['month']);
+            else
+                strval($_POST['month']);
+        }
 
-        Yii::trace($_POST);
-        Yii::trace($_FILES);
-        return ['append'=>true];
+
+        if(!is_null($idLabo)){
+            if(!is_null($idClient)){
+                //On recherche le nom du dossier correspondant au client
+                $folderClientName = ClientDossier::getDossierName($idClient);
+                if(!is_null($folderClientName)) {
+                    //Chemin vers le dossier client
+                    $pathClientFolder = Yii::$app->params['dossierClients'].$folderClientName.'/';
+                    if (!is_null($year) && !is_null($month)) {
+                        //Chemin vers l'année
+                        $pathClientYearFolder = $pathClientFolder.'/'.$year;
+                        if(!is_dir($pathClientYearFolder))
+                            mkdir($pathClientYearFolder);
+                        //Chemin vers le mois
+                        $pathClientMonthFolder = $pathClientYearFolder .'/'.$month;
+                        if(!is_dir($pathClientMonthFolder))
+                            mkdir($pathClientMonthFolder);
+                        //Chemin vers le labo
+                        $pathClientLaboFolder = $pathClientMonthFolder.'/'.strval($idLabo);
+                        if(!is_dir($pathClientLaboFolder))
+                            mkdir($pathClientLaboFolder);
+
+                        Yii::trace($_FILES['upload-files']);
+                        for($i = 0; $i < count($_FILES['upload-files']['name']);$i++){
+                            if(end(explode(".", $_FILES['upload-files']['name'][$i])) == 'pdf') {
+                                $destination = Yii::$app->params['dossierClients'] . $folderClientName . '/' . $year . '/' . $month . '/' . strval($idLabo) . '/';
+                                @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $_FILES['upload-files']['name'][$i]);
+                                @unlink($_FILES['files']['tmp_name'][$i]);
+                            }
+                            else{
+                                array_push($error,'Un fichier ne possède pas la bonne extension');
+                                array_push($errorkey,$i);
+                            }
+                        }
+
+
+                        //A la toute fin on vérifie que des fichiers existent dans les dossier (sinon suppression)
+                        //Test sur le dossier Labo
+                        if(!\glob($pathClientLaboFolder.'/*'))
+                            rmdir($pathClientLaboFolder);
+
+                        //Test sur le dossier mois
+                        if(!\glob($pathClientMonthFolder.'/*'))
+                            rmdir($pathClientMonthFolder);
+
+                        //Test sur le dossier année
+                        if(!\glob($pathClientYearFolder.'/*'))
+                            rmdir($pathClientYearFolder);
+                    }
+                }
+            }
+        }
+
+        //On récupère le nom du dossier client
+        return ['error'=>$error, 'errorkeys'=>$errorkey];
     }
 
     /**

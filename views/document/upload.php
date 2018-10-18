@@ -164,7 +164,7 @@ JS
                         ?>
                         <?= Html::endForm(); ?>
                         <div class="file-loading">
-                            <input id="upload-input" name="kartik-input-706[]" type="file" multiple>
+                            <input id="upload-input" name="upload-files[]" type="file" multiple>
                         </div>
                     </fieldset>
                 </div>
