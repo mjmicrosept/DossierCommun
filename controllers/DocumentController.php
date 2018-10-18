@@ -8,6 +8,9 @@
 
 namespace app\controllers;
 
+use app\models\Client;
+use app\models\Labo;
+use app\models\LaboClientAssign;
 use app\models\PortailUsers;
 use Yii;
 use yii\web\NotFoundHttpException;
@@ -46,13 +49,56 @@ class DocumentController extends Controller
      * @return string
      */
     public function actionUpload(){
-        $labo = User::getCurrentUser()->getLabo();
+        $labo = null;
+        $listYears = [];
+        $listMonth = [];
+        $listClient = [];
+        $listLabo = [];
+
+        $admin = false;
+
+        if(User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || Yii::$app->user->isSuperAdmin){
+            $admin = true;
+            $listClient = Client::getAsListActive();
+            $listLabo = Labo::getAsListActive();
+        }
+        else{
+            $labo = User::getCurrentUser()->getLabo();
+            $laboClientAssign = LaboClientAssign::getListLaboClientAssign($labo->id);
+            $listClient = Client::getAsListFromClientAssign($laboClientAssign);
+        }
+
+        for($i = Yii::$app->params['arboClientFirstYear']; $i <= date('Y');$i++){
+            $listYears[$i] = $i;
+        }
+
+        for($i = 1; $i <= 12 ; $i++){
+            $strValue = '';
+            if($i < 10)
+                $strValue = '0' . strval($i);
+            else
+                $strValue = strval($i);
+            $listMonth[$i] = Yii::t('microsept', AppCommon::$aListMonth[$strValue]);
+        }
 
         return $this->render('upload',
             [
                 'labo' => $labo,
+                'listYears' => $listYears,
+                'listMonth' => $listMonth,
+                'admin' => $admin,
+                'listClient' => $listClient,
+                'listLabo' => $listLabo
             ]
         );
+    }
+
+    public function actionFileUpload(){
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        Yii::trace($_POST);
+        Yii::trace($_FILES);
+        return ['append'=>true];
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "client".
@@ -23,6 +24,32 @@ class Client extends \yii\db\ActiveRecord
     {
         return 'client';
     }
+
+    /**
+     * Retourne la liste brute id/nom
+     * @return mixed
+     */
+    public static function getAsListActive(){
+        return ArrayHelper::map(
+            self::find()->andFilterWhere(['active'=>1])->all()
+            , 'id','name'
+        );
+    }
+
+    /**
+     * Retourne la liste brute id/nom des clients affectés à un labo
+     * @param $clientAssign
+     * @return array
+     */
+    public static function getAsListFromClientAssign($clientAssign){
+        $resultList = [];
+        foreach ($clientAssign as $item) {
+            $resultList[$item->id_client] = self::find()->andFilterWhere(['id'=>$item->id_client])->one()->name;
+        }
+
+        return $resultList;
+    }
+
 
     /**
      * Retourne le chemin physique du dossier du client

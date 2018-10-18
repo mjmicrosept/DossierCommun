@@ -25,6 +25,15 @@ class LaboClientAssign extends \yii\db\ActiveRecord
     }
 
     /**
+     * Retourne la liste des affectations client pour un labo
+     * @param $id_labo
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public static function getListLaboClientAssign($id_labo){
+        return self::find()->andFilterWhere(['id_labo'=>$id_labo])->andFilterWhere(['assign'=>1])->all();
+    }
+
+    /**
      * Création d'une nouvelle entrée dans la table
      * @param $idLabo
      * @param $idClient

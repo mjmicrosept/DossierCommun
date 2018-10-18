@@ -151,5 +151,8 @@ return [
     "Nov"=>"Novembre",
     "Dec"=>"Décembre",
     "Resultat_De"=>"Résultats de la période : ",
-    "Upload_Labo"=>"Upload"
+    "Upload_Labo"=>"Upload",
+    "Upload_Doc_Analyse"=>"Envoi de documents d'analyses",
+    "Send"=>"Envoyer",
+    "LastSend"=>"Derniers envois"
 ];

@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "laboratoires".
@@ -29,6 +30,17 @@ class Labo extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return 'laboratoires';
+    }
+
+    /**
+     * Retourne la liste brute id/nom
+     * @return mixed
+     */
+    public static function getAsListActive(){
+        return ArrayHelper::map(
+            self::find()->andFilterWhere(['active'=>1])->orderBy('raison_sociale')->all()
+            , 'id','raison_sociale'
+        );
     }
 
     /**
