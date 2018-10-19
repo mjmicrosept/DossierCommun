@@ -153,4 +153,44 @@ class AppCommon
 
         return $result;
     }
+
+    public static function getSyntheseFileUpload($idLabo,$idClient,$year,$month,$parent=null){
+        $result = '';
+        $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
+        $clientFolder = $client->getFolderPath();
+        if($month < 10)
+            $month = '0'.strval($month);
+        $dir = $clientFolder.'/'.strval($year).'/'.$month.'/'.strval($idLabo);
+
+        if(file_exists(Yii::$app->params['dossierClients'].$dir)) {
+            $folder = opendir(Yii::$app->params['dossierClients'] . $dir);
+            $index = 0;
+            while ($file = readdir($folder)) {
+                if ($file != "." && $file != "..") {
+                    $pathfile = Yii::$app->params['dossierClients'] . $dir . '/' . $file;
+                    if (filetype($pathfile) == 'file') {
+                        if (!is_null($parent) && $index == 0)
+                            $result .= $parent;
+
+                        $result .= '<a href="' . Yii::$app->params["urlClients"] . $dir . '/' . $file . '" target="_blank" style="margin-left:20px;"><i class="fa fa-eye" style="margin-right:10px;"></i></a>';
+                        $result .= '<label>';
+                        $result .= $file;
+                        $result .= '</label>';
+                        $result .= '<br>';
+                    } else {
+                        $labo = Labo::find()->andFilterWhere(['id' => intval($file)])->one();
+                        if (!is_null($labo)) {
+                            $resultLabo = '<label>' . $labo->raison_sociale . '</label><br>';
+                            $result .= self::getSyntheseFileUpload($idLabo, $idClient, $year, $month, $resultLabo);
+                        }
+                    }
+                    $index++;
+                }
+            }
+            closedir($folder);
+        }
+
+        return $result;
+
+    }
 }

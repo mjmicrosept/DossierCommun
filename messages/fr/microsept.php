@@ -154,5 +154,6 @@ return [
     "Upload_Labo"=>"Upload",
     "Upload_Doc_Analyse"=>"Envoi de documents d'analyses",
     "Send"=>"Envoyer",
-    "LastSend"=>"Derniers envois"
+    "LastSend"=>"Derniers envois",
+    "Synthese"=>"Synthèse"
 ];

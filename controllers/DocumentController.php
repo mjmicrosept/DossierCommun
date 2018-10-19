@@ -12,14 +12,11 @@ use app\models\Client;
 use app\models\ClientDossier;
 use app\models\Labo;
 use app\models\LaboClientAssign;
-use app\models\PortailUsers;
+use app\models\DocumentPushed;
 use Yii;
-use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use app\models\AppCommon;
 use app\models\User;
-use yii\helpers\FileHelper;
-use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\Response;
 
@@ -94,6 +91,46 @@ class DocumentController extends Controller
         );
     }
 
+    /**
+     * Récupération de la liste des clients d'un labo pour rechargement dynamique du select 2
+     * @return array
+     */
+    public function actionListClientDataChange(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idLabo = intval($_data['idLabo']);
+        $laboClientAssign = LaboClientAssign::getListLaboClientAssign($idLabo);
+        $listClient = Client::getAsListFromClientAssign($laboClientAssign);
+
+        return ['error'=>$errors,'result'=>$listClient];
+    }
+
+    /**
+     * Retourne la liste structurée des fichiers uploadés sur  labo/client/année/mois donnés
+     * @return array
+     */
+    public function actionLoadUploadedFileDetail(){
+        $errors = false;
+        $result = '';
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = intval($_data['idClient']);
+        $idLabo = intval($_data['idLabo']);
+        $year = intval($_data['year']);
+        $month = intval($_data['month']);
+
+        $result = AppCommon::getSyntheseFileUpload($idLabo,$idClient,$year,$month);
+
+        return ['error'=>$errors,'result'=>$result];
+    }
+
+    /**
+     * Upload des documents
+     * @return array
+     */
     public function actionFileUpload(){
         Yii::$app->response->format = Response::FORMAT_JSON;
         //Récupération des variables
@@ -138,12 +175,32 @@ class DocumentController extends Controller
                         if(!is_dir($pathClientLaboFolder))
                             mkdir($pathClientLaboFolder);
 
-                        Yii::trace($_FILES['upload-files']);
                         for($i = 0; $i < count($_FILES['upload-files']['name']);$i++){
                             if(end(explode(".", $_FILES['upload-files']['name'][$i])) == 'pdf') {
                                 $destination = Yii::$app->params['dossierClients'] . $folderClientName . '/' . $year . '/' . $month . '/' . strval($idLabo) . '/';
-                                @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $_FILES['upload-files']['name'][$i]);
-                                @unlink($_FILES['files']['tmp_name'][$i]);
+                                if(!file_exists($destination . $_FILES['upload-files']['name'][$i])) {
+                                    @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $_FILES['upload-files']['name'][$i]);
+                                    @unlink($_FILES['files']['tmp_name'][$i]);
+                                    //On renseigne la table document_pushed
+                                    $logDoc = DocumentPushed::find()
+                                        ->andFilterWhere(['id_labo' => $idLabo])
+                                        ->andFilterWhere(['id_client' => $idClient])
+                                        ->andFilterWhere(['year' => $year])
+                                        ->andFilterWhere(['month' => $month])
+                                        ->one();
+                                    if (is_null($logDoc)) {
+                                        $logDoc = new DocumentPushed();
+                                        $logDoc->id_labo = $idLabo;
+                                        $logDoc->id_client = $idClient;
+                                        $logDoc->year = intval($year);
+                                        $logDoc->month = intval($month);
+                                        $logDoc->nb_doc = 1;
+                                        $logDoc->save();
+                                    } else {
+                                        $logDoc->nb_doc += 1;
+                                        $logDoc->save();
+                                    }
+                                }
                             }
                             else{
                                 array_push($error,'Un fichier ne possède pas la bonne extension');
@@ -171,6 +228,89 @@ class DocumentController extends Controller
 
         //On récupère le nom du dossier client
         return ['error'=>$error, 'errorkeys'=>$errorkey];
+    }
+
+    /**
+     * Retourne le nombre de documents uploadés avec ce labo
+     * @return array
+     */
+    public function actionTotalDocumentLaboPushed(){
+        $errors = false;
+        $result = 0;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idLabo = intval($_data['idLabo']);
+        $laboList = DocumentPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->all();
+        foreach ($laboList as $item) {
+            $result += $item->nb_doc;
+        }
+
+        return ['error'=>$errors,'result'=>$result];
+    }
+
+    /**
+     * Retourne le nombre de documents uploadés sur ce client
+     * @return array
+     */
+    public function actionTotalDocumentClientPushed(){
+        $errors = false;
+        $result = 0;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = intval($_data['idClient']);
+        $idLabo = intval($_data['idLabo']);
+        $clientLaboList = DocumentPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->all();
+        foreach ($clientLaboList as $item) {
+            $result += $item->nb_doc;
+        }
+
+        return ['error'=>$errors,'result'=>$result];
+    }
+
+    /**
+     * Retourne le nombre de documents uploadés sur l'année (sur un client donné)
+     * @return array
+     */
+    public function actionYearDocumentPushed(){
+        $errors = false;
+        $result = 0;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = intval($_data['idClient']);
+        $idLabo = intval($_data['idLabo']);
+        $year = intval($_data['year']);
+        $clientYearList = DocumentPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->andFilterWhere(['year'=>$year])->all();
+        foreach ($clientYearList as $item) {
+            $result += $item->nb_doc;
+        }
+
+        return ['error'=>$errors,'result'=>$result];
+    }
+
+    /**
+     * Retourne le nombre de documents uploadés sur le mois (sur un client donné)
+     * @return array
+     */
+    public function actionMonthDocumentPushed(){
+        $errors = false;
+        $result = 0;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = intval($_data['idClient']);
+        $idLabo = intval($_data['idLabo']);
+        $year = intval($_data['year']);
+        $month = intval($_data['month']);
+        $clientMonthList = DocumentPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->andFilterWhere(['year'=>$year])->andFilterWhere(['month'=>$month])->all();
+        foreach ($clientMonthList as $item) {
+            $result += $item->nb_doc;
+        }
+
+
+        return ['error'=>$errors,'result'=>$result];
     }
 
     /**
