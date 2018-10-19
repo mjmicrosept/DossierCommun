@@ -37,6 +37,17 @@ class Client extends \yii\db\ActiveRecord
     }
 
     /**
+     * Retourne la liste brute id/nom
+     * @return mixed
+     */
+    public static function getAsList(){
+        return ArrayHelper::map(
+            self::find()->all()
+            , 'id','name'
+        );
+    }
+
+    /**
      * Retourne la liste brute id/nom des clients affectés à un labo
      * @param $clientAssign
      * @return array

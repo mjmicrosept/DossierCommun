@@ -233,6 +233,10 @@ JS
 </div>
 <?php
 $this->registerJS(<<<JS
+
+    /*****************************************************************************************************/
+    // Actions de changements des valeurs du widget
+    /*****************************************************************************************************/
     function changeWidgetLaboValue(text,value){
         $('.widget-labo-raison-sociale').html(text);
         if(value != ''){
@@ -344,6 +348,8 @@ $this->registerJS(<<<JS
             $('.nav-total-month').hide();
         }
     }
+    /*************************************************************************************************/
+    
     
     //Chargement de la partie des appercus fichiers
     function loadFilesDetail(){

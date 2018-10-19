@@ -318,10 +318,51 @@ class DocumentController extends Controller
      * @return string
      */
     public function actionResultAnalyseIndex(){
-        $client = User::getCurrentUser()->getClient();
+        $data = null;
+        $admin = false;
+        $listClient = null;
+        $idClient = 0;
+        if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !Yii::$app->user->isSuperAdmin) {
+            $client = User::getCurrentUser()->getClient();
+            $idClient = $client->id;
+            $folderClient = $client->getFolderPath();
+            $tree = AppCommon::dataFancytreeClientActif(0, Yii::$app->params['dossierClients'] . $folderClient, $folderClient, true);
+            $data = [[
+                'title' => $client->name,
+                'key' => 1,
+                'expanded' => true,
+                'editable' => false,
+                'icon' => 'fa fa-calendar',
+                'children' => $tree['exist'] ? $tree['node'] : ''
+            ]];
+        }
+        else{
+            $admin = true;
+            $listClient = Client::getAsList();
+            $data = [[
+                'title' => 'Choisir un client',
+                'key' => 1,
+                'expanded' => true,
+                'editable' => false,
+                'icon' => 'fa fa-calendar',
+                'children' => ''
+            ]];
+        }
+
+        return $this->render('analyses', ['data' => $data,'listClient'=>$listClient,'admin'=>$admin,'idClient'=>$idClient]);
+    }
+
+    public function actionChangeDataTreeClient(){
+        $errors = false;
+        $result = '';
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = $_data['idClient'];
+        $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
         $folderClient = $client->getFolderPath();
         $tree = AppCommon::dataFancytreeClientActif(0,Yii::$app->params['dossierClients'].$folderClient,$folderClient,true);
-        $data = [[
+        $result = [[
             'title' => 'Années',
             'key' => 1,
             'expanded' => true,
@@ -330,7 +371,7 @@ class DocumentController extends Controller
             'children' => $tree['exist'] ? $tree['node'] : ''
         ]];
 
-        return $this->render('analyses', ['data' => $data]);
+        return ['error'=>$errors,'result'=>$result];
     }
 
     /**

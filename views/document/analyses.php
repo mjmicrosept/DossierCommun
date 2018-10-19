@@ -9,6 +9,12 @@
 use \yii\web\JsExpression;
 use yii\helpers\Url;
 use yii\helpers\Html;
+use app\assets\components\SweetAlert\SweetAlertAsset;
+use kartik\builder\Form;
+use app\models\User;
+use kartik\builder\FormAsset;
+use kartik\file\FileInputAsset;
+use app\assets\views\KartikCommonAsset;
 
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
@@ -19,12 +25,20 @@ $this->params['breadcrumbs'][] = $this->title;
 $baseUrl = Yii::$app->request->baseUrl;
 $urlGetFoldersFile = Url::to(['/document/get-folders-file']);
 $urlDownloadFiles = Url::to(['/document/download-files']);
+$urlChangeDataClient = Url::to(['/document/change-data-tree-client']);
+
+$isAdmin = 0;
+if($admin)
+    $isAdmin = 1;
 
 $this->registerJS(<<<JS
     var url = {
         getFoldersFile:'{$urlGetFoldersFile}',
         downloadFiles:'{$urlDownloadFiles}',
+        changeDataClient:'{$urlChangeDataClient}',
     };
+
+    var admin = '{$isAdmin}';
 JS
 );
 
@@ -39,10 +53,47 @@ JS
                 </div>
             </div>
         </div>
-
         <div class="panel-body">
              <div class="row">
                 <div class="col-lg-6">
+                    <input type="hidden" id="hfClientId" value="<?= $idClient ?>" />
+                    <?= Html::beginForm('', '', ['class'=>'form-horizontal']); ?>
+                    <?php
+                        if(User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || Yii::$app->user->isSuperAdmin){
+                            echo Form::widget([
+                                'formName'=>'kvformadmin',
+
+                                // default grid columns
+                                'columns'=>1,
+                                'compactGrid'=>true,
+
+                                // set global attribute defaults
+                                'attributeDefaults'=>[
+                                    'type'=>Form::INPUT_TEXT,
+                                    'labelOptions'=>['class'=>'col-md-3'],
+                                    'inputContainer'=>['class'=>'col-md-9'],
+                                    'container'=>['class'=>'form-group'],
+                                ],
+                                'attributes'=>[
+                                    'client'=>[
+                                        'type'=>Form::INPUT_WIDGET,
+                                        'widgetClass'=>'\kartik\select2\Select2',
+                                        'options'=>[
+                                            'data'=>$listClient,
+                                            'options' => [
+                                                'placeholder' => 'Sélectionner un client','dropdownCssClass' =>'dropdown-vente-livr'
+                                            ],
+                                            'pluginOptions' => [
+                                                'allowClear' => true,
+                                            ]
+                                        ],
+                                        'label'=>'Client',
+                                    ],
+                                ]
+                            ]);
+                        }
+                    ?>
+                    <?= Html::endForm(); ?>
                     <?= \wbraganca\fancytree\FancytreeWidget::widget([
                         'options' =>[
                             'source' => $data,
@@ -56,13 +107,12 @@ JS
                                 if(data.targetType == "title")
                                     if(data.node.children == null){
                                         clickNode(data);
-                                        //console.log(data.node);
-                                        //console.log(data.node.title + " " + data.node.parent.title);
                                     }
                             }'),
                             'expand'=> new JsExpression('function(event, data) {
                             }'),
                         ],
+                        'id'=>'clientTree',
                     ]) ?>
                 </div>
 
@@ -94,32 +144,57 @@ JS
 <?php
 
 $this->registerJs(<<<JS
+    //var rootNode = $('#fancyree_clientTree').fancytree("getRootNode");
+    //console.log(rootNode);
+    $('#kvformadmin-client').change(function(){
+        var rootNode = $('#fancyree_clientTree').fancytree("getRootNode");
+        if($(this).val() == ''){
+            $('#hfClientId').val(0);
+            rootNode.removeChildren();
+        }
+        else{
+            $('#hfClientId').val($(this).val());
+            var data = JSON.stringify({
+                idClient : $(this).val(),
+            });
+            $.post(url.changeDataClient, {data:data}, function(response) {
+                if(response.error == false){
+                    rootNode.removeChildren();
+                    rootNode.addChildren(response.result);
+                }
+            });
+        }
+    });
+    
+    
     function clickNode(dataNode){
-        $('.loader').show();
-        console.log(dataNode);
-        var data = JSON.stringify({
-            path : dataNode.node.key,
-        });
-        $.post(url.getFoldersFile, {data:data}, function(response) {
-            if(response.error == false){
-                if(response.result != ''){
-                    $('.title-detail').text(dataNode.node.title + " " + dataNode.node.parent.title);
-                    $('.box-body').html(response.result);
-                    //$('.btn-download').show();
-                    $('.loader').hide();
+        if($('#hfClientId').val() != 0){
+            $('.loader').show();
+            console.log(dataNode);
+            var data = JSON.stringify({
+                path : dataNode.node.key,
+            });
+            $.post(url.getFoldersFile, {data:data}, function(response) {
+                if(response.error == false){
+                    if(response.result != ''){
+                        $('.title-detail').text(dataNode.node.title + " " + dataNode.node.parent.title);
+                        $('.box-body').html(response.result);
+                        //$('.btn-download').show();
+                        $('.loader').hide();
+                    }
+                    else{
+                        $('.title-detail').text(dataNode.node.title + " " + dataNode.node.parent.title);
+                        var noResult = 'Aucun document disponible';
+                        $('.box-body').text(noResult);
+                        //$('.btn-download').hide();
+                        $('.loader').hide();
+                    }
                 }
                 else{
-                    $('.title-detail').text(dataNode.node.title + " " + dataNode.node.parent.title);
-                    var noResult = 'Aucun document disponible';
-                    $('.box-body').text(noResult);
-                    //$('.btn-download').hide();
                     $('.loader').hide();
                 }
-            }
-            else{
-                $('.loader').hide();
-            }
-        });
+            });
+        }
     }
     
     $('.btn-download').click(function(){
