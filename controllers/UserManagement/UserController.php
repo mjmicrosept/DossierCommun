@@ -247,40 +247,6 @@ class UserController extends AdminDefaultController
 		return json_encode($result)	;
 	}
 
-	/**
-	 * renvoie la liste des sociétés pour l'arbre
-	 */
-	public function actionLoadSocieteClientList(){
-		$clientName = '';
-		$idSociete = '';
-		if(isset($_POST['client_name']))
-			$clientName = $_POST['client_name'];
-		if(isset($_POST['id_societe']))
-			$idSociete = $_POST['id_societe'];
-		return Societe::loadSocieteClientList($clientName,$idSociete);
-	}
-
-	/**
-	 * Charge les noeuds enfants à l'ouverture d'un noeud pour l'arbre des sociétés
-	 * @param $parent
-	 * @param $societe_name
-	 * @param $user_create
-	 * @param $date_create
-	 * @param null $id_uselectable
-	 */
-	public function actionLoadTreeChildren($parent,$societe_name,$user_create,$date_create,$id_uselectable = null,$client_name){
-			return Societe::loadSocieteClientTreeChildren($parent,$societe_name,$user_create,$date_create,$id_uselectable,$client_name);
-	}
-
-	/**
-	 * Récupère le nom de la société d'un client en fonction de son id
-	 * @return mixed
-	 */
-	public function actionLoadSocieteClientName(){
-		$id_societe = $_POST['id_societe'];
-		$client_name = $_POST['client_name'];
-		return Societe::getSocieteClientName($id_societe,$client_name);
-	}
 
 	/**
 	 * Affichage de la page de profil

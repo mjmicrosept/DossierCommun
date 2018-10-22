@@ -23,7 +23,7 @@ if (Yii::$app->controller->action->id === 'login') {
         <title><?= Html::encode($this->title) ?></title>
         <?php $this->head() ?>
     </head>
-    <body class="hold-transition skin-blue fixed">
+    <body class="hold-transition skin-blue fixed sidebar-mini">
     <?php $this->beginBody() ?>
     <div class="pace  pace-inactive">
         <div data-progress="99" data-progress-text="100%" style="transform: translate3d(100%, 0px, 0px);" class="pace-progress">

@@ -16,6 +16,7 @@ $web = Yii::getAlias('@web');
 
 
 ?>
+<img src="../../../images/login04.jpg" id="wallpaper" />
     <div id="wrapper">
         <div class="container">
             <div class="card card-container">
@@ -85,11 +86,9 @@ $css = <<<CSS
     margin-bottom: 20px;
 }
 
-video#bgvid {
+#wallpaper {
   position: fixed; right: 0; bottom: 0;
-  min-width: 100%; min-height: 100%;
   width: auto; height: auto; z-index: -100;
-  background: url(../video/Meeting-HD.jpg) no-repeat;
   background-size: cover;
 }
 

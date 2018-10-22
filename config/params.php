@@ -26,4 +26,7 @@ return [
     'urlRoot'=>Yii::$app->request->baseUrl .'/dossiers_clients/',
 
     'arboClientFirstYear'=>2007,
+
+    //MODE DECONNECTE
+    'disconnectMode'=> false,
 ];

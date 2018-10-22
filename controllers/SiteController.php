@@ -46,12 +46,20 @@ class SiteController extends \app\controllers\Controller
     public function actions()
     {
         return [
-            'error' => [
+            /*'error' => [
                 'class' => 'yii\web\ErrorAction',
-            ],
+            ],*/
             'captcha' => [
                 'class' => 'yii\captcha\CaptchaAction',
                 'fixedVerifyCode' => YII_ENV_TEST ? 'testme' : null,
+            ],
+            'components'=>[
+                'errorHandler'=>[
+                    'errorAction'=>'site/error',
+                ],
+                'response' => [
+                    'class' => 'yii\web\Response',
+                ],
             ],
         ];
     }
@@ -67,5 +75,10 @@ class SiteController extends \app\controllers\Controller
         $user =User::getCurrentUser();
         //var_dump($user);die();
         return $this->render('index', ['user' => $user]);
+    }
+
+    public function actionError(){
+        //return $this->render('index', ['user' => $user]);
+        return $this->render('../system/error'.Yii::$app->response->getStatusCode());
     }
 }
