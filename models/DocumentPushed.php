@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\Labo;
 
 /**
  * This is the model class for table "document_pushed".
@@ -23,6 +24,10 @@ class DocumentPushed extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return 'document_pushed';
+    }
+
+    public function getLabo() {
+        return self::hasOne(Labo::className(), ['id' => 'id_labo']);
     }
 
     /**
