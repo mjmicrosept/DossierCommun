@@ -1,5 +1,6 @@
 <?php
 use yii\helpers\Html;
+use yii\web\View;
 /* @var $this \yii\web\View */
 /* @var $content string */
 if (Yii::$app->controller->action->id === 'login') {
@@ -8,8 +9,8 @@ if (Yii::$app->controller->action->id === 'login') {
         ['content' => $content]
     );
 } else {
-    dmstr\web\AdminLteAsset::register($this);
-    app\assets\views\LayoutMainAsset::register($this);
+    dmstr\web\AdminLteAsset::register($this,View::POS_HEAD);
+    app\assets\views\LayoutMainAsset::register($this,View::POS_HEAD);
 
     $directoryAsset = Yii::$app->assetManager->getPublishedUrl('@vendor/almasaeed2010/adminlte/dist');
     ?>

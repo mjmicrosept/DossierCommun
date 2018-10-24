@@ -19,6 +19,7 @@ use app\models\AppCommon;
 use app\models\User;
 use yii\helpers\Json;
 use yii\web\Response;
+use yii\data\ArrayDataProvider;
 
 
 class DocumentController extends Controller

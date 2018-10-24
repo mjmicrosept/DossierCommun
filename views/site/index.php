@@ -12,7 +12,8 @@ $this->title = 'RFL Documents';
             echo $this->render(
                 'rfl/index.php',[
                     'searchModel' => $searchModel,
-                    'dataProvider' => $dataProvider
+                    'dataProvider' => $dataProvider,
+                    'listMonthAlert' => $listMonthAlert
                 ]
             );
         }
@@ -21,7 +22,8 @@ $this->title = 'RFL Documents';
                 echo $this->render(
                     'labo/index.php',[
                         'searchModel' => $searchModel,
-                        'dataProvider' => $dataProvider
+                        'dataProvider' => $dataProvider,
+                        'listMonthAlert' => $listMonthAlert
                     ]
                 );
             }
@@ -29,7 +31,8 @@ $this->title = 'RFL Documents';
                 echo $this->render(
                     'client/index.php',[
                         'searchModel' => $searchModel,
-                        'dataProvider' => $dataProvider
+                        'dataProvider' => $dataProvider,
+                        'listMonthAlert' => $listMonthAlert
                     ]
                 );
             }

@@ -34,6 +34,35 @@ class AppCommon
         '12' => 'Dec',
     ];
 
+    public static $aMonthAlert = [
+        1=>1,
+        2=>2,
+        3=>3,
+        4=>4,
+        5=>5,
+        6=>6,
+        7=>7,
+        8=>8,
+        9=>9,
+        10=>10,
+        11=>11,
+        12=>12,
+    ];
+    public static $aMonthAlert2 = [
+        ['id'=>1,'name'=>1],
+        ['id'=>2,'name'=>2],
+        ['id'=>3,'name'=>3],
+        ['id'=>4,'name'=>4],
+        ['id'=>5,'name'=>5],
+        ['id'=>6,'name'=>6],
+        ['id'=>7,'name'=>7],
+        ['id'=>8,'name'=>8],
+        ['id'=>9,'name'=>9],
+        ['id'=>10,'name'=>10],
+        ['id'=>11,'name'=>11],
+        ['id'=>12,'name'=>12],
+    ];
+
 
     public static function Gen_UUID(){
         return sprintf( '%04x%04x_%04x_%04x_%04x_%04x%04x%04x',
