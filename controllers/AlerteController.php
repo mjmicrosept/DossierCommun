@@ -2,12 +2,17 @@
 
 namespace app\controllers;
 
+use app\models\Labo;
 use Yii;
 use app\models\DocumentAlerte;
 use app\models\DocumentAlerteSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use app\models\User;
+use yii\helpers\Json;
+use yii\web\Response;
+
 
 /**
  * AlerteController implements the CRUD actions for DocumentAlerte model.
@@ -27,6 +32,40 @@ class AlerteController extends Controller
                 ],
             ],
         ];
+    }
+
+    /**
+     * Création de l'alerte pour le cas d'aucun document présent pour un labo
+     * @return array
+     */
+    public function actionGeneralNoDocument(){
+        $errors = false;
+        $laboName = '';
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = $_data['idClient'];
+        $idLabo = $_data['idLabo'];
+        $emetteur = $_data['emetteur'];
+        $vecteur = $_data['vecteur'];
+
+        $alerte = new DocumentAlerte();
+        $alerte->id_client = intval($idClient);
+        $alerte->id_labo = intval($idLabo);
+        $alerte->id_user = User::getCurrentUser()->id;
+        $alerte->type = DocumentAlerte::TYPE_NODOC;
+        $alerte->vecteur = intval($vecteur);
+        $alerte->type_emetteur = intval($emetteur);
+
+        if(!$alerte->save())
+            $errors = true;
+
+        if(!$errors){
+            $labo = Labo::find()->andFilterWhere(['id'=>$idLabo])->one();
+            $laboName = $labo->raison_sociale;
+        }
+
+        return ['error'=>$errors,'labo'=>$laboName];
     }
 
     /**

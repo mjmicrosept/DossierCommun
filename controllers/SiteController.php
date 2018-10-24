@@ -87,6 +87,7 @@ class SiteController extends Controller
 
         if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER])){
             $data = [];
+            $idClient = null;
             $searchModel = ['monthAlert' => Yii::$app->request->getQueryParam('filter-monthAlert', '1'),];
 
             $columns = [
@@ -132,7 +133,8 @@ class SiteController extends Controller
         return $this->render('index',[
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
-            'listMonthAlert' => $listMonthAlert
+            'listMonthAlert' => $listMonthAlert,
+            'idClient' => $idClient,
         ]);
     }
 

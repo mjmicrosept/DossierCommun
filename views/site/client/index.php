@@ -10,32 +10,50 @@ use app\models\User;
 use app\models\Labo;
 use app\models\LaboClientAssign;
 use app\models\PortailUsers;
-use app\models\Client;
 use app\models\DocumentPushed;
-use yii\helpers\Html;
 use kartik\builder\Form;
 use kartik\builder\FormAsset;
 use app\assets\views\KartikCommonAsset;
 use yii\helpers\Url;
-use kartik\grid\GridView;
 use app\models\AppCommon;
+use app\models\DocumentAlerte;
 use yii\web\View;
+use app\assets\components\SweetAlert\SweetAlertAsset;
+
 
 FormAsset::register($this,View::POS_HEAD);
 KartikCommonAsset::register($this,View::POS_HEAD);
+SweetAlertAsset::register($this,View::POS_HEAD);
 
 $baseUrl = Yii::$app->request->baseUrl;
-$urlGetDataFilterMonth = Url::to(['/document/get-data-filter-month']);
+$urlGeneralNoDocument = Url::to(['/alerte/general-no-document']);
 
 $this->registerJS(<<<JS
     var url = {
-        getDataFilterMonth:'{$urlGetDataFilterMonth}'
+        generalNoDocument:'{$urlGeneralNoDocument}'
     };
+
+    var idClient = '{$idClient}';
 JS
 );
 
 $this->registerCss(<<<CSS
-    
+    .span-alerte{
+        cursor:pointer;
+        color:#777;
+        margin:0 10px 0 10px;
+    }
+    .li-alerte{
+        margin-bottom:5px;
+    }
+    .li-alerte:hover{
+        cursor:pointer;
+        background-color:#e0e3e9;
+        color:#000;
+    }
+    .li-alerte:hover > span{
+        color:#000;
+    }
     .filter-header {
         font-weight:bold;
         vertical-align: middle;
@@ -377,7 +395,7 @@ CSS
                         },
                     ],
                     [
-                        'headerOptions' => ['colspan' =>1, 'class'=>'success', 'style' => 'text-align:center;background-color: #ffc789!important;','data-qte'=>'66'],
+                        'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #ffc789!important;','data-qte'=>'66'],
                         'label'=>'Alertes',
                         'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                         'filter' => 'Date',
@@ -425,18 +443,46 @@ CSS
                         },
                     ],
                     [
+                        'filter'=>'Emise en cours',
+                        'headerOptions' => ['style' => 'display:none;','class'=>'skip-export'],
+                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
+                        'format'=>'raw',
+                        'hAlign'=>'center',
+                        'vAlign'=>'middle',
+                        'width'=>'100px',
+                        'value' => function($model){
+                            $idLabo = $model['id_labo'];
+                            $idClient = $model['id_client'];
+                            $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->andFilterWhere(['active'=>1])->all();
+                            if(is_null($aAlerte))
+                                return '';
+                            else{
+                                if(count($aAlerte) == 0)
+                                    return '';
+                                else
+                                    return '<i class="fa fa-check text-green"></i>';
+                            }
+                        }
+                    ],
+                    [
                         'class' => 'kartik\grid\ActionColumn',
                         'dropdown' => true,
                         'dropdownOptions' => ['class' => 'float-left btn-actions'],
-                        'dropdownMenu' => ['style'=>'left:-80px !important'],
-                        'template' => '{view} {update} {delete} {mail}',
+                        'dropdownMenu' => ['style'=>'left:-120px !important;'],
+                        'template' => '{periode} {nodoc} {mailadmin}',
                         'urlCreator' => function($action, $model, $key, $index) { return '#'; },
                         'viewOptions' => ['title' => 'This will launch the book details page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
                         'updateOptions' => ['title' => 'This will launch the book update page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
                         'deleteOptions' => ['title' => 'This will launch the book delete action. Disabled for this demo!', 'data-toggle' => 'tooltip'],
                         'buttons'=>[
-                            'mail' => function ($url, $model, $key) {
-                                return '<li><a href="#" aria-label="Envoyer un mail" data-pjax="0" data-method="post" data-confirm="Êtes vous sûr de vouloir supprimer cet élément?" data-toggle="tooltip"><span class="glyphicon glyphicon-trash"></span> Envoyer un mail</a></li>';
+                            'periode' => function ($url, $model, $key) {
+                                return '<li class="li-alerte"><span class="periode-alerte span-alerte" data-labo="'.$model['id_labo'].'" title="Période sans documents"><span class="glyphicon glyphicon-time" style="margin-right:10px;"></span> Période sans documents</span></li>';
+                            },
+                            'nodoc' => function ($url, $model, $key) {
+                                return '<li class="li-alerte"><span class="nodoc-alerte span-alerte" data-labo="'.$model['id_labo'].'" title="Pas de documents pour ce laboratoire"><span class="glyphicon glyphicon-level-up" style="margin-right:10px;"></span> Pas de documents</span></li>';
+                            },
+                            'mailadmin' => function ($url, $model, $key) {
+                                return '<li class="li-alerte"><span class="mailadmin-alerte span-alerte" data-labo="'.$model['id_labo'].'" title="Envoyer un mail à l\'administrateur"><span class="glyphicon glyphicon-envelope" style="margin-right:10px;"></span> Envoyer un mail</span></li>';
                             },
                         ],
                         'headerOptions' => ['class' => 'kartik-sheet-style'],
@@ -476,20 +522,64 @@ $( document ).ready(function() {
                 var trParent = $(this).closest('tr');
                 if(parseInt(monthInterval) >= monthValue){
                     $(this).html('<i class="fa fa-circle text-yellow"></i>');
+                    //Modification de la classe des lignes
                     if(trParent.hasClass('data-error-green'))
                         trParent.removeClass('data-error-green').addClass('data-error-yellow');
                 }
                 else{
                     $(this).html('<i class="fa fa-circle text-green"></i>');
+                    //Modification de la classe des lignes
                     if(trParent.hasClass('data-error-yellow'))
                         trParent.removeClass('data-error-yellow').addClass('data-error-green');
                 }
             }
         });
         $('.loader').hide();
-        //}
-        //return false;
     });
+    
+    
+    /*********************************/
+    /*        ALERTES                */
+    /*********************************/
+    $('.periode-alerte').click(function(){
+        console.log('periode'); 
+    });
+    
+    $('.nodoc-alerte').click(function(){
+        $('.loader').show();
+        var data = JSON.stringify({
+            idClient : idClient,
+            idLabo : $(this).data('labo'),
+            emetteur : 2,
+            vecteur : 2
+        });
+        $.post(url.generalNoDocument, {data:data}, function(response) {
+            if(response.error != 1){
+                $('.loader').hide();
+                //SweetAlert (alerte confirmée)
+                swal(
+                  'Confirmation',
+                  'Votre alerte (pas de documents présents pour le laboratoire ' + response.labo + ' a bien été émise.',
+                  'success'
+                )
+            }
+            else{
+                $('.loader').hide();
+                //SweetAlert (une erreur est survenue)
+                swal(
+                  'Erreur',
+                  'Une erreur est survenue vueillez contacter l\'administrateur',
+                  'error'
+                )
+            }
+        });
+    });
+    
+    $('.mailadmin-alerte').click(function(){
+        console.log('mailadmin');
+    });
+    
+    
 });
 JS
 );

@@ -13,7 +13,8 @@ $this->title = 'RFL Documents';
                 'rfl/index.php',[
                     'searchModel' => $searchModel,
                     'dataProvider' => $dataProvider,
-                    'listMonthAlert' => $listMonthAlert
+                    'listMonthAlert' => $listMonthAlert,
+                    'idClient' => $idClient
                 ]
             );
         }
@@ -23,7 +24,8 @@ $this->title = 'RFL Documents';
                     'labo/index.php',[
                         'searchModel' => $searchModel,
                         'dataProvider' => $dataProvider,
-                        'listMonthAlert' => $listMonthAlert
+                        'listMonthAlert' => $listMonthAlert,
+                        'idClient' => $idClient
                     ]
                 );
             }
@@ -32,7 +34,8 @@ $this->title = 'RFL Documents';
                     'client/index.php',[
                         'searchModel' => $searchModel,
                         'dataProvider' => $dataProvider,
-                        'listMonthAlert' => $listMonthAlert
+                        'listMonthAlert' => $listMonthAlert,
+                        'idClient' => $idClient
                     ]
                 );
             }
