@@ -243,7 +243,7 @@ class LaboController extends Controller
             //on désactive tous les clients affectés à ce labo
             $clientAssign = LaboClientAssign::find()->andFilterWhere(['id_labo'=>intval($laboId)])->andFilterWhere(['assign'=>1])->all();
             foreach ($clientAssign as $item) {
-                $item->assingn = 0;
+                $item->assign = 0;
                 if(!$item->save())
                     $errors = true;
             }
