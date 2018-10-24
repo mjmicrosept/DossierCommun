@@ -12,7 +12,7 @@ use app\models\LaboClientAssign;
 use app\models\PortailUsers;
 use app\models\Client;
 use app\models\DocumentPushed;
-use yii\widgets\Pjax;
+use yii\helpers\Html;
 use kartik\builder\Form;
 use kartik\builder\FormAsset;
 use app\assets\views\KartikCommonAsset;
@@ -35,9 +35,7 @@ JS
 );
 
 $this->registerCss(<<<CSS
-    .btn-actions > ul{
-        left:-80px !important;
-    }
+    
     .filter-header {
         font-weight:bold;
         vertical-align: middle;
@@ -314,18 +312,15 @@ CSS
                 },
                 'columns' => [
                     [
-                        'attribute'=>'id_labo',
+                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:left;vertical-align:middle'],
                         'filter'=>'Laboratoire',
-                        'filterWidgetOptions'=>[
-                            'pluginOptions'=>['allowClear'=>true],
-                        ],
                         'value'=>function($model){
                             $labo = Labo::find()->andFilterWhere(['id'=>$model['id_labo']])->one();
                             return $labo->raison_sociale;
                         }
                     ],
                     [
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
+                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                         'filter' => 'Total doc.',
                         'hAlign'=>'center',
                         'width'=>'150px',
@@ -340,7 +335,7 @@ CSS
                     [
                         'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #00c0ef!important;'],
                         'label'=>'Dernier envoi',
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
+                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                         'filter' => 'Date',
                         'format'=>'raw',
                         'width'=>'150px',
@@ -364,7 +359,7 @@ CSS
                     ],
                     [
                         'headerOptions' => ['style' => 'display:none;','class'=>'skip-export'],
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
+                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                         'filter' => 'Nombre doc.',
                         'hAlign'=>'center',
                         'width'=>'150px',
@@ -384,8 +379,8 @@ CSS
                     [
                         'headerOptions' => ['colspan' =>1, 'class'=>'success', 'style' => 'text-align:center;background-color: #ffc789!important;','data-qte'=>'66'],
                         'label'=>'Alertes',
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
-                        'filter' => 'Données',
+                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
+                        'filter' => 'Date',
                         'format'=>'raw',
                         'hAlign'=>'center',
                         'vAlign'=>'middle',
@@ -433,10 +428,17 @@ CSS
                         'class' => 'kartik\grid\ActionColumn',
                         'dropdown' => true,
                         'dropdownOptions' => ['class' => 'float-left btn-actions'],
+                        'dropdownMenu' => ['style'=>'left:-80px !important'],
+                        'template' => '{view} {update} {delete} {mail}',
                         'urlCreator' => function($action, $model, $key, $index) { return '#'; },
                         'viewOptions' => ['title' => 'This will launch the book details page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
                         'updateOptions' => ['title' => 'This will launch the book update page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
                         'deleteOptions' => ['title' => 'This will launch the book delete action. Disabled for this demo!', 'data-toggle' => 'tooltip'],
+                        'buttons'=>[
+                            'mail' => function ($url, $model, $key) {
+                                return '<li><a href="#" aria-label="Envoyer un mail" data-pjax="0" data-method="post" data-confirm="Êtes vous sûr de vouloir supprimer cet élément?" data-toggle="tooltip"><span class="glyphicon glyphicon-trash"></span> Envoyer un mail</a></li>';
+                            },
+                        ],
                         'headerOptions' => ['class' => 'kartik-sheet-style'],
                     ],
                 ],

@@ -33,9 +33,6 @@ JS
 );
 
 $this->registerCss(<<<CSS
-    .btn-actions > ul{
-        left:-80px !important;
-    }
     .filter-header {
         font-weight:bold;
         vertical-align: middle;
@@ -266,7 +263,7 @@ CSS
                     }
                 ],
                 [
-                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
+                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                     'filter' => 'Client',
                     'value' => function($model){
                         $client = Client::find()->andFilterWhere(['id'=>$model['id_client']])->one();
@@ -274,7 +271,7 @@ CSS
                     }
                 ],
                 [
-                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
+                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                     'filter' => 'Total doc.',
                     'hAlign'=>'center',
                     'width'=>'150px',
@@ -289,7 +286,7 @@ CSS
                 [
                     'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #00c0ef!important;'],
                     'label'=>'Dernier envoi',
-                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
+                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                     'filter' => 'Date',
                     'format'=>'raw',
                     'width'=>'150px',
@@ -313,7 +310,7 @@ CSS
                 ],
                 [
                     'headerOptions' => ['style' => 'display:none;','class'=>'skip-export'],
-                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
+                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                     'filter' => 'Nombre doc.',
                     'hAlign'=>'center',
                     'width'=>'150px',
@@ -333,8 +330,8 @@ CSS
                 [
                     'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #ffc789!important;','data-qte'=>'66'],
                     'label'=>'Alertes',
-                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
-                    'filter' => 'Données',
+                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
+                    'filter' => 'Dates',
                     'format'=>'raw',
                     'hAlign'=>'center',
                     'vAlign'=>'middle',
@@ -380,7 +377,7 @@ CSS
                 ],
                 [
                     'headerOptions' => ['style' => 'display:none;','class'=>'skip-export'],
-                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #fafafa!important;text-align:center;vertical-align:middle'],
+                    'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                     'filter' => 'Client',
                     'hAlign'=>'center',
                     'vAlign'=>'middle',
@@ -411,6 +408,7 @@ CSS
                     'class' => 'kartik\grid\ActionColumn',
                     'dropdown' => true,
                     'dropdownOptions' => ['class' => 'float-left btn-actions'],
+                    'dropdownMenu' => ['style'=>'left:-80px !important'],
                     'urlCreator' => function($action, $model, $key, $index) { return '#'; },
                     'viewOptions' => ['title' => 'This will launch the book details page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
                     'updateOptions' => ['title' => 'This will launch the book update page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
