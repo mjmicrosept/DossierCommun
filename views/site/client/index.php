@@ -35,7 +35,7 @@ JS
 );
 
 $this->registerCss(<<<CSS
-    .dropdown-menu{
+    .btn-actions > ul{
         left:-80px !important;
     }
     .filter-header {
