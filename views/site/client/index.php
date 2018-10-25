@@ -27,10 +27,12 @@ SweetAlertAsset::register($this,View::POS_HEAD);
 
 $baseUrl = Yii::$app->request->baseUrl;
 $urlGeneralNoDocument = Url::to(['/alerte/general-no-document']);
+$urlPeriodeMissing = Url::to(['/alerte/periode-missing']);
 
 $this->registerJS(<<<JS
     var url = {
-        generalNoDocument:'{$urlGeneralNoDocument}'
+        generalNoDocument:'{$urlGeneralNoDocument}',
+        periodeMissing:'{$urlPeriodeMissing}'
     };
 
     var idClient = '{$idClient}';
@@ -462,6 +464,9 @@ CSS
                                 else
                                     return '<i class="fa fa-check text-green"></i>';
                             }
+                        },
+                        'contentOptions' => function ($model, $key, $index, $column) {
+                            return ['class'=>'idlabo-'.$model['id_labo'].'-check'];
                         }
                     ],
                     [
@@ -546,41 +551,133 @@ $( document ).ready(function() {
     /*        ALERTES                */
     /*********************************/
     $('.periode-alerte').click(function(){
-        console.log('periode'); 
+        var idLabo = $(this).data('labo');
+        swal({
+            html:
+            '<h3>Nombre de mois sans documents</h3>'+
+            '<select id="document-list" class="swal2-input"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select>' +
+            '<h3>Envoyer à l\'administrateur</h3>'+
+            '<select id="mail-list" class="swal2-input"><option value="1">Oui</option><option value="0" selected>Non</option></select>',
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    if (true) {
+                        resolve([
+                            document.getElementById('document-list').value,
+                            document.getElementById('mail-list').value,
+                        ]);
+                    }
+                });
+            }
+        }).then(function(result) {
+            if (result){
+                $('.loader').show();
+                var data = JSON.stringify({
+                    idClient : idClient,
+                    idLabo : idLabo,
+                    emetteur : 2,
+                    vecteur : result[1],
+                    periodeMissing : result[0]
+                });
+                $.post(url.periodeMissing, {data:data}, function(response) {
+                    if(response.error != 1){
+                        $('.loader').hide();
+                        if(response.errorMail != 1){
+                            //On check la colone
+                            $('.idlabo-' + idLabo + '-check').html('<i class="fa fa-check text-green"></i>');
+                            //SweetAlert (alerte confirmée)
+                            swal(
+                              'Confirmation',
+                              'Votre alerte (pas de documents sur la période de ' + result[0] + ' mois, pour le laboratoire ' + response.labo + ' a bien été émise.',
+                              'success'
+                            )
+                        }
+                        else{
+                            swal(
+                              'Erreur',
+                              'L\'alerte est remontée mais l\'e-mail n\'a pas pu être envoyé.',
+                              'warning'
+                            )
+                        }
+                    }
+                    else{
+                        $('.loader').hide();
+                        //SweetAlert (une erreur est survenue)
+                        swal(
+                          'Erreur',
+                          'Une erreur est survenue vueillez contacter l\'administrateur',
+                          'error'
+                        )
+                    }
+                });
+            }
+        })
     });
     
     $('.nodoc-alerte').click(function(){
-        $('.loader').show();
-        var data = JSON.stringify({
-            idClient : idClient,
-            idLabo : $(this).data('labo'),
-            emetteur : 2,
-            vecteur : 2
-        });
-        $.post(url.generalNoDocument, {data:data}, function(response) {
-            if(response.error != 1){
-                $('.loader').hide();
-                //SweetAlert (alerte confirmée)
-                swal(
-                  'Confirmation',
-                  'Votre alerte (pas de documents présents pour le laboratoire ' + response.labo + ' a bien été émise.',
-                  'success'
-                )
+        var idLabo = $(this).data('labo');
+        swal({
+            html:
+            '<h3>Envoyer à l\'administrateur</h3>'+
+            '<select id="mail-list" class="swal2-input"><option value="1">Oui</option><option value="2" selected>Non</option></select>',
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    if (true) {
+                        resolve([
+                            document.getElementById('mail-list').value,
+                        ]);
+                    }
+                });
             }
-            else{
-                $('.loader').hide();
-                //SweetAlert (une erreur est survenue)
-                swal(
-                  'Erreur',
-                  'Une erreur est survenue vueillez contacter l\'administrateur',
-                  'error'
-                )
+        }).then(function(result) {
+            if (result){
+                $('.loader').show();
+                var data = JSON.stringify({
+                    idClient : idClient,
+                    idLabo : idLabo,
+                    emetteur : 2,
+                    vecteur : result[0]
+                });
+                $.post(url.generalNoDocument, {data:data}, function(response) {
+                    if(response.error != 1){
+                        $('.loader').hide();
+                        if(response.errorMail != 1){
+                            //On check la colone
+                            $('.idlabo-' + idLabo + '-check').html('<i class="fa fa-check text-green"></i>');
+                            //SweetAlert (alerte confirmée)
+                            swal(
+                              'Confirmation',
+                              'Votre alerte (pas de documents présents pour le laboratoire ' + response.labo + ' a bien été émise.',
+                              'success'
+                            )
+                        }
+                        else{
+                            swal(
+                              'Erreur',
+                              'L\'alerte est remontée mais l\'e-mail n\'a pas pu être envoyé.',
+                              'warning'
+                            )
+                        }
+                    }
+                    else{
+                        $('.loader').hide();
+                        //SweetAlert (une erreur est survenue)
+                        swal(
+                          'Erreur',
+                          'Une erreur est survenue vueillez contacter l\'administrateur',
+                          'error'
+                        )
+                    }
+                });
             }
-        });
+        })
     });
     
     $('.mailadmin-alerte').click(function(){
-        console.log('mailadmin');
+        swal(
+          'TODO',
+          'Reste à faire',
+          'info'
+        )
     });
     
     

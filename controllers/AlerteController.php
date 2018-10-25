@@ -2,6 +2,7 @@
 
 namespace app\controllers;
 
+use app\models\AppCommon;
 use app\models\Labo;
 use Yii;
 use app\models\DocumentAlerte;
@@ -35,12 +36,56 @@ class AlerteController extends Controller
     }
 
     /**
+     * Création de l'alerte pour le cas d'une période sans document
+     * @return array
+     */
+    public function actionPeriodeMissing(){
+        $errors = false;
+        $errorMail = false;
+        $laboName = '';
+
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = $_data['idClient'];
+        $idLabo = $_data['idLabo'];
+        $emetteur = $_data['emetteur'];
+        $vecteur = $_data['vecteur'];
+        $periode = $_data['periodeMissing'];
+
+        $alerte = new DocumentAlerte();
+        $alerte->id_client = intval($idClient);
+        $alerte->id_labo = intval($idLabo);
+        $alerte->id_user = User::getCurrentUser()->id;
+        $alerte->type = DocumentAlerte::TYPE_PERIODE_MISSING;
+        $alerte->vecteur = intval($vecteur);
+        $alerte->type_emetteur = intval($emetteur);
+        $alerte->periode_missing = intval($periode);
+
+        if(!$alerte->save())
+            $errors = true;
+
+        if(!$errors){
+            $labo = Labo::find()->andFilterWhere(['id'=>$idLabo])->one();
+            $laboName = $labo->raison_sociale;
+
+            //Si vecteur mail on envoie le mail à l'administrateur
+            if($alerte->vecteur == DocumentAlerte::VECTEUR_MAIL)
+                $errorMail = AppCommon::mailPeriodeMissing($alerte->id_client,$alerte->id_labo,$alerte->id_user,$alerte->periode_missing);
+        }
+
+        return ['error'=>$errors,'labo'=>$laboName,'errorMail'=>$errorMail];
+    }
+
+    /**
      * Création de l'alerte pour le cas d'aucun document présent pour un labo
      * @return array
      */
     public function actionGeneralNoDocument(){
         $errors = false;
+        $errorMail = false;
         $laboName = '';
+
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $_data = Json::decode($_POST['data']);
@@ -63,9 +108,13 @@ class AlerteController extends Controller
         if(!$errors){
             $labo = Labo::find()->andFilterWhere(['id'=>$idLabo])->one();
             $laboName = $labo->raison_sociale;
+
+            //Si vecteur mail on envoie le mail à l'administrateur
+            if($alerte->vecteur == DocumentAlerte::VECTEUR_MAIL)
+                $errorMail = AppCommon::mailGeneralNoDocument($alerte->id_client,$alerte->id_labo,$alerte->id_user);
         }
 
-        return ['error'=>$errors,'labo'=>$laboName];
+        return ['error'=>$errors,'labo'=>$laboName,'errorMail'=>$errorMail];
     }
 
     /**
