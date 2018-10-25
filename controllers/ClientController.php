@@ -74,20 +74,28 @@ class ClientController extends Controller
     {
         $model = new Client();
         $model->user_create = Yii::$app->user->id;
+        $listClient = Client::getAsListActive();
 
         if (Yii::$app->request->isPost) {
             if (Client::findOne(['name' => Yii::$app->request->post()['Client']['name']])) {
                 Yii::$app->session->addFlash('danger', 'Un client avec ce nom existe déjà');
-                return $this->render('create',['model' => $model]);
+                return $this->render('create',['model' => $model,'listClient' => $listClient]);
             }
             $model->load(Yii::$app->request->post());
 
             $model->active = 1;
+            $model->is_parent = 1;
             try {
                 if(!isset(Yii::$app->request->post()['Client']['active']))
                     $model->active = 0;
+                if(!isset(Yii::$app->request->post()['Client']['is_parent'])) {
+                    $model->is_parent = 0;
+                    $model->id_parent = Yii::$app->request->post()['kvform']['client'];
+                }
 
                 $isValid = $model->save();
+                $isValid = true;
+
 
                 //On crée le dossier physique du client sur le serveur
                 $folderName = AppCommon::Gen_UUID();
@@ -103,7 +111,7 @@ class ClientController extends Controller
                 }
 
                 //Création de l'arborescence physique
-                //Client::createArboClient($model->id,$folderName);
+                Client::createArboClient($model->id,$folderName);
 
             }
             catch(Exception $e){
@@ -118,6 +126,7 @@ class ClientController extends Controller
 
         return $this->render('create', [
             'model' => $model,
+            'listClient' => $listClient,
         ]);
     }
 
@@ -131,20 +140,29 @@ class ClientController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $listClient = Client::getAsListActive();
 
         if (Yii::$app->request->isPost) {
             if($model->name != Yii::$app->request->post()['Client']['name']) {
                 if (Client::findOne(['name' => Yii::$app->request->post()['Client']['name']])) {
                     Yii::$app->session->addFlash('danger', 'Un client avec le nom ' . Yii::$app->request->post()['Client']['name'] . ' existe déjà');
-                    return $this->render('update', ['model' => $model, 'id' => $model->id, 'active' => $model->active]);
+                    return $this->render('update', ['model' => $model, 'id' => $model->id, 'active' => $model->active,'listClient'=>$listClient,'is_parent' => $model->is_parent,'id_parent' => $model->id_parent,]);
                 }
             }
             $model->load(Yii::$app->request->post());
 
             $model->active = 1;
+            $model->is_parent = 1;
             try {
                 if(!isset(Yii::$app->request->post()['Client']['active']))
                     $model->active = 0;
+                if(!isset(Yii::$app->request->post()['Client']['is_parent'])) {
+                    $model->is_parent = 0;
+                    $model->id_parent = Yii::$app->request->post()['kvform']['client'];
+                }
+                else{
+                    $model->id_parent = null;
+                }
 
                 $isValid = $model->save();
             }
@@ -162,6 +180,9 @@ class ClientController extends Controller
             'model' => $model,
             'id' => $model->id,
             'active' => $model->active,
+            'is_parent' => $model->is_parent,
+            'id_parent' => $model->id_parent,
+            'listClient'=>$listClient,
         ]);
     }
 

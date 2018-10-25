@@ -6,6 +6,7 @@ use yii\widgets\Pjax;
 use webvimark\extensions\GridPageSize\GridPageSize;
 use app\assets\components\SweetAlert\SweetAlertAsset;
 use yii\helpers\Url;
+use app\models\Client;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\ClientSearch */
@@ -64,6 +65,39 @@ $this->params['breadcrumbs'][] = $this->title;
                     'description:ntext',
                     'user_create',
                     'date_create',
+                    [
+                        'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
+                        'filter'=>'',
+                        'label'=>'Est parent',
+                        'format'=>'raw',
+                        'vAlign'=>'middle',
+                        'hAlign'=> 'center',
+                        'value'=>function($model){
+                            if($model->is_parent)
+                                return '<i class="fa fa-check text-green"></i>';
+                            else
+                                return '';
+                        }
+                    ],
+                    [
+                        'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
+                        'filter'=>'',
+                        'label'=>'Parent',
+                        'value'=>function($model){
+                            if(!is_null($model->id_parent)) {
+                                $parent = Client::find()->andFilterWhere(['id' => $model->id_parent])->one();
+                                if(!is_null($parent)){
+                                    return $parent->name;
+                                }
+                                else{
+                                    return '';
+                                }
+                            }
+                            else{
+                                return '';
+                            }
+                        }
+                    ],
                     ['class' => 'yii\grid\ActionColumn',
                         'template'=>'{view}{update}{delete}',
                         'buttons' => [

@@ -2,17 +2,31 @@
 
 use yii\helpers\Html;
 use kartik\form\ActiveForm;
+use kartik\builder\Form;
+use kartik\builder\FormAsset;
+use app\assets\views\KartikCommonAsset;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Client */
 /* @var $form yii\widgets\ActiveForm */
 
+FormAsset::register($this);
+KartikCommonAsset::register($this);
+
 $idclient = 0;
 $activeclient = 0;
+$isParent = 0;
+$idParent = 0;
 if(isset($id)) {
     $idclient = $id;
     if (isset($active)) {
         $activeclient = $active;
+    }
+    if (isset($is_parent)) {
+        $isParent = $is_parent;
+    }
+    if (isset($id_parent)) {
+        $idParent = $id_parent;
     }
 }
 
@@ -44,6 +58,51 @@ if(isset($id)) {
 
                 <?= $form->field($model, 'description')->textarea(['rows' => 6, 'data-step' => '2', 'data-intro' => Yii::t('microsept', 'Client description')]) ?>
 
+                <div class="form-group field-client-check-isparent">
+                    <div class="col-sm-8 col-sm-offset-2">
+                        <div class="checkbox">
+                            <label for="client-check-isparent">
+                                <input type="checkbox" id="client-check-isparent" name="Client[is_parent]" >
+                                <?= Yii::t('microsept','Client is parent') ?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <?=
+                Form::widget([
+                    'formName'=>'kvform',
+
+                    // default grid columns
+                    'columns'=>1,
+                    'compactGrid'=>true,
+
+                    // set global attribute defaults
+                    'attributeDefaults'=>[
+                        'type'=>Form::INPUT_TEXT,
+                        'labelOptions'=>['class'=>'control-label col-md-2'],
+                        'inputContainer'=>['class'=>'col-md-10'],
+                        'container'=>['class'=>'form-group form-parent'],
+                    ],
+                    'attributes'=>[
+                        'client'=>[
+                            'type'=>Form::INPUT_WIDGET,
+                            'widgetClass'=>'\kartik\select2\Select2',
+                            'options'=>[
+                                'data'=>$listClient,
+                                'options' => [
+                                    'placeholder' => 'Sélectionner un parent','dropdownCssClass' =>'dropdown-vente-livr',
+                                ],
+                                'pluginOptions' => [
+                                    'allowClear' => true,
+                                ],
+                            ],
+                            'label'=>'Parent',
+                        ],
+                    ]
+                ]);
+                ?>
+
                 <div class="form-group field-client-check-actif <?= !Yii::$app->user->isSuperAdmin ? 'hidden' : '' ?>">
                     <div class="col-sm-8 col-sm-offset-2">
                         <div class="checkbox">
@@ -72,14 +131,30 @@ if(isset($id)) {
 $this->registerJs(<<<JS
 
 //actions au chargement de la page en cas d'update
+    $('.form-parent').hide();
 	if({$idclient} != 0){
 		if({$activeclient} != 0){
 			$('#client-check-actif').attr({checked : 'checked'});
 		}
+		if({$isParent} != 0){
+			$('#client-check-isparent').attr({checked : 'checked'});
+		}
+		else{
+		    $('.form-parent').show();
+		    $('#kvform-client').val({$idParent}).change();
+        }
 	}
 	else{
+	    $('#client-check-isparent').attr({checked : 'checked'});
 		$('#client-check-actif').attr({checked : 'checked'});
 	}
+	
+	$('#client-check-isparent').click(function(){
+	    if($(this).prop('checked'))
+	        $('.form-parent').hide();
+	    else 
+	        $('.form-parent').show();
+	})
 
 JS
 );

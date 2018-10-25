@@ -129,6 +129,11 @@ class SiteController extends Controller
                 ],
             ]);
         }
+        else{
+            $searchModel = null;
+            $dataProvider = null;
+            $idClient = null;
+        }
 
         return $this->render('index',[
             'searchModel' => $searchModel,

@@ -155,5 +155,7 @@ return [
     "Upload_Doc_Analyse"=>"Envoi de documents d'analyses",
     "Send"=>"Envoyer",
     "LastSend"=>"Derniers envois",
-    "Synthese"=>"Synthèse"
+    "Synthese"=>"Synthèse",
+    "Client id parent" => "Parent",
+    "Client is parent" => "Est parent"
 ];

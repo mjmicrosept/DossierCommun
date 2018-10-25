@@ -56,7 +56,7 @@ return [
         'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
 //        'linkTemplate' => '<a target="{target}" href="{url}">{label}</a>',
         'items' => [
-            ['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
+            //['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
             ['label' => '<span class="fa fa-cloud-upload"></span> Upload', 'url' => ['/document/upload']],
             ['label' => '<span class="fa fa-tag"></span> Résultats d\'analyses', 'url' => ['/document/result-analyse-index']],
         ],

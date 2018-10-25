@@ -9,11 +9,13 @@ use yii\helpers\ArrayHelper;
  * This is the model class for table "client".
  *
  * @property int $id
+ * @property int $id_parent
  * @property string $name
  * @property string $description
  * @property int $user_create
  * @property string $date_create
  * @property int $active
+ * @property int $is_parent
  */
 class Client extends \yii\db\ActiveRecord
 {
@@ -31,7 +33,7 @@ class Client extends \yii\db\ActiveRecord
      */
     public static function getAsListActive(){
         return ArrayHelper::map(
-            self::find()->andFilterWhere(['active'=>1])->all()
+            self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['is_parent'=>1])->all()
             , 'id','name'
         );
     }
@@ -131,7 +133,7 @@ class Client extends \yii\db\ActiveRecord
         return [
             [['name', 'user_create'], 'required'],
             [['description'], 'string'],
-            [['user_create', 'active'], 'integer'],
+            [['user_create', 'active','id_parent','is_parent'], 'integer'],
             [['date_create'], 'safe'],
             [['name'], 'string', 'max' => 255],
         ];
@@ -144,11 +146,13 @@ class Client extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
+            'id_parent' => Yii::t('microsept','Client id parent'),
             'name' => Yii::t('microsept','Client name'),
             'description' => Yii::t('microsept','Client description'),
             'user_create' => Yii::t('microsept','Client user create'),
             'date_create' => Yii::t('microsept','Client date create'),
             'active' => Yii::t('microsept','Client active'),
+            'is_parent' => Yii::t('microsept','Client is parent'),
         ];
     }
 }
