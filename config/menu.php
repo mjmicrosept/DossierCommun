@@ -24,6 +24,7 @@ return [
         'items' => [
             ['label' => '<span class="fa fa-file-code-o"></span> Gii', 'url' => ['/gii']],
             ['label' => '<span class="fa fa-dashboard"></span> Debug', 'url' => ['/debug']],
+            ['label' => '<span class="fa fa-clock-o"></span> '. Yii::t('microsept','Taches planifiees'), 'url' => ['/cron']],
         ],
         'visible' => Yii::$app->user->isSuperAdmin
     ],

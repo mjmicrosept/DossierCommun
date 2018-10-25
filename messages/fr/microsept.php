@@ -157,5 +157,6 @@ return [
     "LastSend"=>"Derniers envois",
     "Synthese"=>"Synthèse",
     "Client id parent" => "Parent",
-    "Client is parent" => "Est parent"
+    "Client is parent" => "Est parent",
+    "Taches planifiees" => "Tâches planifiées"
 ];
