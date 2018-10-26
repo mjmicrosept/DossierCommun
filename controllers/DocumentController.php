@@ -93,6 +93,24 @@ class DocumentController extends Controller
     }
 
     /**
+     * Récupère la liste des enfants d'un client pour renseigner la liste des établissement
+     * @return array
+     */
+    public function actionGetChildList(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = $_POST['depdrop_parents'];
+        $clientIdParent = $_data[0];
+        $listClient = null;
+
+        if($_data[0] != '')
+            $listClient = Client::getChildList($clientIdParent);
+
+        return ['output'=>$listClient];
+    }
+
+    /**
      * Récupération de la liste des clients d'un labo pour rechargement dynamique du select 2
      * @return array
      */

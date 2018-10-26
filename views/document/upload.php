@@ -13,6 +13,7 @@ use kartik\builder\Form;
 use kartik\builder\FormAsset;
 use kartik\file\FileInputAsset;
 use app\assets\views\KartikCommonAsset;
+use kartik\depdrop\DepDrop;
 use kartik\file\FileInput;
 
 FormAsset::register($this);
@@ -74,6 +75,7 @@ JS
             <div class="panel-body" style="padding:20px 50px 20px 50px;">
                 <div class="row">
                     <input type="hidden" id="hfIdLabo" value="<?= $labo == null ? '' : $labo->id ?>"/>
+                    <input type="hidden" id="hfIdParent" value="" />
                     <fieldset>
                         <?= Html::beginForm('', '', ['class'=>'form-horizontal']); ?>
                         <?php
@@ -141,7 +143,45 @@ JS
                                             ]
                                         ],
                                         'label'=>'Client',
-                                    ],
+                                    ]
+                                ]
+                            ]);
+                        ?>
+                        <div class="form-group">
+                            <label class="col-md-3" for="child-id">Etablissement</label>
+                            <div class="col-md-9">
+                                <?php
+                                    echo DepDrop::widget([
+                                            'type'=>DepDrop::TYPE_SELECT2,
+                                            'name' => 'city',
+                                            'options'=>['id'=>'child-id', 'placeholder'=>'Aucun'],
+                                            'select2Options'=>['pluginOptions'=>['allowClear'=>true]],
+                                            'pluginOptions'=>[
+                                                'depends'=>['kvform-client'],
+                                                'url'=>Url::to(['/document/get-child-list']),
+                                                'params'=>['hfIdParent'],
+                                                'placeholder'=>'Sélectionner un établissement'
+                                            ]
+                                    ]);
+                                ?>
+                            </div>
+                        </div>
+                        <?=
+                            Form::widget([
+                                'formName'=>'kvform',
+
+                                // default grid columns
+                                'columns'=>1,
+                                'compactGrid'=>true,
+
+                                // set global attribute defaults
+                                'attributeDefaults'=>[
+                                    'type'=>Form::INPUT_TEXT,
+                                    'labelOptions'=>['class'=>'col-md-3'],
+                                    'inputContainer'=>['class'=>'col-md-9'],
+                                    'container'=>['class'=>'form-group'],
+                                ],
+                                'attributes'=>[
                                     'year'=>[
                                         'type'=>Form::INPUT_WIDGET,
                                         'widgetClass'=>'\kartik\select2\Select2',
@@ -409,6 +449,7 @@ $this->registerJS(<<<JS
             if($('#kvform-month').val() != '')
                 changeWidgetMonthValue($('#kvform-month').find('option:selected').text(),$('#kvform-month').val());
             loadFilesDetail();
+            $('#hfIdParent').val($(this).val());
         }
         else{
             $('#kvform-year').prop('disabled',true);

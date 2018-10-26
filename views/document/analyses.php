@@ -12,6 +12,7 @@ use yii\helpers\Html;
 use app\assets\components\SweetAlert\SweetAlertAsset;
 use kartik\builder\Form;
 use app\models\User;
+use kartik\depdrop\DepDrop;
 use kartik\builder\FormAsset;
 use kartik\file\FileInputAsset;
 use app\assets\views\KartikCommonAsset;
@@ -91,6 +92,28 @@ JS
                                     ],
                                 ]
                             ]);
+
+                            ?>
+                                <div class="form-group">
+                                    <label class="col-md-3" for="child-id">Etablissement</label>
+                                    <div class="col-md-9">
+                                        <?php
+                                        echo DepDrop::widget([
+                                            'type'=>DepDrop::TYPE_SELECT2,
+                                            'name' => 'city',
+                                            'options'=>['id'=>'child-id', 'placeholder'=>'Aucun'],
+                                            'select2Options'=>['pluginOptions'=>['allowClear'=>true]],
+                                            'pluginOptions'=>[
+                                                'depends'=>['kvformadmin-client'],
+                                                'url'=>Url::to(['/document/get-child-list']),
+                                                'params'=>['hfClientId'],
+                                                'placeholder'=>'Sélectionner un établissement'
+                                            ]
+                                        ]);
+                                        ?>
+                                    </div>
+                                </div>
+                            <?php
                         }
                     ?>
                     <?= Html::endForm(); ?>

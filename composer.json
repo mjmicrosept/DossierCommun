@@ -42,7 +42,8 @@
         "bower-asset/sweetalert2": "^2.0",
         "himiklab/yii2-recaptcha-widget" : "*",
         "wbraganca/yii2-fancytree-widget": "*",
-        "devleaks/yii2-introjs": "*"
+        "devleaks/yii2-introjs": "*",
+        "kartik-v/yii2-widget-depdrop": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-codeception": "*",

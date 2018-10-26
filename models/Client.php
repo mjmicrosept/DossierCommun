@@ -44,7 +44,7 @@ class Client extends \yii\db\ActiveRecord
      */
     public static function getAsList(){
         return ArrayHelper::map(
-            self::find()->all()
+            self::find()->andFilterWhere(['is_parent'=>1])->all()
             , 'id','name'
         );
     }
@@ -61,6 +61,19 @@ class Client extends \yii\db\ActiveRecord
         }
 
         return $resultList;
+    }
+
+    /**
+     * Retourne la liste des enfants d'un client
+     * @param $idParent
+     * @return array
+     */
+    public static function getChildList($idParent){
+        /*return ArrayHelper::map(
+            self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->all()
+            , 'id','name'
+        );*/
+        return self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->select('id, name')->all();
     }
 
 
