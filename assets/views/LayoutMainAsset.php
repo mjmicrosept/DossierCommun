@@ -22,9 +22,11 @@ class LayoutMainAsset extends AssetBundle
         'css/all-skin.css',
         'css/loader.css',
         'css/404.css',
+        'css/bootstrap-toggle.css',
     ];
     public $js = [
         'js/layouts.main.js',
+        'js/bootstrap-toggle.js',
     ];
     public $depends = [
         'app\assets\AppAsset',

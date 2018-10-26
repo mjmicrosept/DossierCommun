@@ -11,6 +11,7 @@ use webvimark\modules\UserManagement\UserManagementModule;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
+use app\models\Client;
 
 $baseUrl = Yii::$app->request->baseUrl;
 $urlGetAffectation = Url::to(['/labo/get-affectation-client']);
@@ -86,16 +87,31 @@ $this->params['breadcrumbs'][] = $this->title;
                     <div class="col-sm-6">
                         <fieldset id="clientPanel" disabled>
                             <legend><?= Yii::t('microsept', 'ClientList') ?></legend>
-
-                            <?= Html::checkboxList(
-                                'laboList',
-                                null,
-                                \yii\helpers\ArrayHelper::map(\app\models\Client::find()->orderBy('name')->andFilterWhere(['active'=>1])->all(), 'id', 'name'),
-                                [
-                                    'separator'=>'<br>',
-                                    'itemOptions' => ['class'=>'btn-chk-list-client']
-                                ]
-                            ) ?>
+                            <label>Sélection en cascade : </label>
+                            <input type="checkbox" checked data-toggle="toggle" data-size="mini" data-on="Oui" data-off="Non">
+                            <br/><br/>
+                            <?php
+                                $result = '';
+                                $clientList = Client::find()->orderBy('name')->andFilterWhere(['active'=>1])->andFilterWhere(['is_parent'=>1])->all();
+                                $result .= '<div>';
+                                foreach ($clientList as $client) {
+                                    $childList = Client::find()->andFilterWhere(['id_parent'=>$client->id])->andFilterWhere(['active'=>1])->all();
+                                    if(count($childList) != 0){
+                                        $result .= '<label><input type="checkbox" class="btn-chk-list-client" name="laboList[]" value="'.$client->id.'"> '.$client->name.'</label>';
+                                        $result .= '<button type="button" class="btn btn-box-tool" data-clientid="'.$client->id.'" data-toggle="collapse" data-target="#collapse'.$client->id.'" style="margin-left:20px"><i class="fa fa-plus chevron-'.$client->id.'"></i></button><br>';
+                                        $result .= '<div class="collapse" id="collapse'.$client->id.'" style="background-color:#e2e2e2"><div class="card card-body">';
+                                        foreach ($childList as $child) {
+                                            $result .= '<label style="margin-left:20px"><input type="checkbox" class="btn-chk-list-client chk-child-'.$client->id.'" name="laboList[]" value="'.$child->id.'" data-parent="'.$client->id.'"> '.$child->name.'</label><br>';
+                                        }
+                                        $result .= '</div></div>';
+                                    }
+                                    else{
+                                        $result .= '<label><input type="checkbox" class="btn-chk-list-client" name="laboList[]" value="'.$client->id.'"> '.$client->name.'</label><br>';
+                                    }
+                                }
+                                $result .= '</div>';
+                                echo $result;
+                            ?>
                         </fieldset>
                         <br/>
                     </div>
@@ -111,6 +127,12 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <?php
 $this->registerJS(<<<JS
+    $('.btn-box-tool').click(function(){
+       var clientId = $(this).data('clientid');
+       $('.chevron-' + clientId).toggleClass('fa-plus fa-minus');
+    });
+
+    //Click sur les boutons radio (ajax affectation clients)
     $('.btn-radio-list-labo').click(function(){
         $('.loader').show();
         var id = $(this).val();
@@ -124,13 +146,13 @@ $this->registerJS(<<<JS
                 $('.btn-chk-list-client').each(function(){
                     $(this).prop('checked',false);
                 });
+                //On coches les cases correspondant aux client affectés
                 for(var i = 0;i< response.clientList.length;i++){
                     $('.btn-chk-list-client').each(function(){
                         if($(this).val() == response.clientList[i].id_client)
                             $(this).prop('checked',true);
                     }); 
                 }
-                //On coches les cases correspondant aux client affectés
                 $('#clientPanel').removeAttr('disabled');
                 $('.btn-save').removeAttr('disabled');
                 $('.loader').hide();
@@ -144,6 +166,7 @@ $this->registerJS(<<<JS
         });
     });
 
+    //Enregistrer les modifications
     $('.btn-save').click(function(){
         $('.loader').show();
         var idLabo = $('#laboratoireID').val();
@@ -167,6 +190,25 @@ $this->registerJS(<<<JS
                 //$('.btn-save').removeAttr('disabled');
             }
         });
+    });
+    
+    //Click sur les checkbox d'un parent
+    $('.btn-chk-list-client').click(function(){
+        if(!$('.btn-xs').hasClass('off')){
+            var idClient = $(this).val();
+            if($(this).prop('checked') == true){
+                //On coche tous les enfants
+                $('.chk-child-' + idClient).each(function(i){
+                    $(this).prop('checked',true);
+                }); 
+            }
+            else{
+                //On décoche tous les enfants
+                $('.chk-child-' + idClient).each(function(i){
+                    $(this).prop('checked',false);
+                }); 
+            }
+        }
     });
 
 JS
