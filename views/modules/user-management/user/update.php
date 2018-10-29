@@ -33,12 +33,15 @@ $this->params['breadcrumbs'][] = Yii::t('microsept', 'Editing');
                         if (isset($idLabo))
                             echo $this->render('_form', ['model' => $model, 'id' => $id, 'idLabo' => $idLabo, 'assignment' => $assignment]);
                         else
-                            echo $this->render('_form', ['model' => $model, 'id' => $id, 'idClient' => $idClient, 'assignment' => $assignment]);
+                            if(isset($idEtablissement))
+                                echo $this->render('_form', ['model' => $model, 'id' => $id, 'idClient' => $idClient,'idEtablissement'=>$idEtablissement, 'assignment' => $assignment]);
+                            else
+                                echo $this->render('_form', ['model' => $model, 'id' => $id, 'idClient' => $idClient, 'assignment' => $assignment]);
                     }
                 }
 				else{
                     if(User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]))
-                        echo $this->render('_form', ['model'=>$model,'id'=>$id, 'assignment' => $assignment]);
+                        echo $this->render('_form', ['model'=>$model,'id'=>$id,'idLabo'=>$idLabo,'idClient'=>$idClient,'idEtablissement'=>$idEtablissement, 'assignment' => $assignment]);
                     else
                         echo $this->render('_form', ['model'=>$model,'id'=>$id]);
                 }

@@ -76,6 +76,18 @@ class Client extends \yii\db\ActiveRecord
         return self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->select('id, name')->all();
     }
 
+    public static function getChildIdFromIdParent($idParent){
+        $result = '';
+        $childList = self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->all();
+        foreach ($childList as $item) {
+            if($result == '')
+                $result .= $item->id;
+            else
+                $result .= ','.$item->id;
+        }
+        return $result;
+    }
+
 
     /**
      * Retourne le chemin physique du dossier du client

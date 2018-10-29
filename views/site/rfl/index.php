@@ -259,7 +259,10 @@ CSS
                     'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
                     'value'=>function($model){
                         $labo = Labo::find()->andFilterWhere(['id'=>$model['id_labo']])->one();
-                        return $labo->raison_sociale;
+                        if(!is_null($labo))
+                            return $labo->raison_sociale;
+                        else
+                            return '';
                     }
                 ],
                 [
@@ -267,7 +270,10 @@ CSS
                     'filter' => 'Client',
                     'value' => function($model){
                         $client = Client::find()->andFilterWhere(['id'=>$model['id_client']])->one();
-                        return $client->name;
+                        if(!is_null($client))
+                            return $client->name;
+                        else
+                            return '';
                     }
                 ],
                 [

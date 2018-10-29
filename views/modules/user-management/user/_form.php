@@ -6,6 +6,11 @@ use webvimark\extensions\BootstrapSwitch\BootstrapSwitch;
 use yii\helpers\ArrayHelper;
 use app\models\User;
 use \yii\web\JsExpression;
+use kartik\builder\Form;
+use kartik\builder\FormAsset;
+use app\assets\views\KartikCommonAsset;
+use kartik\depdrop\DepDrop;
+use yii\helpers\Url;
 
 /**
  * @var yii\web\View $this
@@ -13,22 +18,29 @@ use \yii\web\JsExpression;
  * @var yii\bootstrap\ActiveForm $form
  */
 
+FormAsset::register($this);
+KartikCommonAsset::register($this);
+
 $baseUrl = Yii::$app->request->baseUrl;
 
 $iduser = 0;
 $id_labo = 0;
 $id_client = 0;
+$id_etablissement = 0;
 $portalAdmin = 0;
 $modif_admin = 0;
 $assign = '';
 $permissionradio = 0;
-
+$adminClientCreator = 0;
 
 if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
     $portalAdmin = 1;
 }
+if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperadmin) {
+    $adminClientCreator = 1;
+}
 
-if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
     $permissionradio = 1;
 }
 
@@ -38,6 +50,8 @@ if(isset($id)) {
         $id_labo = $idLabo;
     if(isset($idClient))
         $id_client = $idClient;
+    if(isset($idEtablissement))
+        $id_etablissement = $idEtablissement;
     if(isset($assignment))
         $assign = $assignment;
     if(isset($modifadmin))
@@ -128,7 +142,7 @@ if(isset($id)) {
             <div class="col-sm-6">
                 <?php
                 echo Html::dropDownList('paramClient', null,
-                    ArrayHelper::map(\app\models\Client::find()->orderBy('name')->asArray()->all(), 'id', 'name'),
+                    ArrayHelper::map(\app\models\Client::find()->andFilterWhere(['is_parent'=>1])->orderBy('name')->asArray()->all(), 'id', 'name'),
                     ['class'=>'form-control','id'=>'clientList','pjax' => true,'prompt'=>'Sélectionner le client','pjaxSettings' => [
                         'options'=>[
                             'id'=>'clientList-pjax'
@@ -139,6 +153,44 @@ if(isset($id)) {
         </div>
     <?php endif; ?>
 
+    <input type="hidden" id="hfIdParent" />
+    <?php if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) : ?>
+        <div class="form-group field-user-etablissement" style="display:block;">
+            <label class="control-label col-sm-3" for="child-id">Etablissement</label>
+            <div class="col-sm-6">
+                <?php
+                echo DepDrop::widget([
+                    'type'=>DepDrop::TYPE_SELECT2,
+                    'name' => 'etablissement',
+                    'options'=>['id'=>'child-id', 'placeholder'=>'Aucun'],
+                    'select2Options'=>['pluginOptions'=>['allowClear'=>true]],
+                    'pluginOptions'=>[
+                        'depends'=>['clientList'],
+                        'url'=>Url::to(['/document/get-child-list']),
+                        'params'=>['hfIdParent'],
+                        'placeholder'=>'Sélectionner un établissement',
+                    ],
+                ]);
+                ?>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperAdmin) : ?>
+        <div class="form-group field-user-etablissementAdmin">
+            <label class="control-label col-sm-3" for="user-client"><?= Yii::t('microsept','Etablissement') ?></label>
+            <div class="col-sm-6">
+                <?php
+                echo Html::dropDownList('etablissement', null,
+                    ArrayHelper::map(\app\models\Client::find()->andFilterWhere(['id_parent'=>$idClient])->orderBy('name')->asArray()->all(), 'id', 'name'),
+                    ['class'=>'form-control','id'=>'etablissementList','pjax' => true,'prompt'=>'Sélectionner un établissement','pjaxSettings' => [
+                        'options'=>[
+                            'id'=>'clientList-pjax'
+                        ]
+                    ]]);
+                ?>
+            </div>
+        </div>
+    <?php endif; ?>
     <div class="form-group field-user-labo" style="display:none;">
         <label class="control-label col-sm-3" for="user-client"><?= Yii::t('microsept','Laboratoire') ?></label>
         <div class="col-sm-6">
@@ -165,7 +217,7 @@ if(isset($id)) {
 			<?php else: ?>
 				<?= Html::submitButton(
 					'<span class="glyphicon glyphicon-ok"></span> ' . Yii::t('microsept', 'Save'),
-					['class' => 'btn btn-primary']
+					['class' => 'btn btn-primary btn-validate']
 				) ?>
 			<?php endif; ?>
 		</div>
@@ -200,8 +252,19 @@ $this->registerJs(<<<JS
 		    else{
                 if($id_labo == 0){
                     $('.field-user-client').css('display','block');
+                    if({$id_etablissement} != 0){
+                        $('.field-user-etablissement').css('display','block');
+                        if({$adminClientCreator} == 1)
+                            $('.field-user-etablissementAdmin').css('display','block');
+                    }
+                    else{
+                        $('.field-user-etablissement').css('display','none');
+                        $('.field-user-etablissementAdmin').css('display','none');
+                    }
                     $('.field-user-labo').css('display','none');
-                    $('#clientList option[value="{$id_client}"]').attr("selected", "selected");
+                    $('#clientList option[value="{$id_client}"]').attr("selected", "selected").change();
+                    $('#etablissementList option[value="{$id_etablissement}"]').attr("selected", "selected").change();
+                    $('#hfIdParent').val({$idClient});
                 }
                 else{
                     $('.field-user-client').css('display','none');
@@ -212,11 +275,15 @@ $this->registerJs(<<<JS
 		}
 	}
 	else{
+	    if({$adminClientCreator} == 0)
+	        $('.field-user-etablissementAdmin').css('display','none');
 		$("input:radio").each(function(){
 			$(this).prop('checked',false);
 		});
 		$('#radioPermissionClientUser').prop('checked',true);
+		$('.field-user-etablissement').css('display','block');
 		$('.field-user-labo').css('display','none');
+		$('#hfIdParent').val({$idClient});
 	}
 	
 	//Event du click sur les boutons radio des droits utilisateurs
@@ -225,19 +292,45 @@ $this->registerJs(<<<JS
         if($permissionradio == 1){
             if(id == 'radioPermissionPortailAdmin'){
                 $('.field-user-client').hide();
+                $('.field-user-etablissement').hide();
+                $('.field-user-etablissementAdmin').hide();
                 $('.field-user-labo').hide();
             }
             else{
-                if(id == 'radioPermissionClientAdmin' || id == 'radioPermissionClientUser'){
+                if(id == 'radioPermissionClientAdmin'){
                     $('.field-user-client').show();
+                    $('.field-user-etablissement').hide();
+                    $('.field-user-etablissementAdmin').hide();
                     $('.field-user-labo').hide();
                 }
                 else{
-                    $('.field-user-client').hide();
-                    $('.field-user-labo').show();
+                    if(id == 'radioPermissionClientUser'){
+                        $('.field-user-etablissement').show();
+                        if({$adminClientCreator} == 1)
+                            $('.field-user-etablissementAdmin').show();
+                    }
+                    else{
+                        $('.field-user-etablissement').hide();
+                        $('.field-user-etablissementAdmin').hide();
+                        $('.field-user-client').hide();
+                        $('.field-user-labo').show();
+                    }
                 }
             }
         }
+    });
+	
+	$('#clientList').change(function(){
+	    if($(this).val() != ''){
+	        $('#hfIdParent').val($(this).val());
+	    }
+	    else{
+	        //$('#hfIdParent').val(0);
+	    }
+	});
+	
+	$('#child-id').on('depdrop:change', function(event, id, value, count, textStatus, jqXHR) {
+        $('#child-id option[value="{$id_etablissement}"]').prop("selected", "selected");
     });
 
 JS

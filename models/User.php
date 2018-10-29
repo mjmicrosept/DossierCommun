@@ -322,11 +322,9 @@ class User extends \webvimark\modules\UserManagement\models\User
                     else
                     {
                         if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
-                            PortailUsers::createNewEntry($this->id,null,intval($request_post['paramClient']));
+                            PortailUsers::createNewEntry($this->id,null,intval($request_post['etablissement']));
                         else {
-                            //On récupère le labo de la personne connectée
-                            $idClient = PortailUsers::getIdClientUser(User::getCurrentUser()->id);
-                            PortailUsers::createNewEntry($this->id, null, $idClient);
+                            PortailUsers::createNewEntry($this->id,null,intval($request_post['etablissement']));
                         }
                     }
                     break;
@@ -443,14 +441,12 @@ class User extends \webvimark\modules\UserManagement\models\User
                         else {
                             //Si avant son rôle était admin du portail il faut lui créer une entrée dans la table portail_users sinon la mettre à jour
                             if ($old_role == User::TYPE_PORTAIL_ADMIN) {
-                                PortailUsers::createNewEntry($this->id, null, intval($request_post['paramClient']));
+                                PortailUsers::createNewEntry($this->id, null, intval($request_post['etablissement']));
                             } else {
                                 if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
-                                    PortailUsers::updateEntry($this->id, null, intval($request_post['paramClient']));
+                                    PortailUsers::updateEntry($this->id, null, intval($request_post['etablissement']));
                                 else {
-                                    //On récupère le labo de la personne connectée
-                                    $idClient = PortailUsers::getIdClientUser(User::getCurrentUser()->id);
-                                    PortailUsers::updateEntry($this->id, null, $idClient);
+                                    PortailUsers::updateEntry($this->id, null, intval($request_post['etablissement']));
                                 }
                             }
                         }

@@ -136,6 +136,7 @@ return [
     "UserCreateError"=>"Une erreur s'est produite, veuillez contacter l'administrateur",
     "UserCreateDDLLabo"=>"Vous devez choisir un laboratoire à affecter à cet utilisateur",
     "UserCreateDDLClient"=>"Vous devez choisir un client à affecter à cet utilisateur",
+    "UserCreateDDLEtablissement"=>"Vous devez choisir un établissement à affecter à cet utilisateur",
     "Affectation_client"=>"Affectations clients",
     "Result_Analyses"=>"Résultats d'analyses",
     "Janv"=>"Janvier",

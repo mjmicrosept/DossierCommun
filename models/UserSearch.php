@@ -38,9 +38,11 @@ class UserSearch extends User
             if (User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]))
                 $query->rightJoin('portail_users','portail_users.id_user = auth_user.id AND portail_users.id_labo = '
                     .User::getCurrentUser()->getPortalAssign()->id_labo);
-            if (User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]))
-                $query->rightJoin('portail_users','portail_users.id_user = auth_user.id AND portail_users.id_client = '
-                    .User::getCurrentUser()->getPortalAssign()->id_client);
+            if (User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
+                $idParent = User::getCurrentUser()->getPortalAssign()->id_client;
+                $query->rightJoin('portail_users', 'portail_users.id_user = auth_user.id AND (portail_users.id_client = '
+                    . $idParent . ' OR portail_users.id_client in ('.Client::getChildIdFromIdParent($idParent).'))' );
+            }
 		}
 
 		$dataProvider = new ActiveDataProvider([

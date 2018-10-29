@@ -49,7 +49,11 @@ class UserController extends AdminDefaultController
 	public function actionCreate()
 	{
 		$model = new User(['scenario'=>'newUser']);
-
+        $idClient = null;
+        if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperadmin){
+            $portail = PortailUsers::find()->andFilterWhere(['id_user'=> User::getCurrentUser()])->one();
+            $idClient = $portail->id_client;
+        }
 
 		if ($model->load(Yii::$app->request->post()))
 		{
@@ -65,12 +69,20 @@ class UserController extends AdminDefaultController
                         if (Yii::$app->request->post()['radioPermission'] == User::TYPE_LABO_ADMIN || Yii::$app->request->post()['radioPermission'] == User::TYPE_LABO_USER) {
                             if (intval(Yii::$app->request->post()['paramLabo']) == 0 || Yii::$app->request->post()['paramLabo'] == '') {
                                 Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLLabo'));
-                                return $this->renderIsAjax('create', ['model' => $model]);
+                                return $this->renderIsAjax('create', ['model' => $model,'idClient'=>$idClient]);
                             }
                         } else {
-                            if (intval(Yii::$app->request->post()['paramClient']) == 0 || Yii::$app->request->post()['paramClient'] == '') {
-                                Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLClient'));
-                                return $this->renderIsAjax('create', ['model' => $model]);
+                            if (Yii::$app->request->post()['radioPermission'] == User::TYPE_CLIENT_USER){
+                                if (intval(Yii::$app->request->post()['etablissement']) == 0 || Yii::$app->request->post()['paramClient'] == '') {
+                                    Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLEtablissement'));
+                                    return $this->renderIsAjax('create', ['model' => $model,'idClient'=>$idClient]);
+                                }
+                            }
+                            else{
+                                if (intval(Yii::$app->request->post()['paramClient']) == 0 || Yii::$app->request->post()['paramClient'] == '') {
+                                    Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLClient'));
+                                    return $this->renderIsAjax('create', ['model' => $model,'idClient'=>$idClient]);
+                                }
                             }
                         }
                     }
@@ -85,7 +97,7 @@ class UserController extends AdminDefaultController
             }
 		}
 
-		return $this->renderIsAjax('create',['model'=> $model]);
+		return $this->renderIsAjax('create',['model'=> $model,'idClient'=>$idClient]);
 	}
 
 	/**
@@ -99,11 +111,20 @@ class UserController extends AdminDefaultController
 	public function actionUpdate($id)
 	{
 		$model = $this->findModel($id);
+        $idClient = null;
+        $idLabo = null;
+        $idEtablissement = null;
+
         if(User::isLaboAdmin($model->id) || User::isLaboUser($model->id))
             $idLabo = PortailUsers::find()->andFilterWhere(['id_user'=>$model->id])->one()->id_labo;
 
-        if(User::isClientAdmin($model->id) || User::isClientUser($model->id))
+        if(User::isClientAdmin($model->id))
             $idClient = PortailUsers::find()->andFilterWhere(['id_user'=>$model->id])->one()->id_client;
+        if(User::isClientUser($model->id)){
+            $idEtablissement = PortailUsers::find()->andFilterWhere(['id_user'=>$model->id])->one()->id_client;
+            $client = Client::find()->andFilterWhere(['id'=>$idEtablissement])->one();
+            $idClient = $client->id_parent;
+        }
 
         $role = User::getRole($model->id);
 
@@ -129,8 +150,12 @@ class UserController extends AdminDefaultController
                                 else {
                                     if (User::isLaboAdmin($model->id) || User::isLaboUser($model->id))
                                         return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idLabo' => $idLabo, 'assignment' => User::getUserAssignment($model->id)]);
-                                    else
-                                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
+                                    else {
+                                        if(User::isClientAdmin($model->id))
+                                            return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
+                                        else
+                                            return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient,'idEtabkissement'=>$idEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
+                                    }
                                 }
                             }
                         } else {
@@ -142,15 +167,39 @@ class UserController extends AdminDefaultController
                                 else {
                                     if (User::isLaboAdmin($model->id) || User::isLaboUser($model->id))
                                         return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idLabo' => $idLabo, 'assignment' => User::getUserAssignment($model->id)]);
-                                    else
-                                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
+                                    else {
+                                        if(User::isClientAdmin($model->id))
+                                            return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
+                                        else
+                                            return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient,'idEtablissement'=>$idEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
+                                    }
                                 }
                             }
                         }
                     }
 
-                    $createUser = $model->updateUserWithPermission(Yii::$app->request->post(), $role);
-                    if ($createUser) {
+                    $updateUser = $model->updateUserWithPermission(Yii::$app->request->post(), $role);
+                    if ($updateUser) {
+                        Yii::$app->session->setFlash('success', Yii::t('microsept', 'UserUpdateSuccess'));
+                        return $this->redirect(['index']);
+                    } else {
+                        Yii::$app->session->setFlash('danger', Yii::t('microsept', 'UserCreateError'));
+                    }
+                }
+            }
+            else{
+                if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])){
+                    $updateUser = $model->updateUserWithPermission(Yii::$app->request->post(), $role);
+                    if ($updateUser) {
+                        Yii::$app->session->setFlash('success', Yii::t('microsept', 'UserUpdateSuccess'));
+                        return $this->redirect(['index']);
+                    } else {
+                        Yii::$app->session->setFlash('danger', Yii::t('microsept', 'UserCreateError'));
+                    }
+                }
+                else{
+                    $updateUser = $model->updateUserWithPermission(Yii::$app->request->post(), $role);
+                    if ($updateUser) {
                         Yii::$app->session->setFlash('success', Yii::t('microsept', 'UserUpdateSuccess'));
                         return $this->redirect(['index']);
                     } else {
@@ -167,13 +216,18 @@ class UserController extends AdminDefaultController
             else {
                 if (User::isLaboAdmin($model->id) || User::isLaboUser($model->id))
                     return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idLabo' => $idLabo, 'assignment' => User::getUserAssignment($model->id)]);
-                else
-                    return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
+                else {
+                    if(User::isClientAdmin($model->id))
+                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
+                    else {
+                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'idEtablissement' => $idEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
+                    }
+                }
             }
         }
         else{
             if(User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])){
-                return $this->renderIsAjax('update', ['model'=>$model,'id'=>$model->id, 'assignment' => User::getUserAssignment($model->id)]);
+                return $this->renderIsAjax('update', ['model'=>$model,'id'=>$model->id,'idLabo'=>$idLabo, 'idClient' => $idClient,'idEtablissement'=>$idEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
             }
             else{
                 return $this->renderIsAjax('update', ['model'=>$model,'id'=>$model->id]);
