@@ -142,10 +142,12 @@ class AppCommon
         $result = '';
         $folder = opendir (Yii::$app->params['dossierClients'].$dir);
 
+        Yii::trace($dir);
         $index = 0;
         while ($file = readdir ($folder)) {
             if ($file != "." && $file != "..") {
                 $pathfile = Yii::$app->params['dossierClients'].$dir.'/'.$file;
+                Yii::trace($pathfile);
                 if(filetype($pathfile) == 'file'){
                     if(!is_null($parent) && $index == 0)
                         $result .= $parent;
@@ -169,7 +171,8 @@ class AppCommon
                     $result .= '<br>';*/
                 }
                 else{
-                    $labo = Labo::find()->andFilterWhere(['id'=>intval($file)])->one();
+                    $idLabo = explode('_',$file)[1];
+                    $labo = Labo::find()->andFilterWhere(['id'=>intval($idLabo)])->one();
                     if(!is_null($labo)){
                         $resultLabo = '<label>'.$labo->raison_sociale.'</label><br>';
                         $result .= self::getFoldersFile($dir.'/'.$file,$resultLabo);

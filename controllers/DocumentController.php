@@ -190,13 +190,13 @@ class DocumentController extends Controller
                         if(!is_dir($pathClientMonthFolder))
                             mkdir($pathClientMonthFolder);
                         //Chemin vers le labo
-                        $pathClientLaboFolder = $pathClientMonthFolder.'/'.strval($idLabo);
+                        $pathClientLaboFolder = $pathClientMonthFolder.'/L_'.strval($idLabo);
                         if(!is_dir($pathClientLaboFolder))
                             mkdir($pathClientLaboFolder);
 
                         for($i = 0; $i < count($_FILES['upload-files']['name']);$i++){
                             if(end(explode(".", $_FILES['upload-files']['name'][$i])) == 'pdf') {
-                                $destination = Yii::$app->params['dossierClients'] . $folderClientName . '/' . $year . '/' . $month . '/' . strval($idLabo) . '/';
+                                $destination = Yii::$app->params['dossierClients'] . $folderClientName . '/' . $year . '/' . $month . '/L_' . strval($idLabo) . '/';
                                 if(!file_exists($destination . $_FILES['upload-files']['name'][$i])) {
                                     @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $_FILES['upload-files']['name'][$i]);
                                     @unlink($_FILES['files']['tmp_name'][$i]);
