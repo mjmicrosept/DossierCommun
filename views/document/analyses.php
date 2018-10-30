@@ -100,7 +100,7 @@ JS
                                         <?php
                                         echo DepDrop::widget([
                                             'type'=>DepDrop::TYPE_SELECT2,
-                                            'name' => 'city',
+                                            'name' => 'etablissement',
                                             'options'=>['id'=>'child-id', 'placeholder'=>'Aucun'],
                                             'select2Options'=>['pluginOptions'=>['allowClear'=>true]],
                                             'pluginOptions'=>[
@@ -114,6 +114,41 @@ JS
                                     </div>
                                 </div>
                             <?php
+                        }
+                    ?>
+                    <?php
+                        if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperAdmin){
+                            echo Form::widget([
+                                'formName'=>'kvformclientadmin',
+
+                                // default grid columns
+                                'columns'=>1,
+                                'compactGrid'=>true,
+
+                                // set global attribute defaults
+                                'attributeDefaults'=>[
+                                    'type'=>Form::INPUT_TEXT,
+                                    'labelOptions'=>['class'=>'col-md-3'],
+                                    'inputContainer'=>['class'=>'col-md-9'],
+                                    'container'=>['class'=>'form-group'],
+                                ],
+                                'attributes'=>[
+                                    'etablissement'=>[
+                                        'type'=>Form::INPUT_WIDGET,
+                                        'widgetClass'=>'\kartik\select2\Select2',
+                                        'options'=>[
+                                            'data'=>$listEtablissement,
+                                            'options' => [
+                                                'placeholder' => 'Sélectionner un client','dropdownCssClass' =>'dropdown-vente-livr'
+                                            ],
+                                            'pluginOptions' => [
+                                                'allowClear' => true,
+                                            ]
+                                        ],
+                                        'label'=>'Etablissement',
+                                    ],
+                                ]
+                            ]);
                         }
                     ?>
                     <?= Html::endForm(); ?>
@@ -177,6 +212,52 @@ $this->registerJs(<<<JS
         }
         else{
             $('#hfClientId').val($(this).val());
+            /*var data = JSON.stringify({
+                idClient : $(this).val(),
+            });
+            $.post(url.changeDataClient, {data:data}, function(response) {
+                if(response.error == false){
+                    rootNode.removeChildren();
+                    rootNode.addChildren(response.result);
+                }
+            });*/
+        }
+    });
+
+    $('#child-id').change(function(){
+        var rootNode = $('#fancyree_clientTree').fancytree("getRootNode");
+        if($(this).val() == ''){
+            rootNode.removeChildren();
+            //On recharge le parent
+            var data = JSON.stringify({
+                idClient : $('#kvformadmin-client').val(),
+            });
+            $.post(url.changeDataClient, {data:data}, function(response) {
+                if(response.error == false){
+                    rootNode.removeChildren();
+                    rootNode.addChildren(response.result);
+                }
+            });
+        }
+        else{
+            var data = JSON.stringify({
+                idClient : $(this).val(),
+            });
+            $.post(url.changeDataClient, {data:data}, function(response) {
+                if(response.error == false){
+                    rootNode.removeChildren();
+                    rootNode.addChildren(response.result);
+                }
+            });
+        }
+    })
+
+    $('#kvformclientadmin-etablissement').change(function(){
+        var rootNode = $('#fancyree_clientTree').fancytree("getRootNode");
+        if($(this).val() == ''){
+            rootNode.removeChildren();
+        }
+        else{
             var data = JSON.stringify({
                 idClient : $(this).val(),
             });

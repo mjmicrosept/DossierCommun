@@ -159,7 +159,7 @@ JS
                                             'pluginOptions'=>[
                                                 'depends'=>['kvform-client'],
                                                 'url'=>Url::to(['/document/get-child-list']),
-                                                'params'=>['hfIdParent'],
+                                                'params'=>['hfIdParent','hfIdLabo'],
                                                 'placeholder'=>'Sélectionner un établissement'
                                             ]
                                     ]);
@@ -527,6 +527,7 @@ $this->registerJS(<<<JS
             var outData = {
                 idLabo:$('#hfIdLabo').val(),
                 idClient:$('#kvform-client').val(),
+                idEtablissement:$('#child-id').val(),
                 year:$('#kvform-year').val(),
                 month:$('#kvform-month').val(),
             };

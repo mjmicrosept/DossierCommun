@@ -64,7 +64,13 @@ class DocumentController extends Controller
         else{
             $labo = User::getCurrentUser()->getLabo();
             $laboClientAssign = LaboClientAssign::getListLaboClientAssign($labo->id);
-            $listClient = Client::getAsListFromClientAssign($laboClientAssign);
+            $listLaboClient = [];
+            foreach ($laboClientAssign as $item) {
+                $client = Client::find()->andFilterWhere(['id'=>$item->id_client])->one();
+                if($client->is_parent)
+                    array_push($listLaboClient,$item);
+            }
+            $listClient = Client::getAsListFromClientAssign($listLaboClient);
         }
 
         for($i = Yii::$app->params['arboClientFirstYear']; $i <= date('Y');$i++){
@@ -97,6 +103,28 @@ class DocumentController extends Controller
      * @return array
      */
     public function actionGetChildList(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = $_POST['depdrop_params'];
+        $clientIdParent = $_data[0];
+        $clientIdLabo = null;
+        Yii::trace($_data);
+        if(count($_data) > 1)
+            $clientIdLabo = $_data[1];
+        $listClient = null;
+
+        if($_data[0] != '')
+            $listClient = Client::getChildList($clientIdParent,$clientIdLabo);
+
+        return ['output'=>$listClient];
+    }
+
+    /**
+     * Récupère la liste des enfants d'un client pour renseigner la liste des établissement
+     * @return array
+     */
+    public function actionGetChildListUser(){
         $errors = false;
         Yii::$app->response->format = Response::FORMAT_JSON;
 
@@ -159,10 +187,13 @@ class DocumentController extends Controller
         $idClient = null;
         $year = null;
         $month = null;
+        Yii::trace($_POST);
         if(isset($_POST['idLabo']))
             $idLabo = $_POST['idLabo'];
         if(isset($_POST['idClient']))
             $idClient = $_POST['idClient'];
+        if(isset($_POST['idEtablissement']))
+            $idEtablissement = $_POST['idEtablissement'];
         if(isset($_POST['year']))
             $year = strval($_POST['year']);
         if(isset($_POST['month'])) {
@@ -176,7 +207,10 @@ class DocumentController extends Controller
         if(!is_null($idLabo)){
             if(!is_null($idClient)){
                 //On recherche le nom du dossier correspondant au client
-                $folderClientName = ClientDossier::getDossierName($idClient);
+                if($idEtablissement == '')
+                    $folderClientName = ClientDossier::getDossierName($idClient);
+                else
+                    $folderClientName = ClientDossier::getDossierName($idEtablissement);
                 if(!is_null($folderClientName)) {
                     //Chemin vers le dossier client
                     $pathClientFolder = Yii::$app->params['dossierClients'].$folderClientName.'/';
@@ -201,16 +235,19 @@ class DocumentController extends Controller
                                     @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $_FILES['upload-files']['name'][$i]);
                                     @unlink($_FILES['files']['tmp_name'][$i]);
                                     //On renseigne la table document_pushed
+                                    $id_client = $idClient;
+                                    if($idEtablissement != '')
+                                        $id_client = $idEtablissement;
                                     $logDoc = DocumentPushed::find()
                                         ->andFilterWhere(['id_labo' => $idLabo])
-                                        ->andFilterWhere(['id_client' => $idClient])
+                                        ->andFilterWhere(['id_client' => $id_client])
                                         ->andFilterWhere(['year' => $year])
                                         ->andFilterWhere(['month' => $month])
                                         ->one();
                                     if (is_null($logDoc)) {
                                         $logDoc = new DocumentPushed();
                                         $logDoc->id_labo = $idLabo;
-                                        $logDoc->id_client = $idClient;
+                                        $logDoc->id_client = $id_client;
                                         $logDoc->year = intval($year);
                                         $logDoc->month = intval($month);
                                         $logDoc->nb_doc = 1;
@@ -340,20 +377,37 @@ class DocumentController extends Controller
         $data = null;
         $admin = false;
         $listClient = null;
+        $listEtablissement = null;
         $idClient = 0;
         if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !Yii::$app->user->isSuperAdmin) {
-            $client = User::getCurrentUser()->getClient();
-            $idClient = $client->id;
-            $folderClient = $client->getFolderPath();
-            $tree = AppCommon::dataFancytreeClientActif(0, Yii::$app->params['dossierClients'] . $folderClient, $folderClient, true);
-            $data = [[
-                'title' => $client->name,
-                'key' => 1,
-                'expanded' => true,
-                'editable' => false,
-                'icon' => 'fa fa-calendar',
-                'children' => $tree['exist'] ? $tree['node'] : ''
-            ]];
+            if(!User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
+                $client = User::getCurrentUser()->getClient();
+                $idClient = $client->id;
+                $folderClient = $client->getFolderPath();
+                $tree = AppCommon::dataFancytreeClientActif(0, Yii::$app->params['dossierClients'] . $folderClient, $folderClient, true);
+                $data = [[
+                    'title' => $client->name,
+                    'key' => 1,
+                    'expanded' => true,
+                    'editable' => false,
+                    'icon' => 'fa fa-calendar',
+                    'children' => $tree['exist'] ? $tree['node'] : ''
+                ]];
+            }
+            else{
+                $admin = true;
+                $client = User::getCurrentUser()->getClient();
+                $idClient = $client->id;
+                $listEtablissement = Client::getAsChildList($idClient);
+                $data = [[
+                    'title' => 'Choisir un client',
+                    'key' => 1,
+                    'expanded' => true,
+                    'editable' => false,
+                    'icon' => 'fa fa-calendar',
+                    'children' => ''
+                ]];
+            }
         }
         else{
             $admin = true;
@@ -368,7 +422,7 @@ class DocumentController extends Controller
             ]];
         }
 
-        return $this->render('analyses', ['data' => $data,'listClient'=>$listClient,'admin'=>$admin,'idClient'=>$idClient]);
+        return $this->render('analyses', ['data' => $data,'listClient'=>$listClient,'listEtablissement'=>$listEtablissement,'admin'=>$admin,'idClient'=>$idClient]);
     }
 
     public function actionChangeDataTreeClient(){

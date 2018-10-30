@@ -39,12 +39,23 @@ class Client extends \yii\db\ActiveRecord
     }
 
     /**
-     * Retourne la liste brute id/nom
+     * Retourne la liste formatée pour un select id/nom des clients
      * @return mixed
      */
     public static function getAsList(){
         return ArrayHelper::map(
             self::find()->andFilterWhere(['is_parent'=>1])->all()
+            , 'id','name'
+        );
+    }
+
+    /**
+     * Retourne la liste formatée pour un select id/nom des établissements
+     * @return array
+     */
+    public static function getAsChildList($idParent){
+        return ArrayHelper::map(
+            self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->all()
             , 'id','name'
         );
     }
@@ -68,12 +79,21 @@ class Client extends \yii\db\ActiveRecord
      * @param $idParent
      * @return array
      */
-    public static function getChildList($idParent){
-        /*return ArrayHelper::map(
-            self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->all()
-            , 'id','name'
-        );*/
-        return self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->select('id, name')->all();
+    public static function getChildList($idParent,$idLabo = null){
+        if(is_null($idLabo))
+            return self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->select('id, name')->all();
+        else{
+            $result = [];
+            $listEtablissement = self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->select('id, name')->all();
+            foreach ($listEtablissement as $item) {
+                $assign = LaboClientAssign::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$item->id])->andFilterWhere(['assign'=>1])->one();
+                if(!is_null($assign)) {
+                    array_push($result, $item);
+                }
+            }
+            Yii::trace($result);
+            return $result;
+        }
     }
 
     public static function getChildIdFromIdParent($idParent){

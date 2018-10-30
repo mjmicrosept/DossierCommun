@@ -32,12 +32,17 @@ $modif_admin = 0;
 $assign = '';
 $permissionradio = 0;
 $adminClientCreator = 0;
+$adminLaboCreator = 0;
 
 if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
     $portalAdmin = 1;
 }
 if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperadmin) {
     $adminClientCreator = 1;
+}
+
+if(User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) && !Yii::$app->user->isSuperadmin) {
+    $adminLaboCreator = 1;
 }
 
 if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
@@ -166,7 +171,7 @@ if(isset($id)) {
                     'select2Options'=>['pluginOptions'=>['allowClear'=>true]],
                     'pluginOptions'=>[
                         'depends'=>['clientList'],
-                        'url'=>Url::to(['/document/get-child-list']),
+                        'url'=>Url::to(['/document/get-child-list-user']),
                         'params'=>['hfIdParent'],
                         'placeholder'=>'Sélectionner un établissement',
                     ],
@@ -248,6 +253,7 @@ $this->registerJs(<<<JS
 		        $('.field-user-client').css('display','none');
                 $('.field-user-labo').css('display','none');
                 $('#clientList option[value="{$id_client}"]').attr("selected", "selected");
+                $('.field-user-etablissement').hide();
 		    }
 		    else{
                 if($id_labo == 0){
@@ -264,12 +270,15 @@ $this->registerJs(<<<JS
                     $('.field-user-labo').css('display','none');
                     $('#clientList option[value="{$id_client}"]').attr("selected", "selected").change();
                     $('#etablissementList option[value="{$id_etablissement}"]').attr("selected", "selected").change();
-                    $('#hfIdParent').val({$idClient});
+                    $('#hfIdParent').val({$id_client});
                 }
                 else{
                     $('.field-user-client').css('display','none');
-                    $('.field-user-labo').css('display','block');
+                    if({$adminLaboCreator} != 1)
+                        $('.field-user-labo').css('display','block');
                     $('#laboList option[value="{$id_labo}"]').attr("selected", "selected");
+                    $('.field-user-etablissement').css('display','none');
+                    $('.field-user-etablissementAdmin').css('display','none');
                 }
 		    }
 		}
@@ -283,7 +292,7 @@ $this->registerJs(<<<JS
 		$('#radioPermissionClientUser').prop('checked',true);
 		$('.field-user-etablissement').css('display','block');
 		$('.field-user-labo').css('display','none');
-		$('#hfIdParent').val({$idClient});
+		$('#hfIdParent').val({$id_client});
 	}
 	
 	//Event du click sur les boutons radio des droits utilisateurs
@@ -305,6 +314,8 @@ $this->registerJs(<<<JS
                 }
                 else{
                     if(id == 'radioPermissionClientUser'){
+                        $('.field-user-labo').hide();
+                        $('.field-user-client').show();
                         $('.field-user-etablissement').show();
                         if({$adminClientCreator} == 1)
                             $('.field-user-etablissementAdmin').show();
@@ -313,7 +324,8 @@ $this->registerJs(<<<JS
                         $('.field-user-etablissement').hide();
                         $('.field-user-etablissementAdmin').hide();
                         $('.field-user-client').hide();
-                        $('.field-user-labo').show();
+                        if({$adminLaboCreator} != 1)
+                            $('.field-user-labo').show();
                     }
                 }
             }
