@@ -44,22 +44,21 @@ JS
 );
 
 ?>
-
-<div class="analyses-index">
-    <div class="panel panel-primary">
-        <div class="panel-heading">
-            <div class="row">
-                <div class="col-sm-6">
-                    <h4 class="lte-hide-title"><?= $this->title ?></h4>
-                </div>
+<h2 class="lte-hide-title"><?= $this->title ?></h2>
+<div class="row">
+    <div class="col-sm-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <strong>
+                    <span class="fa fa-indent"></span> <?= Yii::t('microsept', 'Selection') ?>
+                </strong>
             </div>
-        </div>
-        <div class="panel-body">
-             <div class="row">
-                <div class="col-lg-6">
-                    <input type="hidden" id="hfClientId" value="<?= $idClient ?>" />
-                    <?= Html::beginForm('', '', ['class'=>'form-horizontal']); ?>
-                    <?php
+            <div class="panel-body" style="padding:20px 50px 20px 50px;">
+                <div class="row">
+                    <fieldset>
+                        <input type="hidden" id="hfClientId" value="<?= $idClient ?>" />
+                        <?= Html::beginForm('', '', ['class'=>'form-horizontal']); ?>
+                        <?php
                         if(User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || Yii::$app->user->isSuperAdmin){
                             echo Form::widget([
                                 'formName'=>'kvformadmin',
@@ -94,29 +93,29 @@ JS
                             ]);
 
                             ?>
-                                <div class="form-group">
-                                    <label class="col-md-3" for="child-id">Etablissement</label>
-                                    <div class="col-md-9">
-                                        <?php
-                                        echo DepDrop::widget([
-                                            'type'=>DepDrop::TYPE_SELECT2,
-                                            'name' => 'etablissement',
-                                            'options'=>['id'=>'child-id', 'placeholder'=>'Aucun'],
-                                            'select2Options'=>['pluginOptions'=>['allowClear'=>true]],
-                                            'pluginOptions'=>[
-                                                'depends'=>['kvformadmin-client'],
-                                                'url'=>Url::to(['/document/get-child-list']),
-                                                'params'=>['hfClientId'],
-                                                'placeholder'=>'Sélectionner un établissement'
-                                            ]
-                                        ]);
-                                        ?>
-                                    </div>
+                            <div class="form-group">
+                                <label class="col-md-3" for="child-id">Etablissement</label>
+                                <div class="col-md-9">
+                                    <?php
+                                    echo DepDrop::widget([
+                                        'type'=>DepDrop::TYPE_SELECT2,
+                                        'name' => 'etablissement',
+                                        'options'=>['id'=>'child-id', 'placeholder'=>'Aucun'],
+                                        'select2Options'=>['pluginOptions'=>['allowClear'=>true]],
+                                        'pluginOptions'=>[
+                                            'depends'=>['kvformadmin-client'],
+                                            'url'=>Url::to(['/document/get-child-list']),
+                                            'params'=>['hfClientId'],
+                                            'placeholder'=>'Sélectionner un établissement'
+                                        ]
+                                    ]);
+                                    ?>
                                 </div>
+                            </div>
                             <?php
                         }
-                    ?>
-                    <?php
+                        ?>
+                        <?php
                         if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperAdmin){
                             echo Form::widget([
                                 'formName'=>'kvformclientadmin',
@@ -150,50 +149,69 @@ JS
                                 ]
                             ]);
                         }
-                    ?>
-                    <?= Html::endForm(); ?>
-                    <?= \wbraganca\fancytree\FancytreeWidget::widget([
-                        'options' =>[
-                            'source' => $data,
-                            'extensions' => ['dnd'],
-                            'dnd' => [
-                                'preventVoidMoves' => true,
-                                'preventRecursiveMoves' => true,
-                                'autoExpandMS' => 400,
-                            ],
-                            'click'=>new JsExpression('function(event, data){
+                        ?>
+                        <?= Html::endForm(); ?>
+                        <?= \wbraganca\fancytree\FancytreeWidget::widget([
+                            'options' =>[
+                                'source' => $data,
+                                'extensions' => ['dnd'],
+                                'dnd' => [
+                                    'preventVoidMoves' => true,
+                                    'preventRecursiveMoves' => true,
+                                    'autoExpandMS' => 400,
+                                ],
+                                'click'=>new JsExpression('function(event, data){
                                 if(data.targetType == "title")
                                     if(data.node.children == null){
                                         clickNode(data);
                                     }
                             }'),
-                            'expand'=> new JsExpression('function(event, data) {
+                                'expand'=> new JsExpression('function(event, data) {
                             }'),
-                        ],
-                        'id'=>'clientTree',
-                    ]) ?>
+                            ],
+                            'id'=>'clientTree',
+                        ]) ?>
+                    </fieldset>
                 </div>
+                <hr/>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <strong>
+                    <span class="fa fa-file"></span> <?= Yii::t('microsept', 'Documents') ?>
+                </strong>
+            </div>
+            <div class="panel-body">
 
-                <div class="col-lg-6">
-                    <div id="defaultBox" class="box box-primary">
-                        <div class="loader">
-                            <div class="sk-cube-grid"><div class="sk-cube sk-cube1"></div>
-                                <div class="sk-cube sk-cube2"></div><div class="sk-cube sk-cube3"></div>
-                                <div class="sk-cube sk-cube4"></div><div class="sk-cube sk-cube5"></div>
-                                <div class="sk-cube sk-cube6"></div><div class="sk-cube sk-cube7"></div>
-                                <div class="sk-cube sk-cube8"></div><div class="sk-cube sk-cube9"></div>
-                                <div class="loader-traitement">Traitement en cours</div>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <fieldset>
+                            <div id="defaultBox" class="box box-primary">
+                                <div class="loader">
+                                    <div class="sk-cube-grid"><div class="sk-cube sk-cube1"></div>
+                                        <div class="sk-cube sk-cube2"></div><div class="sk-cube sk-cube3"></div>
+                                        <div class="sk-cube sk-cube4"></div><div class="sk-cube sk-cube5"></div>
+                                        <div class="sk-cube sk-cube6"></div><div class="sk-cube sk-cube7"></div>
+                                        <div class="sk-cube sk-cube8"></div><div class="sk-cube sk-cube9"></div>
+                                        <div class="loader-traitement">Traitement en cours</div>
+                                    </div>
+                                </div>
+                                <div class="box-header with-border">
+                                    <h3 class="box-title title-default"><?= Yii::t('microsept','Resultat_De') ?> <span class="title-detail"></span></h3>
+                                </div>
+                                <div class="box-body">
+                                    <div id="defaultLocationsTree"></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="box-header with-border">
-                            <h3 class="box-title title-default"><?= Yii::t('microsept','Resultat_De') ?> <span class="title-detail"></span></h3>
-                        </div>
-                        <div class="box-body">
-                            <div id="defaultLocationsTree"></div>
-                        </div>
+                            <button class="btn btn-primary btn-download" style="display:none;">Télécharger</button>
+                        </fieldset>
+                        <br/>
                     </div>
-                    <button class="btn btn-primary btn-download" style="display:none;">Télécharger</button>
                 </div>
+                <hr/>
             </div>
         </div>
     </div>

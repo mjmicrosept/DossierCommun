@@ -159,5 +159,7 @@ return [
     "Synthese"=>"Synthèse",
     "Client id parent" => "Parent",
     "Client is parent" => "Est parent",
-    "Taches planifiees" => "Tâches planifiées"
+    "Taches planifiees" => "Tâches planifiées",
+    "Selection" => "Sélection",
+    "Documents" => "Documents"
 ];
