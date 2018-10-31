@@ -16,7 +16,6 @@ use kartik\builder\FormAsset;
 use app\assets\views\KartikCommonAsset;
 use yii\helpers\Url;
 use app\models\AppCommon;
-use app\models\DocumentAlerte;
 use yii\web\View;
 use app\assets\components\SweetAlert\SweetAlertAsset;
 use app\models\Client;
@@ -86,6 +85,9 @@ $this->registerCss(<<<CSS
     }
     .data-error-green:hover{
         background-color: #72d29a !important;
+    }
+    #grid-list-document-container{
+        overflow-x: hidden;
     }
 
 CSS

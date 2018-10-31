@@ -62,6 +62,9 @@ $this->registerCss(<<<CSS
     .data-error-green:hover{
         background-color: #72d29a !important;
     }
+    #grid-list-document-container{
+        overflow-x: hidden;
+    }
 
 CSS
 );
