@@ -35,7 +35,9 @@ $this->title = 'RFL Documents';
                         'searchModel' => $searchModel,
                         'dataProvider' => $dataProvider,
                         'listMonthAlert' => $listMonthAlert,
-                        'idClient' => $idClient
+                        'idClient' => $idClient,
+                        'isAdmin'=> User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) ? true : false,
+                        'gridColumn' => $gridColumn
                     ]
                 );
             }

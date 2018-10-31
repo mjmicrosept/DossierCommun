@@ -114,3 +114,12 @@ a.desc:after {
     outline: none;
 }
 
+ul.fancytree-container{
+    border:none !important;
+}
+
+.fancytree-treefocus span.fancytree-active span.fancytree-title{
+    color:#FFF;
+    background-color:#2d7c90 !important;
+}
+

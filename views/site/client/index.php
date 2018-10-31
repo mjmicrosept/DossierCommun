@@ -19,6 +19,7 @@ use app\models\AppCommon;
 use app\models\DocumentAlerte;
 use yii\web\View;
 use app\assets\components\SweetAlert\SweetAlertAsset;
+use app\models\Client;
 
 
 FormAsset::register($this,View::POS_HEAD);
@@ -28,6 +29,7 @@ SweetAlertAsset::register($this,View::POS_HEAD);
 $baseUrl = Yii::$app->request->baseUrl;
 $urlGeneralNoDocument = Url::to(['/alerte/general-no-document']);
 $urlPeriodeMissing = Url::to(['/alerte/periode-missing']);
+
 
 $this->registerJS(<<<JS
     var url = {
@@ -108,13 +110,15 @@ CSS
                     <span class="info-box-text">Utilisateurs</span>
                     <span class="info-box-number">
                         <?php
-                            $users = User::find()->all();
-                            $index = 0;
-                            foreach ($users as $user) {
-                                if(User::isClientUser($user->id) || User::isClientAdmin($user->id))
-                                    $index++;
+                            $idUser = User::getCurrentUser()->id;
+                            $clientList = Client::find()->andFilterWhere(['id'=>$idClient])->orFilterWhere(['id_parent'=>$idClient])->andFilterWhere(['active'=>1])->all();
+                            $aIds = [];
+                            foreach ($clientList as $item) {
+                                array_push($aIds,$item->id);
                             }
-                            echo $index;
+
+                            $portailList = PortailUsers::find()->andFilterWhere(['in','id_client',$aIds])->all();
+                            echo count($portailList);
                         ?>
                     <small></small></span>
                 </div>
@@ -151,7 +155,17 @@ CSS
 
                 <div class="info-box-content">
                     <span class="info-box-text">Documents</span>
-                    <span class="info-box-number"><?= DocumentPushed::find()->andFilterWhere(['id_client'=>PortailUsers::getIdClientUser(User::getCurrentUser()->id)])->sum('nb_doc') ?></span>
+                    <span class="info-box-number">
+                        <?php
+                            $clientList = Client::find()->andFilterWhere(['id'=>$idClient])->orFilterWhere(['id_parent'=>$idClient])->andFilterWhere(['active'=>1])->all();
+                            $aIds = [];
+                            foreach ($clientList as $item) {
+                                array_push($aIds,$item->id);
+                            }
+                            $result = DocumentPushed::find()->andFilterWhere(['in','id_client',$aIds])->sum('nb_doc');
+                            echo $result;
+                        ?>
+                    </span>
                 </div>
                 <!-- /.info-box-content -->
             </div>
@@ -169,16 +183,6 @@ CSS
                         <?php
                             $lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>PortailUsers::getIdClientUser(User::getCurrentUser()->id)])->orderBy('last_push DESC')->one();
                             if(!is_null($lastPushObj)) {
-                                /*$lastPush = $lastPushObj->last_push;
-                                $year = substr($lastPush, 0, 4);
-                                $month = intval(substr($lastPush, 5, 2));
-                                $day = substr($lastPush, 8, 2);
-                                $hour = substr($lastPush, -8, 2);
-                                $min = substr($lastPush, -5, 2);
-
-                                $tMonths = [1 => "Jan", 2 => "Fév", 3 => "Mars", 4 => "Avr", 5 => "Mai", 6 => "Juin", 7 => "Juil", 8 => "Août", 9 => "Sept", 10 => "Oct", 11 => "Nov", 12 => "Déc"];
-
-                                return $day . ' ' . $tMonths[$month] . ' ' . $year;*/
                                 $labo = Labo::find()->andFilterWhere(['id'=>$lastPushObj->id_labo])->one();
                                 echo $labo->raison_sociale;
                             }
@@ -330,173 +334,7 @@ CSS
                             return ['class'=>'data-error data-error-green'];
                     }
                 },
-                'columns' => [
-                    [
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:left;vertical-align:middle'],
-                        'filter'=>'Laboratoire',
-                        'value'=>function($model){
-                            $labo = Labo::find()->andFilterWhere(['id'=>$model['id_labo']])->one();
-                            return $labo->raison_sociale;
-                        }
-                    ],
-                    [
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                        'filter' => 'Total doc.',
-                        'hAlign'=>'center',
-                        'width'=>'150px',
-                        'value' => function($model){
-                            $nbDocTotal = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->sum('nb_doc');
-                            if(!is_null($nbDocTotal))
-                                return $nbDocTotal;
-                            else
-                                return ' - ';
-                        }
-                    ],
-                    [
-                        'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #00c0ef!important;'],
-                        'label'=>'Dernier envoi',
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                        'filter' => 'Date',
-                        'format'=>'raw',
-                        'width'=>'150px',
-                        'value' => function($model){
-                            $lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->orderBy('last_push DESC')->one();
-                            if(!is_null($lastPushObj)) {
-                                $lastPush = $lastPushObj->last_push;
-                                $year = substr($lastPush, 0, 4);
-                                $month = intval(substr($lastPush, 5, 2));
-                                $day = substr($lastPush, 8, 2);
-                                $hour = substr($lastPush, -8, 2);
-                                $min = substr($lastPush, -5, 2);
-
-                                $tMonths = [1 => "Jan", 2 => "Fév", 3 => "Mars", 4 => "Avr", 5 => "Mai", 6 => "Juin", 7 => "Juil", 8 => "Août", 9 => "Sept", 10 => "Oct", 11 => "Nov", 12 => "Déc"];
-
-                                return $day . ' ' . $tMonths[$month] . ' ' . $year;
-                            }
-                            else
-                                return ' - ';
-                        }
-                    ],
-                    [
-                        'headerOptions' => ['style' => 'display:none;','class'=>'skip-export'],
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                        'filter' => 'Nombre doc.',
-                        'hAlign'=>'center',
-                        'width'=>'150px',
-                        'value' => function($model){
-                            $lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->orderBy('last_push DESC')->one();
-                            if(!is_null($lastPushObj)) {
-                                $lastPush = $lastPushObj->nb_doc;
-                                return $lastPush;
-                            }
-                            else
-                                return ' - ';
-                        },
-                        'contentOptions' => function ($model, $key, $index, $column) {
-                            return '';
-                        },
-                    ],
-                    [
-                        'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #ffc789!important;','data-qte'=>'66'],
-                        'label'=>'Alertes',
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                        'filter' => 'Date',
-                        'format'=>'raw',
-                        'hAlign'=>'center',
-                        'vAlign'=>'middle',
-                        'width'=>'100px',
-                        'value' => function($model){
-                            $lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->orderBy('last_push DESC')->one();
-                            if(is_null($lastPushObj))
-                                return '<i class="fa fa-circle text-red"></i>';
-                            else{
-                                $lastPush = $lastPushObj->last_push;
-                                $year = substr($lastPush, 0, 4);
-                                $month = intval(substr($lastPush, 5, 2));
-
-                                $datetimeNow = \Datetime::createFromFormat('d/m/Y', date('d/m/Y'));
-                                $datePush = strtotime($lastPush);
-                                $datetimePushed = \Datetime::createFromFormat('d/m/Y', date('d/m/Y', $datePush));
-                                $interval = \date_diff($datetimePushed,$datetimeNow);
-                                if((intval($interval->format('%r%m')) >= $model['monthAlert']))
-                                    return '<i class="fa fa-circle text-yellow"></i>';
-                                else
-                                    return '<i class="fa fa-circle text-green"></i>';
-                            }
-                        },
-                        'contentOptions' => function ($model, $key, $index, $column) {
-                            $lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->orderBy('last_push DESC')->one();
-                            if(is_null($lastPushObj))
-                                return ['class'=>'field-data-admin','data-monthinterval'=>'-'];
-                            else{
-                                $lastPush = $lastPushObj->last_push;
-                                $year = substr($lastPush, 0, 4);
-                                $month = intval(substr($lastPush, 5, 2));
-
-                                $datetimeNow = \Datetime::createFromFormat('d/m/Y', date('d/m/Y'));
-                                $datePush = strtotime($lastPush);
-                                $datetimePushed = \Datetime::createFromFormat('d/m/Y', date('d/m/Y', $datePush));
-                                $interval = \date_diff($datetimePushed,$datetimeNow);
-                                if((intval($interval->format('%r%m')) >= $model['monthAlert']))
-                                    return ['class'=>'field-data-admin','data-monthinterval'=>intval($interval->format('%r%m'))];
-                                else
-                                    return ['class'=>'field-data-admin','data-monthinterval'=>intval($interval->format('%r%m'))];
-                            }
-                        },
-                    ],
-                    [
-                        'filter'=>'Emise en cours',
-                        'headerOptions' => ['style' => 'display:none;','class'=>'skip-export'],
-                        'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                        'format'=>'raw',
-                        'hAlign'=>'center',
-                        'vAlign'=>'middle',
-                        'width'=>'100px',
-                        'value' => function($model){
-                            $idLabo = $model['id_labo'];
-                            $idClient = $model['id_client'];
-                            $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->andFilterWhere(['active'=>1])->all();
-                            if(is_null($aAlerte))
-                                return '';
-                            else{
-                                if(count($aAlerte) == 0)
-                                    return '';
-                                else
-                                    return '<i class="fa fa-check text-green"></i>';
-                            }
-                        },
-                        'contentOptions' => function ($model, $key, $index, $column) {
-                            return ['class'=>'idlabo-'.$model['id_labo'].'-check'];
-                        }
-                    ],
-                    [
-                        'class' => 'kartik\grid\ActionColumn',
-                        'dropdown' => true,
-                        'dropdownOptions' => ['class' => 'float-left btn-actions'],
-                        'dropdownMenu' => ['style'=>'left:-120px !important;'],
-                        'template' => '{periode} {nodoc} {mailadmin}',
-                        'urlCreator' => function($action, $model, $key, $index) { return '#'; },
-                        'viewOptions' => ['title' => 'This will launch the book details page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
-                        'updateOptions' => ['title' => 'This will launch the book update page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
-                        'deleteOptions' => ['title' => 'This will launch the book delete action. Disabled for this demo!', 'data-toggle' => 'tooltip'],
-                        'buttons'=>[
-                            'periode' => function ($url, $model, $key) {
-                                return '<li class="li-alerte"><span class="periode-alerte span-alerte" data-labo="'.$model['id_labo'].'" title="Période sans documents"><span class="glyphicon glyphicon-time" style="margin-right:10px;"></span> Période sans documents</span></li>';
-                            },
-                            'nodoc' => function ($url, $model, $key) {
-                                $nbDocTotal = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->sum('nb_doc');
-                                if(is_null($nbDocTotal))
-                                    return '<li class="li-alerte"><span class="nodoc-alerte span-alerte" data-labo="'.$model['id_labo'].'" title="Pas de documents pour ce laboratoire"><span class="glyphicon glyphicon-level-up" style="margin-right:10px;"></span> Pas de documents</span></li>';
-                                else
-                                    return '';
-                            },
-                            'mailadmin' => function ($url, $model, $key) {
-                                return '<li class="li-alerte"><span class="mailadmin-alerte span-alerte" data-labo="'.$model['id_labo'].'" title="Envoyer un mail à l\'administrateur"><span class="glyphicon glyphicon-envelope" style="margin-right:10px;"></span> Envoyer un mail</span></li>';
-                            },
-                        ],
-                        'headerOptions' => ['class' => 'kartik-sheet-style'],
-                    ],
-                ],
+                'columns' => $gridColumn
             ]); ?>
 
             <!-- /.table-responsive -->
