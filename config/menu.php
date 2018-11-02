@@ -58,7 +58,21 @@ return [
 //        'linkTemplate' => '<a target="{target}" href="{url}">{label}</a>',
         'items' => [
             //['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
-            ['label' => '<span class="fa fa-cloud-upload"></span> Upload', 'url' => ['/document/upload']],
+            ['label' => '<span class="fas fa-cloud-upload-alt"></span> Upload', 'url' => ['/document/upload']],
+            ['label' => '<span class="fa fa-tag"></span> Résultats d\'analyses', 'url' => ['/document/result-analyse-index']],
+        ],
+//        'visible' => Yii::$app->user->isSuperAdmin
+    ],
+    [
+        'label' => '<a href="#"><i class="fas fa-microscope"></i>
+                                    <span>Consultation des résultats</span>
+                                <i class="fa fa-angle-left pull-right"></i></a>',
+        'options' => ['class' => ' treeview'],
+        'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
+//        'linkTemplate' => '<a target="{target}" href="{url}">{label}</a>',
+        'items' => [
+            //['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
+            ['label' => '<span class="fas fa-cloud-upload-alt"></span> Upload', 'url' => ['/document/upload']],
             ['label' => '<span class="fa fa-tag"></span> Résultats d\'analyses', 'url' => ['/document/result-analyse-index']],
         ],
 //        'visible' => Yii::$app->user->isSuperAdmin

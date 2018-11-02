@@ -1,6 +1,7 @@
 <?php
 use yii\helpers\Html;
 use yii\web\View;
+use app\assets\components\FontAwesome\FontAwesomeAsset;
 /* @var $this \yii\web\View */
 /* @var $content string */
 if (Yii::$app->controller->action->id === 'login') {
@@ -11,6 +12,7 @@ if (Yii::$app->controller->action->id === 'login') {
 } else {
     dmstr\web\AdminLteAsset::register($this,View::POS_HEAD);
     app\assets\views\LayoutMainAsset::register($this,View::POS_HEAD);
+    //FontAwesomeAsset::register($this);
 
     $directoryAsset = Yii::$app->assetManager->getPublishedUrl('@vendor/almasaeed2010/adminlte/dist');
     ?>
@@ -22,6 +24,7 @@ if (Yii::$app->controller->action->id === 'login') {
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <?= Html::csrfMetaTags() ?>
         <title><?= Html::encode($this->title) ?></title>
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" crossorigin="anonymous">
         <?php $this->head() ?>
     </head>
     <body class="hold-transition skin-blue fixed sidebar-mini">

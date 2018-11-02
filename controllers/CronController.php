@@ -191,7 +191,7 @@ class CronController extends Controller
     public static function isAlreadyInWindowsScheduler($cron) {
         $output = array();
 
-        $cmd = 'schtasks /query /tn "'.Yii::$app->multidb->defaultDB.'\\'.$cron->nom.'" /V';
+        $cmd = 'schtasks /query /tn "db\\'.$cron->nom.'" /V';
         exec($cmd, $output);
 
         if (count($output) == 0) {

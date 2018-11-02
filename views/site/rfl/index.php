@@ -70,6 +70,23 @@ CSS
 );
 
 ?>
+
+<?php
+$srvlimsPath = 'srvlims.groupe-scael.com:9292/MICROSEPT/2007';
+$fp = fsockopen($srvlimsPath, 80, $errno, $errstr, 30);
+
+if($fp) {
+    echo("connexion ok <br>");
+} else {
+    echo("connexion hs");
+}
+
+if(is_dir($srvlimsPath))
+    echo "accès réussi";
+else
+    echo "accès échoué";
+
+?>
 <div class="loader">
     <div class="sk-cube-grid"><div class="sk-cube sk-cube1"></div>
         <div class="sk-cube sk-cube2"></div><div class="sk-cube sk-cube3"></div>
