@@ -12,6 +12,12 @@ use yii\helpers\ArrayHelper;
  * @property int $id_parent
  * @property string $name
  * @property string $description
+ * @property string $adresse
+ * @property string $code_postal
+ * @property string $ville
+ * @property string $tel
+ * @property string $responsable_nom
+ * @property string $responsable_prenom
  * @property int $user_create
  * @property string $date_create
  * @property int $active
@@ -177,7 +183,7 @@ class Client extends \yii\db\ActiveRecord
     {
         return [
             [['name', 'user_create'], 'required'],
-            [['description'], 'string'],
+            [['description','adresse','ville','code_postal','tel','responsable_nom','responsable_prenom'], 'string'],
             [['user_create', 'active','id_parent','is_parent'], 'integer'],
             [['date_create'], 'safe'],
             [['name'], 'string', 'max' => 255],
@@ -198,6 +204,12 @@ class Client extends \yii\db\ActiveRecord
             'date_create' => Yii::t('microsept','Client date create'),
             'active' => Yii::t('microsept','Client active'),
             'is_parent' => Yii::t('microsept','Client is parent'),
+            'adresse' => Yii::t('microsept','Labo adresse'),
+            'ville' => Yii::t('microsept','Labo ville'),
+            'code_postal' => Yii::t('microsept','Labo CP'),
+            'tel' => Yii::t('microsept','Labo tel'),
+            'responsable_nom' => Yii::t('microsept','Client Responsable Nom'),
+            'responsable_prenom' => Yii::t('microsept','Client Responsable Prenom'),
         ];
     }
 }

@@ -161,5 +161,7 @@ return [
     "Client is parent" => "Est parent",
     "Taches planifiees" => "Tâches planifiées",
     "Selection" => "Sélection",
-    "Documents" => "Documents"
+    "Documents" => "Documents",
+    "Client Responsable Nom" =>"Nom responsable",
+    "Client Responsable Prenom" =>"Prénom responsable"
 ];

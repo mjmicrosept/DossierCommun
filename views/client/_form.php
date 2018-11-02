@@ -56,6 +56,18 @@ if(isset($id)) {
 
                 <?= $form->field($model, 'name')->textInput(['maxlength' => true, 'data-step' => '1', 'data-intro' => Yii::t('microsept', 'Client name')]) ?>
 
+                <?= $form->field($model, 'adresse')->textInput(['maxlength' => true, 'data-step' => '2', 'data-intro' => Yii::t('microsept', 'Labo adresse')]) ?>
+
+                <?= $form->field($model, 'code_postal')->textInput(['maxlength' => true, 'data-step' => '3', 'data-intro' => Yii::t('microsept', 'Labo CP')]) ?>
+
+                <?= $form->field($model, 'ville')->textInput(['maxlength' => true, 'data-step' => '4', 'data-intro' => Yii::t('microsept', 'Labo ville')]) ?>
+
+                <?= $form->field($model, 'tel')->textInput(['maxlength' => true, 'data-step' => '5', 'data-intro' => Yii::t('microsept', 'Labo tel')]) ?>
+
+                <?= $form->field($model, 'responsable_nom')->textInput(['maxlength' => true, 'data-step' => '5', 'data-intro' => Yii::t('microsept', 'Client Responsable Nom')]) ?>
+
+                <?= $form->field($model, 'responsable_prenom')->textInput(['maxlength' => true, 'data-step' => '5', 'data-intro' => Yii::t('microsept', 'Client Responsable Prenom')]) ?>
+
                 <?= $form->field($model, 'description')->textarea(['rows' => 6, 'data-step' => '2', 'data-intro' => Yii::t('microsept', 'Client description')]) ?>
 
                 <div class="form-group field-client-check-isparent">

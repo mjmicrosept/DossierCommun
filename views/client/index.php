@@ -62,9 +62,10 @@ $this->params['breadcrumbs'][] = $this->title;
                 'filterModel' => $searchModel,
                 'columns' => [
                     'name',
+                    'adresse',
+                    'code_postal',
+                    'ville',
                     'description:ntext',
-                    'user_create',
-                    'date_create',
                     [
                         'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
                         'filter'=>'',
