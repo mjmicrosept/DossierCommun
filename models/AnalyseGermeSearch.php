@@ -18,7 +18,7 @@ class AnalyseGermeSearch extends AnalyseGerme
     public function rules()
     {
         return [
-            [['id', 'id_service'], 'integer'],
+            [['id', 'id_service','active'], 'integer'],
             [['libelle', 'code'], 'safe'],
         ];
     }
@@ -61,6 +61,7 @@ class AnalyseGermeSearch extends AnalyseGerme
         $query->andFilterWhere([
             'id' => $this->id,
             'id_service' => $this->id_service,
+            'active' => $this->active,
         ]);
 
         $query->andFilterWhere(['like', 'libelle', $this->libelle])

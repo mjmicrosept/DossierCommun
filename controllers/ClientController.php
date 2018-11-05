@@ -178,7 +178,7 @@ class ClientController extends Controller
 
         return $this->render('update', [
             'model' => $model,
-            'id' => $model->id,
+                'id' => $model->id,
             'active' => $model->active,
             'is_parent' => $model->is_parent,
             'id_parent' => $model->id_parent,

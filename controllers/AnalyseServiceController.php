@@ -8,6 +8,8 @@ use app\models\AnalyseServiceSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\Json;
+use yii\web\Response;
 
 /**
  * AnalyseServiceController implements the CRUD actions for AnalyseService model.
@@ -38,7 +40,7 @@ class AnalyseServiceController extends Controller
         $searchModel = new AnalyseServiceSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        return $this->render('index', [
+        return $this->render('../parametrage/analyse-service/index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
@@ -52,7 +54,7 @@ class AnalyseServiceController extends Controller
      */
     public function actionView($id)
     {
-        return $this->render('view', [
+        return $this->render('../parametrage/analyse-service/view', [
             'model' => $this->findModel($id),
         ]);
     }
@@ -70,7 +72,7 @@ class AnalyseServiceController extends Controller
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
-        return $this->render('create', [
+        return $this->render('../parametrage/analyse-service/create', [
             'model' => $model,
         ]);
     }
@@ -87,10 +89,10 @@ class AnalyseServiceController extends Controller
         $model = $this->findModel($id);
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['analyse-service/view', 'id' => $model->id]);
         }
 
-        return $this->render('update', [
+        return $this->render('../parametrage/analyse-service/update', [
             'model' => $model,
         ]);
     }
@@ -104,9 +106,61 @@ class AnalyseServiceController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
+        $model->active = false;
+        $model->save();
 
-        return $this->redirect(['index']);
+        return $this->redirect(['../parametrage/analyse-service/index']);
+    }
+
+    /**
+     * Désactivation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionDesactivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $serviceId = $_data['modelId'];
+        $model = $this->findModel($serviceId);
+        $model->active = 0;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'Le service <b>' . $model->libelle . '</b> à bien été désactivé');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de la désactivation du service  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-service/index']);
+
+        return ['errors'=>$errors];
+    }
+
+    /**
+     * Activation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionActivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $serviceId = $_data['modelId'];
+        $model = $this->findModel($serviceId);
+        $model->active = 1;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'Le service <b>' . $model->libelle . '</b> à bien été activé');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de l\'activation du service  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-service/index']);
+
+        return ['errors'=>$errors];
     }
 
     /**

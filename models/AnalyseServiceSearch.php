@@ -18,7 +18,7 @@ class AnalyseServiceSearch extends AnalyseService
     public function rules()
     {
         return [
-            [['id'], 'integer'],
+            [['id','active'], 'integer'],
             [['libelle'], 'safe'],
         ];
     }
@@ -60,6 +60,7 @@ class AnalyseServiceSearch extends AnalyseService
         // grid filtering conditions
         $query->andFilterWhere([
             'id' => $this->id,
+            'active' => $this->active,
         ]);
 
         $query->andFilterWhere(['like', 'libelle', $this->libelle]);

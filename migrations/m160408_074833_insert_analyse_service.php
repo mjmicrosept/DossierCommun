@@ -12,11 +12,11 @@ class m160408_074833_insert_analyse_service extends Migration
 {
     public function up()
     {
-        $this->batchInsert('analyse_service',['id', 'libelle'],[
-            [1, 'Cosmétologie'],
-            [2, 'Eaux'],
-            [3, 'Hygiène alimentaire'],
-            [4, 'Pharmacopée']
+        $this->batchInsert('analyse_service',['id', 'libelle','active'],[
+            [1, 'Cosmétologie',1],
+            [2, 'Eaux',1],
+            [3, 'Hygiène alimentaire',1],
+            [4, 'Pharmacopée',1]
         ]);
     }
 

@@ -15,6 +15,7 @@ class m160408_074831_create_analyse_service extends Migration
         $this->createTable('analyse_service', [
             'id' => $this->primaryKey(),
             'libelle' => $this->string(255)->notNull(),
+            'active' => $this->boolean()->defaultValue(1),
         ]);
 
         //$this->createIndex('societe_user_create','client',['user_create']);

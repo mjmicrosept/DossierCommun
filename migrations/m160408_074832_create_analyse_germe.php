@@ -17,6 +17,7 @@ class m160408_074832_create_analyse_germe extends Migration
             'id_service' => $this->integer(11)->notNull(),
             'libelle' => $this->string(255)->defaultValue(NULL),
             'code' => $this->string(50)->notNull(),
+            'active' => $this->boolean()->defaultValue(1),
         ]);
 
         //$this->createIndex('societe_user_create','client',['user_create']);

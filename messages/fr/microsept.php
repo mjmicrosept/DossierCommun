@@ -163,5 +163,14 @@ return [
     "Selection" => "Sélection",
     "Documents" => "Documents",
     "Client Responsable Nom" =>"Nom responsable",
-    "Client Responsable Prenom" =>"Prénom responsable"
+    "Client Responsable Prenom" =>"Prénom responsable",
+    "Desactivate" => "Désactiver",
+    "Edit service" => "Modifier ce service",
+    "Infos service" => "Informations sur le service",
+    "Service_update" => "Mise à jour du service",
+    "Service_create" => "Création d'un service",
+    "Edit germe" => "Modifier ce germe",
+    "Infos germe" => "Informations sur le germe",
+    "Germe_update" => "Mise à jour du germe",
+    "Germe_create" => "Création d'un germe",
 ];

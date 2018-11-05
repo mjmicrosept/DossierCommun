@@ -8,6 +8,9 @@ use app\models\AnalyseGermeSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\Json;
+use yii\web\Response;
+use app\models\AnalyseService;
 
 /**
  * AnalyseGermeController implements the CRUD actions for AnalyseGerme model.
@@ -38,7 +41,7 @@ class AnalyseGermeController extends Controller
         $searchModel = new AnalyseGermeSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        return $this->render('index', [
+        return $this->render('../parametrage/analyse-germe/index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
@@ -52,7 +55,7 @@ class AnalyseGermeController extends Controller
      */
     public function actionView($id)
     {
-        return $this->render('view', [
+        return $this->render('../parametrage/analyse-germe/view', [
             'model' => $this->findModel($id),
         ]);
     }
@@ -65,13 +68,38 @@ class AnalyseGermeController extends Controller
     public function actionCreate()
     {
         $model = new AnalyseGerme();
+        $listService = AnalyseService::getAsListActive();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        $isValid = true;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            try {
+
+                if(isset(Yii::$app->request->post()['kvform']['service'])) {
+                    $model->id_service = intval(Yii::$app->request->post()['kvform']['service']);
+                }
+                else{
+                    $isValid = false;
+                }
+
+                if($isValid)
+                    $isValid = $model->save();
+            }
+            catch(Exception $e){
+                Yii::trace($model->errors);
+            }
+
+            if ($isValid) {
+                Yii::$app->session->setFlash('success', 'Le germe <b>'. $model->libelle .'</b> à bien été crée');
+                return $this->redirect(['index']);
+            }
         }
 
-        return $this->render('create', [
+        return $this->render('../parametrage/analyse-germe/create', [
             'model' => $model,
+            'id'=>null,
+            'idService'=>null,
+            'listService' => $listService
         ]);
     }
 
@@ -85,13 +113,37 @@ class AnalyseGermeController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $listService = AnalyseService::getAsListActive();
+        $isValid = true;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            try {
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+                if(isset(Yii::$app->request->post()['kvform']['service'])) {
+                    $model->id_service = intval(Yii::$app->request->post()['kvform']['service']);
+                }
+                else{
+                    $isValid = false;
+                }
+
+                if($isValid)
+                    $isValid = $model->save();
+            }
+            catch(Exception $e){
+                Yii::trace($model->errors);
+            }
+
+            if ($isValid) {
+                Yii::$app->session->setFlash('success', 'Le germe <b>'. $model->libelle .'</b> à bien été mis à jour');
+                return $this->redirect(['index']);
+            }
         }
 
-        return $this->render('update', [
+        return $this->render('../parametrage/analyse-germe/update', [
             'model' => $model,
+            'id' => $model->id,
+            'idService'=>$model->id_service,
+            'listService' => $listService
         ]);
     }
 
@@ -107,6 +159,56 @@ class AnalyseGermeController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['index']);
+    }
+
+    /**
+     * Désactivation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionDesactivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $germeId = $_data['modelId'];
+        $model = $this->findModel($germeId);
+        $model->active = 0;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'Le germe <b>' . $model->libelle . '</b> à bien été désactivé');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de la désactivation du germe  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-germe/index']);
+
+        return ['errors'=>$errors];
+    }
+
+    /**
+     * Activation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionActivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $germeId = $_data['modelId'];
+        $model = $this->findModel($germeId);
+        $model->active = 1;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'Le germe <b>' . $model->libelle . '</b> à bien été activé');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de l\'activation du germe  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-germe/index']);
+
+        return ['errors'=>$errors];
     }
 
     /**

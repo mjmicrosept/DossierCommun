@@ -5,10 +5,10 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseGerme */
 
-$this->title = 'Update Analyse Germe: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Germes', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = Yii::t('microsept','Germe_update'). ' : ' . $model->libelle;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('microsept','Germes'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $model->libelle, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = Yii::t('microsept','Update');
 ?>
 <div class="analyse-germe-update">
 
@@ -16,6 +16,9 @@ $this->params['breadcrumbs'][] = 'Update';
 
     <?= $this->render('_form', [
         'model' => $model,
+        'id' => $id,
+        'idService' => $idService,
+        'listService'=>$listService,
     ]) ?>
 
 </div>

@@ -3,12 +3,14 @@
 namespace app\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 
 /**
  * This is the model class for table "analyse_service".
  *
  * @property int $id
  * @property string $libelle
+ * @property int $active
  */
 class AnalyseService extends \yii\db\ActiveRecord
 {
@@ -21,12 +23,24 @@ class AnalyseService extends \yii\db\ActiveRecord
     }
 
     /**
+     * Retourne la liste brute id/nom
+     * @return mixed
+     */
+    public static function getAsListActive(){
+        return ArrayHelper::map(
+            self::find()->andFilterWhere(['active'=>1])->all()
+            , 'id','libelle'
+        );
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function rules()
     {
         return [
             [['libelle'], 'required'],
+            [['active'], 'integer'],
             [['libelle'], 'string', 'max' => 255],
         ];
     }
@@ -38,7 +52,8 @@ class AnalyseService extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'libelle' => 'Libelle',
+            'libelle' => 'Libellé',
+            'active' => 'Actif'
         ];
     }
 }

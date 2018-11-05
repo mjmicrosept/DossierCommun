@@ -6,8 +6,8 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseService */
 
-$this->title = 'Create Analyse Service';
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Services', 'url' => ['index']];
+$this->title = Yii::t('microsept','Service_create');
+$this->params['breadcrumbs'][] = ['label' => 'Service', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="analyse-service-create">

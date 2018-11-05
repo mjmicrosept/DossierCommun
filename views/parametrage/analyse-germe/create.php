@@ -6,8 +6,8 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseGerme */
 
-$this->title = 'Create Analyse Germe';
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Germes', 'url' => ['index']];
+$this->title = Yii::t('microsept','Germe_create');
+$this->params['breadcrumbs'][] = ['label' => 'Germe', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="analyse-germe-create">
@@ -16,6 +16,9 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form', [
         'model' => $model,
+        'id' => $id,
+        'idService' => $idService,
+        'listService'=>$listService,
     ]) ?>
 
 </div>

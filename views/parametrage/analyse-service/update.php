@@ -5,10 +5,10 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseService */
 
-$this->title = 'Update Analyse Service: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Services', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = Yii::t('microsept','Service_update'). ' : ' . $model->libelle;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('microsept','Services'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $model->libelle, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = Yii::t('microsept','Update');
 ?>
 <div class="analyse-service-update">
 
