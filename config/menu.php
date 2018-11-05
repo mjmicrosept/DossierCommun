@@ -6,6 +6,8 @@
  * Time: 01:14
  */
 
+use app\models\User;
+
 return [
     [
         'label' => '<a href="#"><i class="fa fa-user"></i>
@@ -27,6 +29,18 @@ return [
             ['label' => '<span class="fa fa-clock-o"></span> '. Yii::t('microsept','Taches planifiees'), 'url' => ['/cron']],
         ],
         'visible' => Yii::$app->user->isSuperAdmin
+    ],
+    [
+        'label' => '<a href="#"><i class="fas fa-cog"></i>
+                                    <span>Paramétrage</span>
+                                <i class="fa fa-angle-left pull-right"></i></a>',
+        'options' => ['class' => ' treeview'],
+        'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
+        'items' => [
+            ['label' => '<span class="fas fa-project-diagram"></span> Services', 'url' => ['/service/index']],
+            ['label' => '<span class="fas fa-vials"></span> Germes', 'url' => ['/germe/index']],
+        ],
+        'visible' => Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])
     ],
     [
         'label' => '<a href="#"><i class="fa fa-flask"></i>
