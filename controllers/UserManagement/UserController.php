@@ -79,9 +79,17 @@ class UserController extends AdminDefaultController
                                 }
                             }
                             else{
-                                if (intval(Yii::$app->request->post()['paramClient']) == 0 || Yii::$app->request->post()['paramClient'] == '') {
-                                    Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLClient'));
-                                    return $this->renderIsAjax('create', ['model' => $model,'idClient'=>$idClient]);
+                                if(Yii::$app->request->post()['radioPermission'] == User::TYPE_CLIENT_USER_GROUP){
+                                    if (!isset(Yii::$app->request->post()['etablissementgroup']) || Yii::$app->request->post()['paramClient'] == '') {
+                                        Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLEtablissementGroup'));
+                                        return $this->renderIsAjax('create', ['model' => $model,'idClient'=>$idClient]);
+                                    }
+                                }
+                                else {
+                                    if (intval(Yii::$app->request->post()['paramClient']) == 0 || Yii::$app->request->post()['paramClient'] == '') {
+                                        Yii::$app->session->setFlash('warning', Yii::t('microsept', 'UserCreateDDLClient'));
+                                        return $this->renderIsAjax('create', ['model' => $model, 'idClient' => $idClient]);
+                                    }
                                 }
                             }
                         }
@@ -114,6 +122,7 @@ class UserController extends AdminDefaultController
         $idClient = null;
         $idLabo = null;
         $idEtablissement = null;
+        $listEtablissement = [];
 
         if(User::isLaboAdmin($model->id) || User::isLaboUser($model->id))
             $idLabo = PortailUsers::find()->andFilterWhere(['id_user'=>$model->id])->one()->id_labo;
@@ -123,6 +132,16 @@ class UserController extends AdminDefaultController
         if(User::isClientUser($model->id)){
             $idEtablissement = PortailUsers::find()->andFilterWhere(['id_user'=>$model->id])->one()->id_client;
             $client = Client::find()->andFilterWhere(['id'=>$idEtablissement])->one();
+            $idClient = $client->id_parent;
+        }
+        if(User::isClientUserGroup($model->id)){
+            $oneEtablissement = null;
+            $aEtablissement = PortailUsers::find()->andFilterWhere(['id_user'=>$model->id])->all();
+            foreach ($aEtablissement as $item) {
+                $oneEtablissement = $item->id_client;
+                array_push($listEtablissement,$item->id_client);
+            }
+            $client = Client::find()->andFilterWhere(['id'=>$oneEtablissement])->one();
             $idClient = $client->id_parent;
         }
 
@@ -154,7 +173,7 @@ class UserController extends AdminDefaultController
                                         if(User::isClientAdmin($model->id))
                                             return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
                                         else
-                                            return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient,'idEtabkissement'=>$idEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
+                                            return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient,'idEtablissement'=>$idEtablissement,'listEtablissement'=>$listEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
                                     }
                                 }
                             }
@@ -171,7 +190,7 @@ class UserController extends AdminDefaultController
                                         if(User::isClientAdmin($model->id))
                                             return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
                                         else
-                                            return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient,'idEtablissement'=>$idEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
+                                            return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient,'idEtablissement'=>$idEtablissement,'listEtablissement'=>$listEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
                                     }
                                 }
                             }
@@ -218,16 +237,16 @@ class UserController extends AdminDefaultController
                     return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idLabo' => $idLabo, 'assignment' => User::getUserAssignment($model->id)]);
                 else {
                     if(User::isClientAdmin($model->id))
-                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'assignment' => User::getUserAssignment($model->id)]);
+                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient,'listEtablissement'=>$listEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
                     else {
-                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'idEtablissement' => $idEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
+                        return $this->renderIsAjax('update', ['model' => $model, 'id' => $model->id, 'idClient' => $idClient, 'idEtablissement' => $idEtablissement,'listEtablissement'=>$listEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
                     }
                 }
             }
         }
         else{
             if(User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])){
-                return $this->renderIsAjax('update', ['model'=>$model,'id'=>$model->id,'idLabo'=>$idLabo, 'idClient' => $idClient,'idEtablissement'=>$idEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
+                return $this->renderIsAjax('update', ['model'=>$model,'id'=>$model->id,'idLabo'=>$idLabo, 'idClient' => $idClient,'idEtablissement'=>$idEtablissement,'listEtablissement'=>$listEtablissement, 'assignment' => User::getUserAssignment($model->id)]);
             }
             else{
                 return $this->renderIsAjax('update', ['model'=>$model,'id'=>$model->id]);

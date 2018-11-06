@@ -13,6 +13,7 @@ use app\models\ClientDossier;
 use app\models\Labo;
 use app\models\LaboClientAssign;
 use app\models\DocumentPushed;
+use app\models\PortailUsers;
 use Yii;
 use yii\filters\VerbFilter;
 use app\models\AppCommon;
@@ -377,22 +378,45 @@ class DocumentController extends Controller
         $data = null;
         $admin = false;
         $listClient = null;
+        $clientList = [];
         $listEtablissement = null;
         $idClient = 0;
+        $group = false;
         if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !Yii::$app->user->isSuperAdmin) {
             if(!User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
-                $client = User::getCurrentUser()->getClient();
-                $idClient = $client->id;
-                $folderClient = $client->getFolderPath();
-                $tree = AppCommon::dataFancytreeClientActif(0, Yii::$app->params['dossierClients'] . $folderClient, $folderClient, true);
-                $data = [[
-                    'title' => $client->name,
-                    'key' => 1,
-                    'expanded' => true,
-                    'editable' => false,
-                    'icon' => 'fa fa-calendar',
-                    'children' => $tree['exist'] ? $tree['node'] : ''
-                ]];
+                if(!User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP])){
+                    $client = User::getCurrentUser()->getClient();
+                    $idClient = $client->id;
+                    $folderClient = $client->getFolderPath();
+                    $tree = AppCommon::dataFancytreeClientActif(0, Yii::$app->params['dossierClients'] . $folderClient, $folderClient, true);
+                    $data = [[
+                        'title' => $client->name,
+                        'key' => 1,
+                        'expanded' => true,
+                        'editable' => false,
+                        'icon' => 'fa fa-calendar',
+                        'children' => $tree['exist'] ? $tree['node'] : ''
+                    ]];
+                }
+                else{
+                    $group = true;
+                    $oneChild = null;
+                    $aPortail = PortailUsers::find()->andFilterWhere(['id_user'=>User::getCurrentUser()->id])->all();
+                    foreach ($aPortail as $item) {
+                        $oneChild = $item->id_client;
+                        array_push($clientList,$item->id_client);
+                    }
+                    $idClient = Client::find()->andFilterWhere(['id'=>$oneChild])->one()->id_parent;
+                    $listEtablissement = Client::getListUserGroup($clientList);
+                    $data = [[
+                        'title' => 'Choisir un établissement',
+                        'key' => 1,
+                        'expanded' => true,
+                        'editable' => false,
+                        'icon' => 'fa fa-calendar',
+                        'children' => ''
+                    ]];
+                }
             }
             else{
                 $admin = true;
@@ -400,7 +424,7 @@ class DocumentController extends Controller
                 $idClient = $client->id;
                 $listEtablissement = Client::getAsChildList($idClient);
                 $data = [[
-                    'title' => 'Choisir un client',
+                    'title' => 'Choisir un établissement',
                     'key' => 1,
                     'expanded' => true,
                     'editable' => false,
@@ -422,7 +446,14 @@ class DocumentController extends Controller
             ]];
         }
 
-        return $this->render('analyses', ['data' => $data,'listClient'=>$listClient,'listEtablissement'=>$listEtablissement,'admin'=>$admin,'idClient'=>$idClient]);
+        return $this->render('analyses', [
+            'data' => $data,
+            'listClient'=>$listClient,
+            'listEtablissement'=>$listEtablissement,
+            'admin'=>$admin,
+            'group' => $group,
+            'idClient'=>$idClient
+        ]);
     }
 
     public function actionChangeDataTreeClient(){
@@ -435,14 +466,18 @@ class DocumentController extends Controller
         $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
         $folderClient = $client->getFolderPath();
         $tree = AppCommon::dataFancytreeClientActif(0,Yii::$app->params['dossierClients'].$folderClient,$folderClient,true);
-        $result = [[
-            'title' => 'Années',
-            'key' => 1,
-            'expanded' => true,
-            'editable' => false,
-            'icon' => 'fa fa-calendar',
-            'children' => $tree['exist'] ? $tree['node'] : ''
-        ]];
+        Yii::trace('julien');
+        Yii::trace($tree['node']);
+        if(count($tree['node']) != 0) {
+            $result = [[
+                'title' => 'Années',
+                'key' => 1,
+                'expanded' => true,
+                'editable' => false,
+                'icon' => 'fa fa-calendar',
+                'children' => $tree['exist'] ? $tree['node'] : ''
+            ]];
+        }
 
         return ['error'=>$errors,'result'=>$result];
     }

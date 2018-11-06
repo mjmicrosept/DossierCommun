@@ -27,6 +27,7 @@ $iduser = 0;
 $id_labo = 0;
 $id_client = 0;
 $id_etablissement = 0;
+$list_etablissement = json_encode([]);
 $portalAdmin = 0;
 $modif_admin = 0;
 $assign = '';
@@ -57,11 +58,14 @@ if(isset($id)) {
         $id_client = $idClient;
     if(isset($idEtablissement))
         $id_etablissement = $idEtablissement;
+    if(isset($listEtablissement))
+        $list_etablissement = json_encode($listEtablissement);
     if(isset($assignment))
         $assign = $assignment;
     if(isset($modifadmin))
         $modif_admin = 1;
 }
+
 
 ?>
 
@@ -133,6 +137,14 @@ if(isset($id)) {
             <?php if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) : ?>
                 <div class="radio">
                     <label>
+                        <input type="radio" name="radioPermission" id="radioPermissionClientUserGroup" class="radioPermission" value="<?= Yii::$app->params['roleClientUserGroup'] ?>">
+                        <?= Yii::t('microsept','ClientUserGroup') ?>
+                    </label>
+                </div>
+            <?php endif; ?>
+            <?php if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) : ?>
+                <div class="radio">
+                    <label>
                         <input type="radio" name="radioPermission" id="radioPermissionClientUser" class="radioPermission" value="<?= Yii::$app->params['roleClientUser'] ?>">
                         <?= Yii::t('microsept','ClientUser') ?>
                     </label>
@@ -167,13 +179,34 @@ if(isset($id)) {
                 echo DepDrop::widget([
                     'type'=>DepDrop::TYPE_SELECT2,
                     'name' => 'etablissement',
-                    'options'=>['id'=>'child-id', 'placeholder'=>'Aucun'],
+                    'options'=>['id'=>'child-id', 'placeholder'=>'Aucun','multiple' => false],
                     'select2Options'=>['pluginOptions'=>['allowClear'=>true]],
                     'pluginOptions'=>[
                         'depends'=>['clientList'],
                         'url'=>Url::to(['/document/get-child-list-user']),
                         'params'=>['hfIdParent'],
                         'placeholder'=>'Sélectionner un établissement',
+                    ],
+                ]);
+                ?>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) : ?>
+        <div class="form-group field-user-etablissement-group" style="display:block;">
+            <label class="control-label col-sm-3" for="child-idgroup">Etablissements</label>
+            <div class="col-sm-6">
+                <?php
+                echo DepDrop::widget([
+                    'type'=>DepDrop::TYPE_SELECT2,
+                    'name' => 'etablissementgroup',
+                    'options'=>['id'=>'child-idgroup', 'placeholder'=>'Aucun','multiple' => true],
+                    'select2Options'=>['pluginOptions'=>['allowClear'=>true]],
+                    'pluginOptions'=>[
+                        'depends'=>['clientList'],
+                        'url'=>Url::to(['/document/get-child-list-user']),
+                        'params'=>['hfIdParent'],
+                        'placeholder'=>'Sélectionner un ou plusieurs établissements',
                     ],
                 ]);
                 ?>
@@ -195,6 +228,41 @@ if(isset($id)) {
                 ?>
             </div>
         </div>
+    <?php endif; ?>
+    <?php if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperAdmin) : ?>
+            <?php
+            echo Form::widget([
+                'formName'=>'kvformadmin',
+
+                // default grid columns
+                'columns'=>1,
+                'compactGrid'=>true,
+
+                // set global attribute defaults
+                'attributeDefaults'=>[
+                    'type'=>Form::INPUT_TEXT,
+                    'labelOptions'=>['class'=>'col-sm-3 control-label'],
+                    'inputContainer'=>['class'=>'col-sm-6'],
+                    'container'=>['class'=>'form-group field-user-etablissementGroupAdmin'],
+                ],
+                'attributes'=>[
+                    'etablissement'=>[
+                        'type'=>Form::INPUT_WIDGET,
+                        'widgetClass'=>'\kartik\select2\Select2',
+                        'options'=>[
+                            'data'=>ArrayHelper::map(\app\models\Client::find()->andFilterWhere(['id_parent'=>$idClient])->orderBy('name')->asArray()->all(), 'id', 'name'),
+                            'options' => [
+                                'placeholder' => 'Sélectionner un ou plusieurs établissements','dropdownCssClass' =>'dropdown-vente-livr','multiple'=>true
+                            ],
+                            'pluginOptions' => [
+                                'allowClear' => true,
+                            ]
+                        ],
+                        'label'=>'Etablissements',
+                    ],
+                ]
+            ]);
+            ?>
     <?php endif; ?>
     <div class="form-group field-user-labo" style="display:none;">
         <label class="control-label col-sm-3" for="user-client"><?= Yii::t('microsept','Laboratoire') ?></label>
@@ -239,33 +307,55 @@ if(isset($id)) {
 $this->registerJs(<<<JS
     //actions au chargement de la page en cas d'update
 	if({$iduser} != 0){
+	    console.log('1');
 		if($portalAdmin != 1){
+		    console.log('2');
 		    $('.field-user-check-permissions').css('display','none');
 		    $('.field-user-client').css('display','none');
 		    $('.field-user-labo').css('display','none');
 		}
 		else{
+		    console.log('3');
 		    $("input:radio").each(function(){
                 if($(this).val() == '$assign')
                     $(this).prop('checked',true);
             });
 		    if($modif_admin == 1){
+		        console.log('4');
 		        $('.field-user-client').css('display','none');
                 $('.field-user-labo').css('display','none');
                 $('#clientList option[value="{$id_client}"]').attr("selected", "selected");
                 $('.field-user-etablissement').hide();
+                $('.field-user-etablissement-group').css('display','none');
 		    }
 		    else{
+		        console.log('5');
                 if($id_labo == 0){
+                    console.log('6');
                     $('.field-user-client').css('display','block');
                     if({$id_etablissement} != 0){
+                        console.log('7');
                         $('.field-user-etablissement').css('display','block');
+                        $('.field-user-etablissement-group').css('display','none');
                         if({$adminClientCreator} == 1)
                             $('.field-user-etablissementAdmin').css('display','block');
                     }
                     else{
-                        $('.field-user-etablissement').css('display','none');
-                        $('.field-user-etablissementAdmin').css('display','none');
+                        console.log('8');
+                        if({$list_etablissement}.length != 0){
+                            $('.field-user-etablissement').css('display','none');
+                            $('.field-user-etablissementAdmin').css('display','none');
+                            if({$adminClientCreator} == 1){
+                                for(var i = 0;i < {$list_etablissement}.length;i++){
+                                    $('#kvformadmin-etablissement option[value="'+{$list_etablissement}[i]+'"]').prop("selected", "selected").change();
+                                }
+                            }
+                        }
+                        else{
+                            $('.field-user-etablissement').css('display','none');
+                            $('.field-user-etablissement-group').css('display','none');
+                            $('.field-user-etablissementAdmin').css('display','none');
+                        }
                     }
                     $('.field-user-labo').css('display','none');
                     $('#clientList option[value="{$id_client}"]').attr("selected", "selected").change();
@@ -273,24 +363,30 @@ $this->registerJs(<<<JS
                     $('#hfIdParent').val({$id_client});
                 }
                 else{
+                    console.log('9');
                     $('.field-user-client').css('display','none');
                     if({$adminLaboCreator} != 1)
                         $('.field-user-labo').css('display','block');
                     $('#laboList option[value="{$id_labo}"]').attr("selected", "selected");
                     $('.field-user-etablissement').css('display','none');
+                    $('.field-user-etablissement-group').css('display','none');
                     $('.field-user-etablissementAdmin').css('display','none');
                 }
 		    }
 		}
 	}
 	else{
-	    if({$adminClientCreator} == 0)
+	    if({$adminClientCreator} == 0){
 	        $('.field-user-etablissementAdmin').css('display','none');
+	        $('.field-user-etablissementGroupAdmin').css('display','none');
+        }
+        $('.field-user-etablissementGroupAdmin').css('display','none');
 		$("input:radio").each(function(){
 			$(this).prop('checked',false);
 		});
 		$('#radioPermissionClientUser').prop('checked',true);
 		$('.field-user-etablissement').css('display','block');
+		$('.field-user-etablissement-group').css('display','none');
 		$('.field-user-labo').css('display','none');
 		$('#hfIdParent').val({$id_client});
 	}
@@ -299,35 +395,59 @@ $this->registerJs(<<<JS
     $('.radioPermission').click(function(){
         var id = $(this).attr('id');
         if($permissionradio == 1){
-            if(id == 'radioPermissionPortailAdmin'){
-                $('.field-user-client').hide();
-                $('.field-user-etablissement').hide();
-                $('.field-user-etablissementAdmin').hide();
-                $('.field-user-labo').hide();
-            }
-            else{
-                if(id == 'radioPermissionClientAdmin'){
+            switch(id){
+                case 'radioPermissionPortailAdmin' :
+                    $('.field-user-client').hide();
+                    $('.field-user-etablissement').hide();
+                    $('.field-user-etablissementAdmin').hide();
+                    $('.field-user-etablissement-group').hide();
+                    $('.field-user-labo').hide();
+                    break;
+                case 'radioPermissionLaboAdmin':
+                    $('.field-user-etablissement').hide();
+                    $('.field-user-etablissementAdmin').hide();
+                    $('.field-user-etablissement-group').hide();
+                    $('.field-user-client').hide();
+                    if('{$adminLaboCreator}' != 1)
+                        $('.field-user-labo').show();
+                    break;
+                case 'radioPermissionLaboUser' :
+                    $('.field-user-etablissement').hide();
+                    $('.field-user-etablissementAdmin').hide();
+                    $('.field-user-etablissement-group').hide();
+                    $('.field-user-client').hide();
+                    if('{$adminLaboCreator}' != 1)
+                        $('.field-user-labo').show();
+                    break;
+                case 'radioPermissionClientAdmin' :
                     $('.field-user-client').show();
                     $('.field-user-etablissement').hide();
                     $('.field-user-etablissementAdmin').hide();
+                    $('.field-user-etablissementGroupAdmin').hide();
+                    $('.field-user-etablissement-group').hide();
                     $('.field-user-labo').hide();
-                }
-                else{
-                    if(id == 'radioPermissionClientUser'){
-                        $('.field-user-labo').hide();
-                        $('.field-user-client').show();
-                        $('.field-user-etablissement').show();
-                        if({$adminClientCreator} == 1)
-                            $('.field-user-etablissementAdmin').show();
-                    }
-                    else{
-                        $('.field-user-etablissement').hide();
+                    break;
+                case 'radioPermissionClientUserGroup' :
+                    console.log('test');
+                    $('.field-user-labo').hide();
+                    $('.field-user-etablissement-group').show();
+                    $('.field-user-client').show();
+                    $('.field-user-etablissement').hide();
+                    if('{$adminClientCreator}' == 1){
                         $('.field-user-etablissementAdmin').hide();
-                        $('.field-user-client').hide();
-                        if({$adminLaboCreator} != 1)
-                            $('.field-user-labo').show();
+                        $('.field-user-etablissementGroupAdmin').show();
                     }
-                }
+                    break;
+                case 'radioPermissionClientUser' :
+                    $('.field-user-labo').hide();
+                    $('.field-user-etablissement-group').hide();
+                    $('.field-user-client').show();
+                    $('.field-user-etablissement').show();
+                    if('{$adminClientCreator}' == 1){
+                        $('.field-user-etablissementAdmin').show();
+                        $('.field-user-etablissementGroupAdmin').hide();
+                    }
+                    break;
             }
         }
     });
@@ -344,6 +464,15 @@ $this->registerJs(<<<JS
 	$('#child-id').on('depdrop:change', function(event, id, value, count, textStatus, jqXHR) {
         $('#child-id option[value="{$id_etablissement}"]').prop("selected", "selected");
     });
+	
+	$('#child-idgroup').on('depdrop:change', function(event, id, value, count, textStatus, jqXHR) {
+	    if({$list_etablissement}.length != 0){ 
+	        for(var i = 0;i < {$list_etablissement}.length;i++){
+                $('#child-idgroup option[value="'+{$list_etablissement}[i]+'"]').prop("selected", "selected");
+	        }
+        }
+    });
+
 
 JS
 );

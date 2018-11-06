@@ -34,6 +34,7 @@ class User extends \webvimark\modules\UserManagement\models\User
     const LEVEL_LABO_USER = 4;
     const LEVEL_CLIENT_ADMIN = 5;
     const LEVEL_CLIENT_USER = 6;
+    const LEVEL_CLIENT_USER_GROUP = 7;
 
     const TYPE_SUPERADMIN = 'superadmin';
     const TYPE_PORTAIL_ADMIN = 'portail_admin';
@@ -41,6 +42,7 @@ class User extends \webvimark\modules\UserManagement\models\User
     const TYPE_LABO_USER = 'labo_user';
     const TYPE_CLIENT_ADMIN = 'client_admin';
     const TYPE_CLIENT_USER = 'client_user';
+    const TYPE_CLIENT_USER_GROUP = 'client_user_group';
 
     public static $aAssignmentType = [
         self::TYPE_SUPERADMIN => self::LEVEL_SUPERADMIN,
@@ -48,7 +50,8 @@ class User extends \webvimark\modules\UserManagement\models\User
         self::TYPE_LABO_ADMIN  => self::LEVEL_LABO_ADMIN,
         self::TYPE_LABO_USER => self::LEVEL_LABO_USER,
         self::TYPE_CLIENT_ADMIN => self::LEVEL_CLIENT_ADMIN,
-        self::TYPE_CLIENT_USER => self::LEVEL_CLIENT_USER
+        self::TYPE_CLIENT_USER => self::LEVEL_CLIENT_USER,
+        self::TYPE_CLIENT_USER_GROUP => self::LEVEL_CLIENT_USER_GROUP
     ];
 
 
@@ -223,6 +226,16 @@ class User extends \webvimark\modules\UserManagement\models\User
     }
 
     /**
+     * Determines whether the user is a client user group
+     *
+     * @param int $userId
+     * @return bool
+     */
+    public static function isClientUserGroup($userId){
+        return self::isRole($userId,'roleClientUserGroup');
+    }
+
+    /**
      * Assign role to user
      *
      * @param int  $userId
@@ -260,6 +273,7 @@ class User extends \webvimark\modules\UserManagement\models\User
     public function createUserWithPermission($request_post){
         $transaction = self::getDb()->beginTransaction();
         $error = false;
+        Yii::trace($request_post);
         try{
             if(!$this->save())
                 $error = true;
@@ -321,10 +335,25 @@ class User extends \webvimark\modules\UserManagement\models\User
                         $error = true;
                     else
                     {
-                        if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
-                            PortailUsers::createNewEntry($this->id,null,intval($request_post['etablissement']));
-                        else {
-                            PortailUsers::createNewEntry($this->id,null,intval($request_post['etablissement']));
+                        PortailUsers::createNewEntry($this->id,null,intval($request_post['etablissement']));
+                    }
+                    break;
+                //Dans le cas d'un  user group de client il faut lui affecter les droits user sur SES clients (plutôt établissements)
+                case User::TYPE_CLIENT_USER_GROUP:
+                    if (!User::assignRole($this->id, User::TYPE_CLIENT_USER_GROUP))
+                        $error = true;
+                    else
+                    {
+                        //On crée une entrée pour chaque établissement
+                        if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+                            for($i = 0; $i < count($request_post['etablissementgroup']);$i++){
+                                PortailUsers::createNewEntry($this->id,null,intval($request_post['etablissementgroup'][$i]));
+                            }
+                        }
+                        else{
+                            for($i = 0; $i < count($request_post['kvformadmin']['etablissement']);$i++){
+                                PortailUsers::createNewEntry($this->id,null,intval($request_post['kvformadmin']['etablissement'][$i]));
+                            }
                         }
                     }
                     break;
@@ -447,6 +476,58 @@ class User extends \webvimark\modules\UserManagement\models\User
                                     PortailUsers::updateEntry($this->id, null, intval($request_post['etablissement']));
                                 else {
                                     PortailUsers::updateEntry($this->id, null, intval($request_post['etablissement']));
+                                }
+                            }
+                        }
+                    }
+                    break;
+                //Dans le cas d'un user de client il faut lui affecter les droits user sur SON client
+                case User::TYPE_CLIENT_USER_GROUP:
+                    if(User::revokeRole($this->id, $old_role)) {
+                        if (!User::assignRole($this->id, User::TYPE_CLIENT_USER_GROUP))
+                            $error = true;
+                        else {
+                            Yii::trace($request_post);
+                            //Si avant son rôle était admin du portail il faut lui créer une entrée dans la table portail_users sinon la mettre à jour
+                            /*if ($old_role == User::TYPE_PORTAIL_ADMIN) {
+                                PortailUsers::createNewEntry($this->id, null, intval($request_post['etablissement']));
+                            } else {
+                                if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+                                    PortailUsers::updateEntry($this->id, null, intval($request_post['etablissement']));
+                                else {
+                                    PortailUsers::updateEntry($this->id, null, intval($request_post['etablissement']));
+                                }
+                            }*/
+                            if ($old_role == User::TYPE_PORTAIL_ADMIN) {
+                                //On crée une entrée pour chaque établissement
+                                if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+                                    for($i = 0; $i < count($request_post['etablissementgroup']);$i++){
+                                        PortailUsers::createNewEntry($this->id,null,intval($request_post['etablissementgroup'][$i]));
+                                    }
+                                }
+                                else{
+                                    for($i = 0; $i < count($request_post['kvformadmin']['etablissement']);$i++){
+                                        PortailUsers::createNewEntry($this->id,null,intval($request_post['kvformadmin']['etablissement'][$i]));
+                                    }
+                                }
+                            }
+                            else{
+                                //On supprime toutes les entrée de la table pour cet utilisateur
+                                $listEntry = PortailUsers::find()->andFilterWhere(['id_user'=>$this->id])->all();
+                                foreach ($listEntry as $item) {
+                                    $item->delete();
+                                }
+
+                                //On crée une entrée pour chaque établissement
+                                if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+                                    for($i = 0; $i < count($request_post['etablissementgroup']);$i++){
+                                        PortailUsers::createNewEntry($this->id,null,intval($request_post['etablissementgroup'][$i]));
+                                    }
+                                }
+                                else{
+                                    for($i = 0; $i < count($request_post['kvformadmin']['etablissement']);$i++){
+                                        PortailUsers::createNewEntry($this->id,null,intval($request_post['kvformadmin']['etablissement'][$i]));
+                                    }
                                 }
                             }
                         }

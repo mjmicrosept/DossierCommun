@@ -72,7 +72,7 @@ CSS
 ?>
 
 <?php
-$srvlimsPath = 'srvlims.groupe-scael.com:9292/MICROSEPT/2007';
+/*$srvlimsPath = 'srvlims.groupe-scael.com:9292/MICROSEPT/2007';
 $fp = fsockopen($srvlimsPath, 80, $errno, $errstr, 30);
 
 if($fp) {
@@ -84,7 +84,7 @@ if($fp) {
 if(is_dir($srvlimsPath))
     echo "accès réussi";
 else
-    echo "accès échoué";
+    echo "accès échoué";*/
 
 ?>
 <div class="loader">

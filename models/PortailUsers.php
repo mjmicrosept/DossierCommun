@@ -59,9 +59,12 @@ class PortailUsers extends \yii\db\ActiveRecord
      * @throws \yii\db\StaleObjectException
      */
     public static function deleteEntry($id_user){
-        $model = self::find()->andFilterWhere(['id_user'=>$id_user])->one();
-        if(!is_null($model))
-            $model->delete();
+        $model = self::find()->andFilterWhere(['id_user'=>$id_user])->all();
+        if(!is_null($model)){
+            foreach ($model as $item) {
+                $item->delete();
+            }
+        }
     }
 
     /**

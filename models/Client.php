@@ -67,6 +67,18 @@ class Client extends \yii\db\ActiveRecord
     }
 
     /**
+     * Retourne la liste formatée pour un select id/nom des établissements d'un responsable
+     * @param $clientList
+     * @return array
+     */
+    public static function getListUserGroup($clientList){
+        return ArrayHelper::map(
+            self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['IN','id',$clientList])->all()
+            , 'id','name'
+        );
+    }
+
+    /**
      * Retourne la liste brute id/nom des clients affectés à un labo
      * @param $clientAssign
      * @return array

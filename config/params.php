@@ -9,6 +9,7 @@ return [
     'roleLaboAdmin'=>'labo_admin',
     'roleLaboUser'=>'labo_user',
     'roleClientAdmin'=>'client_admin',
+    'roleClientUserGroup'=>'client_user_group',
     'roleClientUser'=>'client_user',
 
     //PATH

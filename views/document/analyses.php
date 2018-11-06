@@ -29,8 +29,13 @@ $urlDownloadFiles = Url::to(['/document/download-files']);
 $urlChangeDataClient = Url::to(['/document/change-data-tree-client']);
 
 $isAdmin = 0;
+$isGroup = 0;
+
 if($admin)
     $isAdmin = 1;
+
+if($group)
+    $isGroup = 1;
 
 $this->registerJS(<<<JS
     var url = {
@@ -40,9 +45,9 @@ $this->registerJS(<<<JS
     };
 
     var admin = '{$isAdmin}';
+    var group = '{$isGroup}';
 JS
 );
-
 ?>
 <h2 class="lte-hide-title"><?= $this->title ?></h2>
 <div class="row">
@@ -116,7 +121,7 @@ JS
                         }
                         ?>
                         <?php
-                        if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperAdmin){
+                        if((User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP])) && !Yii::$app->user->isSuperAdmin){
                             echo Form::widget([
                                 'formName'=>'kvformclientadmin',
 
@@ -138,7 +143,7 @@ JS
                                         'options'=>[
                                             'data'=>$listEtablissement,
                                             'options' => [
-                                                'placeholder' => 'Sélectionner un client','dropdownCssClass' =>'dropdown-vente-livr'
+                                                'placeholder' => 'Sélectionner un établissement','dropdownCssClass' =>'dropdown-vente-livr'
                                             ],
                                             'pluginOptions' => [
                                                 'allowClear' => true,
@@ -253,7 +258,13 @@ $this->registerJs(<<<JS
             $.post(url.changeDataClient, {data:data}, function(response) {
                 if(response.error == false){
                     rootNode.removeChildren();
-                    rootNode.addChildren(response.result);
+                    if(response.result != ''){
+                        rootNode.addChildren(response.result);
+                    }
+                    else{
+                        var noResult = 'Aucun document disponible';
+                        $('.box-body').text(noResult);
+                    }
                 }
             });
         }
@@ -264,7 +275,13 @@ $this->registerJs(<<<JS
             $.post(url.changeDataClient, {data:data}, function(response) {
                 if(response.error == false){
                     rootNode.removeChildren();
-                    rootNode.addChildren(response.result);
+                    if(response.result != ''){
+                        rootNode.addChildren(response.result);
+                    }
+                    else{
+                        var noResult = 'Aucun document disponible';
+                        $('.box-body').text(noResult);
+                    }
                 }
             });
         }
@@ -282,7 +299,13 @@ $this->registerJs(<<<JS
             $.post(url.changeDataClient, {data:data}, function(response) {
                 if(response.error == false){
                     rootNode.removeChildren();
-                    rootNode.addChildren(response.result);
+                    if(response.result != ''){
+                        rootNode.addChildren(response.result);
+                    }
+                    else{
+                        var noResult = 'Aucun document disponible';
+                        $('.box-body').text(noResult);
+                    }
                 }
             });
         }
