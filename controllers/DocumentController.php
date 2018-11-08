@@ -166,11 +166,12 @@ class DocumentController extends Controller
 
         $_data = Json::decode($_POST['data']);
         $idClient = intval($_data['idClient']);
+        $idEtablissement = intval($_data['idEtablissement']);
         $idLabo = intval($_data['idLabo']);
         $year = intval($_data['year']);
         $month = intval($_data['month']);
 
-        $result = AppCommon::getSyntheseFileUpload($idLabo,$idClient,$year,$month);
+        $result = AppCommon::getSyntheseFileUpload($idLabo,$idClient,$idEtablissement,$year,$month);
 
         return ['error'=>$errors,'result'=>$result];
     }
@@ -315,12 +316,24 @@ class DocumentController extends Controller
     public function actionTotalDocumentClientPushed(){
         $errors = false;
         $result = 0;
+        $clientLaboList = null;
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $_data = Json::decode($_POST['data']);
         $idClient = intval($_data['idClient']);
+        $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
         $idLabo = intval($_data['idLabo']);
-        $clientLaboList = DocumentPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->all();
+        if($client->is_parent) {
+            $laboAssign = LaboClientAssign::getListLaboClientGroupAssign($idLabo,$idClient);
+            $aIds = [];
+            foreach ($laboAssign as $item) {
+                array_push($aIds,$item->id_client);
+            }
+            $clientLaboList = DocumentPushed::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['IN','id_client',$aIds])->all();
+        }
+        else{
+            $clientLaboList = DocumentPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->all();
+        }
         foreach ($clientLaboList as $item) {
             $result += $item->nb_doc;
         }
@@ -339,11 +352,21 @@ class DocumentController extends Controller
 
         $_data = Json::decode($_POST['data']);
         $idClient = intval($_data['idClient']);
+        $idEtablissement = intval($_data['idEtablissement']);
         $idLabo = intval($_data['idLabo']);
         $year = intval($_data['year']);
-        $clientYearList = DocumentPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->andFilterWhere(['year'=>$year])->all();
-        foreach ($clientYearList as $item) {
-            $result += $item->nb_doc;
+
+        if($idEtablissement == '') {
+            $clientYearList = DocumentPushed::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_client' => $idClient])->andFilterWhere(['year' => $year])->all();
+            foreach ($clientYearList as $item) {
+                $result += $item->nb_doc;
+            }
+        }
+        else{
+            $clientYearList = DocumentPushed::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_client' => $idEtablissement])->andFilterWhere(['year' => $year])->all();
+            foreach ($clientYearList as $item) {
+                $result += $item->nb_doc;
+            }
         }
 
         return ['error'=>$errors,'result'=>$result];
@@ -360,14 +383,23 @@ class DocumentController extends Controller
 
         $_data = Json::decode($_POST['data']);
         $idClient = intval($_data['idClient']);
+        $idEtablissement = intval($_data['idEtablissement']);
         $idLabo = intval($_data['idLabo']);
         $year = intval($_data['year']);
         $month = intval($_data['month']);
-        $clientMonthList = DocumentPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->andFilterWhere(['year'=>$year])->andFilterWhere(['month'=>$month])->all();
-        foreach ($clientMonthList as $item) {
-            $result += $item->nb_doc;
-        }
 
+        if($idEtablissement == '') {
+            $clientMonthList = DocumentPushed::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_client' => $idClient])->andFilterWhere(['year' => $year])->andFilterWhere(['month' => $month])->all();
+            foreach ($clientMonthList as $item) {
+                $result += $item->nb_doc;
+            }
+        }
+        else{
+            $clientMonthList = DocumentPushed::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_client' => $idEtablissement])->andFilterWhere(['year' => $year])->andFilterWhere(['month' => $month])->all();
+            foreach ($clientMonthList as $item) {
+                $result += $item->nb_doc;
+            }
+        }
 
         return ['error'=>$errors,'result'=>$result];
     }

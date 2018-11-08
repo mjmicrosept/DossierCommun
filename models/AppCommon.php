@@ -195,13 +195,17 @@ class AppCommon
      * @param null $parent
      * @return string
      */
-    public static function getSyntheseFileUpload($idLabo,$idClient,$year,$month,$parent=null){
+    public static function getSyntheseFileUpload($idLabo,$idClient,$idEtablissement,$year,$month,$parent=null){
         $result = '';
-        $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
+        $client = null;
+        if($idEtablissement == '')
+            $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
+        else
+            $client = Client::find()->andFilterWhere(['id'=>$idEtablissement])->one();
         $clientFolder = $client->getFolderPath();
         if($month < 10)
             $month = '0'.strval($month);
-        $dir = $clientFolder.'/'.strval($year).'/'.$month.'/'.strval($idLabo);
+        $dir = $clientFolder.'/'.strval($year).'/'.$month.'/L_'.strval($idLabo);
 
         if(file_exists(Yii::$app->params['dossierClients'].$dir)) {
             $folder = opendir(Yii::$app->params['dossierClients'] . $dir);

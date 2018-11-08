@@ -28,6 +28,7 @@ $baseUrl = Yii::$app->request->baseUrl;
 $urlFileUpload = Url::to(['/document/file-upload']);
 $urlTotalDocumentLaboPushed = Url::to(['/document/total-document-labo-pushed']);
 $urlTotalDocumentClientPushed = Url::to(['/document/total-document-client-pushed']);
+$urlTotalDocumentChildPushed = Url::to(['/document/total-document-child-pushed']);
 $urlYearDocumentPushed = Url::to(['/document/year-document-pushed']);
 $urlMonthDocumentPushed = Url::to(['/document/month-document-pushed']);
 $urlClientDataChange = Url::to(['/document/list-client-data-change']);
@@ -42,6 +43,7 @@ $this->registerJS(<<<JS
         fileUpload:'{$urlFileUpload}',
         totalDocumentLaboPushed:'{$urlTotalDocumentLaboPushed}',
         totalDocumentClientPushed:'{$urlTotalDocumentClientPushed}',
+        totalDocumentChildPushed:'{$urlTotalDocumentChildPushed}',
         yearDocumentPushed:'{$urlYearDocumentPushed}',
         monthDocumentPushed:'{$urlMonthDocumentPushed}',
         clientDataChange:'{$urlClientDataChange}',
@@ -251,6 +253,7 @@ JS
                                     <ul class="nav nav-stacked">
                                         <li class="nav-total-labo" style="display:none;"><a href="#">Total de <span class="span-total-labo"></span><span class="pull-right badge badge-total-labo bg-blue">31</span></a></li>
                                         <li class="nav-total-client" style="display:none;"><a href="#">Total de  <span class="span-total-client"></span><span class="pull-right badge badge-total-client bg-blue">31</span></a></li>
+                                        <li class="nav-total-child" style="display:none;"><a href="#">Total de  <span class="span-total-child"></span><span class="pull-right badge badge-total-child bg-blue">31</span></a></li>
                                         <li class="nav-total-year" style="display:none;"><a href="#">Total de <span class="span-total-year"></span><span class="pull-right badge badge-total-year bg-blue">5</span></a></li>
                                         <li class="nav-total-month" style="display:none;"><a href="#">Total de <span class="span-total-month"></span><span class="pull-right badge badge-total-month bg-blue">12</span></a></li>
                                     </ul>
@@ -332,10 +335,39 @@ $this->registerJS(<<<JS
         }
     }
     
+    function changeWidgetChildValue(text,value){
+        $('.widget-child-name').html(text);
+        if(value != ''){
+            var data = JSON.stringify({
+                idClient : value,
+                idLabo:$('#hfIdLabo').val()
+            });
+            $.post(url.totalDocumentClientPushed, {data:data}, function(response) {
+                if(response.error == false){
+                    $('.span-total-child').html(text);
+                    $('.badge-total-child').html(response.result);
+                    if(response.result == 0){
+                        if($('.badge-total-child').hasClass('bg-blue'))
+                            $('.badge-total-child').removeClass('bg-blue').addClass('bg-yellow');
+                    }
+                    else{
+                        if($('.badge-total-child').hasClass('bg-yellow'))
+                            $('.badge-total-child').removeClass('bg-yellow').addClass('bg-blue');
+                    }
+                    $('.nav-total-child').show();
+                }
+            })
+        }
+        else{
+            $('.nav-total-child').hide();
+        }
+    }
+    
     function changeWidgetYearValue(text,value){
         if(value != ''){
             var data = JSON.stringify({
                 idClient : $('#kvform-client').val(),
+                idEtablissement : $('#child-id').val(),
                 idLabo:$('#hfIdLabo').val(),
                 year:value
             });
@@ -364,6 +396,7 @@ $this->registerJS(<<<JS
         if(value != ''){
             var data = JSON.stringify({
                 idClient : $('#kvform-client').val(),
+                idEtablissement : $('#child-id').val(),
                 idLabo:$('#hfIdLabo').val(),
                 year:$('#kvform-year').val(),
                 month:value
@@ -395,6 +428,7 @@ $this->registerJS(<<<JS
     function loadFilesDetail(){
         var data = JSON.stringify({
             idClient : $('#kvform-client').val(),
+            idEtablissement : $('#child-id').val(),
             idLabo:$('#hfIdLabo').val(),
             year:$('#kvform-year').val(),
             month:$('#kvform-month').val()
@@ -402,7 +436,6 @@ $this->registerJS(<<<JS
         if($('#kvform-client').val() != '' && $('#hfIdLabo').val() != '' && $('#kvform-year').val() != '' && $('#kvform-month').val() != ''){
             $.post(url.loadFileDetail, {data:data}, function(response) {
                 if(response.error == false){
-                    console.log(response.result);
                     if(response.result != ''){
                         $('.box-files').html(response.result);
                     }
@@ -427,6 +460,8 @@ $this->registerJS(<<<JS
             changeWidgetLaboValue($(this).find('option:selected').text(),$(this).val());
             if($('#kvform-client').val() != '')
                 changeWidgetClientValue($('#kvform-client').find('option:selected').text(),$('#kvform-client').val());
+            if($('#child-id').val() != '')
+                changeWidgetChildValue($('#child-id').find('option:selected').text(),$('#child-id').val());
             if($('#kvform-year').val() != '')
                 changeWidgetYearValue($('#kvform-year').find('option:selected').text(),$('#kvform-year').val());
             if($('#kvform-month').val() != '')
@@ -439,6 +474,7 @@ $this->registerJS(<<<JS
             changeWidgetLaboValue('&nbsp;','');
         }
     });
+    
     
     $('#kvform-client').change(function(){
         if($(this).val() != ''){
@@ -455,6 +491,26 @@ $this->registerJS(<<<JS
             $('#kvform-year').prop('disabled',true);
             $('#kvform-year').val('').change();
             changeWidgetClientValue('&nbsp;','');
+        }
+    });
+    
+    $('#child-id').change(function(){
+        if($(this).val() != ''){
+            changeWidgetChildValue($(this).find('option:selected').text(),$(this).val());
+            if($('#kvform-year').val() != '')
+                changeWidgetYearValue($('#kvform-year').find('option:selected').text(),$('#kvform-year').val());
+            if($('#kvform-month').val() != '')
+                changeWidgetMonthValue($('#kvform-month').find('option:selected').text(),$('#kvform-month').val());
+            loadFilesDetail();
+            $('#hfIdParent').val($(this).val());
+        }
+        else{
+            if($('#kvform-year').val() != '')
+                changeWidgetYearValue($('#kvform-year').find('option:selected').text(),$('#kvform-year').val());
+            if($('#kvform-month').val() != '')
+                changeWidgetMonthValue($('#kvform-month').find('option:selected').text(),$('#kvform-month').val());
+            changeWidgetChildValue('&nbsp;','');
+            loadFilesDetail();
         }
     });
     
@@ -515,7 +571,6 @@ $this->registerJS(<<<JS
             '{TAG_CSS_INIT}': 'kv-hidden'  // hide the initial input
         },
         initialPreview: [
-            
         ],
         initialPreviewConfig: [
             
@@ -533,6 +588,19 @@ $this->registerJS(<<<JS
             };
             return outData;
         }
+    });
+    
+    $("#upload-input").on('filebatchuploadsuccess',function(event,data){
+        var extradata = data.extra;
+        if(admin == 1)
+            changeWidgetLaboValue($('#kvformadmin-labo').find('option:selected').text(),extradata['idLabo']);
+        
+        changeWidgetClientValue($('#kvform-client').find('option:selected').text(),extradata['idClient']);
+        changeWidgetChildValue($('#child-id').find('option:selected').text(),extradata['idEtablissement']);
+        changeWidgetYearValue($('#kvform-year').find('option:selected').text(),extradata['year']);
+        changeWidgetMonthValue($('#kvform-month').find('option:selected').text(),extradata['month']);
+    
+        loadFilesDetail();
     });
     /*******************************************************/
 

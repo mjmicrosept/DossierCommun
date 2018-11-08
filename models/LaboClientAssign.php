@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use app\models\Client;
 
 /**
  * Modèle des client assignés aux labo
@@ -31,6 +32,21 @@ class LaboClientAssign extends \yii\db\ActiveRecord
      */
     public static function getListLaboClientAssign($id_labo){
         return self::find()->andFilterWhere(['id_labo'=>$id_labo])->andFilterWhere(['assign'=>1])->all();
+    }
+
+    /**
+     * Retourne la liste des affectations client d'un groupe donné pour un labo
+     * @param $id_labo
+     * @param $id_client
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public static function getListLaboClientGroupAssign($id_labo,$id_client){
+        $clientList = Client::find()->andFilterWhere(['id_parent'=>$id_client])->andFilterWhere(['active'=>1])->all();
+        $aIds = [];
+        foreach ($clientList as $item) {
+            array_push($aIds,$item->id);
+        }
+        return self::find()->andFilterWhere(['id_labo'=>$id_labo])->andFilterWhere(['IN','id_client',$aIds])->andFilterWhere(['assign'=>1])->all();
     }
 
     /**
