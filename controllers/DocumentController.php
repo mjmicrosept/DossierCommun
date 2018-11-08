@@ -201,7 +201,7 @@ class DocumentController extends Controller
             if(intval($_POST['month']) < 10)
                 $month = '0'.strval($_POST['month']);
             else
-                strval($_POST['month']);
+                $month = strval($_POST['month']);
         }
 
 
@@ -212,12 +212,14 @@ class DocumentController extends Controller
                     $folderClientName = ClientDossier::getDossierName($idClient);
                 else
                     $folderClientName = ClientDossier::getDossierName($idEtablissement);
+
                 if(!is_null($folderClientName)) {
                     //Chemin vers le dossier client
                     $pathClientFolder = Yii::$app->params['dossierClients'].$folderClientName.'/';
                     if (!is_null($year) && !is_null($month)) {
                         //Chemin vers l'année
                         $pathClientYearFolder = $pathClientFolder.'/'.$year;
+                        Yii::trace($pathClientYearFolder);
                         if(!is_dir($pathClientYearFolder))
                             mkdir($pathClientYearFolder);
                         //Chemin vers le mois
