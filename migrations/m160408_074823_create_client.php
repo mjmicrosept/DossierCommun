@@ -27,6 +27,7 @@ class m160408_074823_create_client extends Migration
             'date_create' => $this->timestamp()->notNull()->defaultExpression('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
             'active' => $this->boolean()->defaultValue(NULL),
             'is_parent' => $this->boolean()->defaultValue(1),
+            'is_analyzable' => $this->boolean()->defaultValue(1),
         ]);
 
         //$this->createIndex('societe_user_create','client',['user_create']);

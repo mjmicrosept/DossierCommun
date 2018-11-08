@@ -22,6 +22,7 @@ use yii\helpers\ArrayHelper;
  * @property string $date_create
  * @property int $active
  * @property int $is_parent
+ * @property int $is_analyzable
  */
 class Client extends \yii\db\ActiveRecord
 {
@@ -196,7 +197,7 @@ class Client extends \yii\db\ActiveRecord
         return [
             [['name', 'user_create'], 'required'],
             [['description','adresse','ville','code_postal','tel','responsable_nom','responsable_prenom'], 'string'],
-            [['user_create', 'active','id_parent','is_parent'], 'integer'],
+            [['user_create', 'active','id_parent','is_parent','is_analyzable'], 'integer'],
             [['date_create'], 'safe'],
             [['name'], 'string', 'max' => 255],
         ];
@@ -222,6 +223,7 @@ class Client extends \yii\db\ActiveRecord
             'tel' => Yii::t('microsept','Labo tel'),
             'responsable_nom' => Yii::t('microsept','Client Responsable Nom'),
             'responsable_prenom' => Yii::t('microsept','Client Responsable Prenom'),
+            'is_analyzable' => Yii::t('microsept','Client is analyzable'),
         ];
     }
 }

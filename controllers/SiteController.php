@@ -104,7 +104,9 @@ class SiteController extends Controller
             if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
                 $laboClientAssign = LaboClientAssign::find()
                     ->leftJoin('laboratoires', 'laboratoires.id = id_labo')
+                    ->leftJoin('client', 'client.id = id_client')
                     ->andFilterWhere(['assign' => 1])
+                    ->andFilterWhere(['is_analyzable'=>1])
                     ->orderBy('laboratoires.raison_sociale ASC')
                     ->all();
             }
@@ -125,8 +127,10 @@ class SiteController extends Controller
 
                 $laboClientAssign = LaboClientAssign::find()
                     ->leftJoin('laboratoires', 'laboratoires.id = id_labo')
+                    ->leftJoin('client', 'client.id = id_client')
                     ->andFilterWhere(['in','id_client',$aIds])
                     ->andFilterWhere(['assign' => 1])
+                    ->andFilterWhere(['is_analyzable'=>1])
                     ->orderBy('laboratoires.raison_sociale, id_client ASC')
                     ->all();
             }

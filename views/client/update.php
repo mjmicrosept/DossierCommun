@@ -21,6 +21,7 @@ $this->params['breadcrumbs'][] = Yii::t('microsept','Update');
         'listClient'=>$listClient,
         'is_parent' => $model->is_parent,
         'id_parent' => $model->id_parent,
+        'is_analyzable' => $model->is_analyzable,
     ]) ?>
 
 </div>

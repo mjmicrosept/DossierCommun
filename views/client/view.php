@@ -66,6 +66,16 @@ $this->params['breadcrumbs'][] = $this->title;
                         'attribute' => 'active',
                         'value' => $model->active == 1 ?
                             'Oui' : 'Non'
+                    ],
+                    [
+                        'attribute' => 'is_parent',
+                        'value' => $model->is_parent == 1 ?
+                            'Oui' : 'Non'
+                    ],
+                    [
+                        'attribute' => 'is_analyzable',
+                        'value' => $model->is_analyzable == 1 ?
+                            'Oui' : 'Non'
                     ]
                 ],
             ]) ?>

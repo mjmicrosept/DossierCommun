@@ -17,6 +17,7 @@ $idclient = 0;
 $activeclient = 0;
 $isParent = 0;
 $idParent = 0;
+$isAnalyzable = 0;
 if(isset($id)) {
     $idclient = $id;
     if (isset($active)) {
@@ -27,6 +28,9 @@ if(isset($id)) {
     }
     if (isset($id_parent)) {
         $idParent = $id_parent;
+    }
+    if (isset($is_analyzable)) {
+        $isAnalyzable = $is_analyzable;
     }
 }
 
@@ -76,6 +80,17 @@ if(isset($id)) {
                             <label for="client-check-isparent">
                                 <input type="checkbox" id="client-check-isparent" name="Client[is_parent]" >
                                 <?= Yii::t('microsept','Client is parent') ?>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group field-client-check-isanalyzable">
+                    <div class="col-sm-8 col-sm-offset-2">
+                        <div class="checkbox">
+                            <label for="client-check-isanalyzable">
+                                <input type="checkbox" id="client-check-isanalyzable" name="Client[is_analyzable]" >
+                                <?= Yii::t('microsept','Client is analyzable') ?>
                             </label>
                         </div>
                     </div>
@@ -155,10 +170,14 @@ $this->registerJs(<<<JS
 		    $('.form-parent').show();
 		    $('#kvform-client').val({$idParent}).change();
         }
+        if({$isAnalyzable} != 0){
+			$('#client-check-isanalyzable').attr({checked : 'checked'});
+		}
 	}
 	else{
 	    $('#client-check-isparent').attr({checked : 'checked'});
 		$('#client-check-actif').attr({checked : 'checked'});
+		$('#client-check-isanalyzable').attr({checked : 'checked'});
 	}
 	
 	$('#client-check-isparent').click(function(){

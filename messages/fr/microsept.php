@@ -175,4 +175,5 @@ return [
     "Infos germe" => "Informations sur le germe",
     "Germe_update" => "Mise à jour du germe",
     "Germe_create" => "Création d'un germe",
+    "Client is analyzable" => "Est analysable"
 ];

@@ -85,6 +85,7 @@ class ClientController extends Controller
 
             $model->active = 1;
             $model->is_parent = 1;
+            $model->is_analyzable = 1;
             try {
                 if(!isset(Yii::$app->request->post()['Client']['active']))
                     $model->active = 0;
@@ -92,6 +93,8 @@ class ClientController extends Controller
                     $model->is_parent = 0;
                     $model->id_parent = Yii::$app->request->post()['kvform']['client'];
                 }
+                if(!isset(Yii::$app->request->post()['Client']['is_analyzable']))
+                    $model->is_analyzable = 0;
 
                 $isValid = $model->save();
                 $isValid = true;
@@ -153,6 +156,7 @@ class ClientController extends Controller
 
             $model->active = 1;
             $model->is_parent = 1;
+            $model->is_analyzable = 1;
             try {
                 if(!isset(Yii::$app->request->post()['Client']['active']))
                     $model->active = 0;
@@ -163,6 +167,8 @@ class ClientController extends Controller
                 else{
                     $model->id_parent = null;
                 }
+                if(!isset(Yii::$app->request->post()['Client']['is_analyzable']))
+                    $model->is_analyzable = 0;
 
                 $isValid = $model->save();
             }
