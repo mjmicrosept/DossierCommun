@@ -93,6 +93,24 @@ $this->registerCss(<<<CSS
 CSS
 );
 
+$lastPushObjVignette = null;
+if($isAdmin){
+    $idUser = User::getCurrentUser()->id;
+    $clientList = Client::find()->andFilterWhere(['id'=>$idClient])->orFilterWhere(['id_parent'=>$idClient])->andFilterWhere(['active'=>1])->all();
+    $aIds = [];
+    foreach ($clientList as $item) {
+        array_push($aIds,$item->id);
+    }
+    $lastPushObjVignette = DocumentPushed::find()->andFilterWhere(['IN','id_client',$aIds])->orderBy('last_push DESC')->one();
+}
+elseif($isResponsable){
+    $aIds = PortailUsers::getIdClientUserGroup(User::getCurrentUser()->id);
+    $lastPushObjVignette = DocumentPushed::find()->andFilterWhere(['IN','id_client',$aIds])->orderBy('last_push DESC')->one();
+}
+else{
+    $lastPushObjVignette = DocumentPushed::find()->andFilterWhere(['id_client'=>PortailUsers::getIdClientUser(User::getCurrentUser()->id)])->orderBy('last_push DESC')->one();
+}
+
 ?>
     <div class="loader">
         <div class="sk-cube-grid"><div class="sk-cube sk-cube1"></div>
@@ -104,6 +122,7 @@ CSS
         </div>
     </div>
     <div class="row">
+        <?php if($isAdmin) : ?>
         <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="info-box">
                 <span class="info-box-icon bg-aqua"><i class="fa fa-user"></i></span>
@@ -128,6 +147,7 @@ CSS
             </div>
             <!-- /.info-box -->
         </div>
+        <?php endif ?>
         <!-- /.col -->
         <div class="col-md-3 col-sm-6 col-xs-12">
             <div class="info-box">
@@ -137,7 +157,24 @@ CSS
                     <span class="info-box-text">Laboratoires</span>
                     <span class="info-box-number">
                         <?php
-                            echo LaboClientAssign::find()->andFilterWhere(['assign'=>1])->andFilterWhere(['id_client'=>PortailUsers::getIdClientUser(User::getCurrentUser()->id)])->count();
+                            if($isAdmin){
+                                $childList = Client::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idClient])->all();
+                                $aIds = [];
+                                foreach ($childList as $idChild) {
+                                    array_push($aIds,$idChild->id);
+                                }
+
+                                echo LaboClientAssign::find()->andFilterWhere(['assign'=>1])->andFilterWhere(['IN','id_client',$aIds])->groupBy('id_labo')->count();
+                            }
+                            elseif ($isResponsable){
+                                $aIds = PortailUsers::getIdClientUserGroup(User::getCurrentUser()->id);
+
+                                echo LaboClientAssign::find()->andFilterWhere(['assign'=>1])->andFilterWhere(['IN','id_client',$aIds])->groupBy('id_labo')->count();
+                            }
+                            else{
+                                echo LaboClientAssign::find()->andFilterWhere(['assign'=>1])->andFilterWhere(['id_client'=>PortailUsers::getIdClientUser(User::getCurrentUser()->id)])->groupBy('id_labo')->count();
+                            }
+
                         ?>
                     </span>
                 </div>
@@ -159,10 +196,15 @@ CSS
                     <span class="info-box-text">Documents</span>
                     <span class="info-box-number">
                         <?php
-                            $clientList = Client::find()->andFilterWhere(['id'=>$idClient])->orFilterWhere(['id_parent'=>$idClient])->andFilterWhere(['active'=>1])->all();
-                            $aIds = [];
-                            foreach ($clientList as $item) {
-                                array_push($aIds,$item->id);
+                            if(!$isResponsable) {
+                                $clientList = Client::find()->andFilterWhere(['id' => $idClient])->orFilterWhere(['id_parent' => $idClient])->andFilterWhere(['active' => 1])->all();
+                                $aIds = [];
+                                foreach ($clientList as $item) {
+                                    array_push($aIds, $item->id);
+                                }
+                            }
+                            else{
+                                $aIds = PortailUsers::getIdClientUserGroup(User::getCurrentUser()->id);
                             }
                             $result = DocumentPushed::find()->andFilterWhere(['in','id_client',$aIds])->sum('nb_doc');
                             echo $result;
@@ -183,9 +225,8 @@ CSS
                     <span class="info-box-text">Derniers reçus</span>
                     <span class="info-box-number">
                         <?php
-                            $lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>PortailUsers::getIdClientUser(User::getCurrentUser()->id)])->orderBy('last_push DESC')->one();
-                            if(!is_null($lastPushObj)) {
-                                $labo = Labo::find()->andFilterWhere(['id'=>$lastPushObj->id_labo])->one();
+                            if(!is_null($lastPushObjVignette)) {
+                                $labo = Labo::find()->andFilterWhere(['id'=>$lastPushObjVignette->id_labo])->one();
                                 echo $labo->raison_sociale;
                             }
                             else{
@@ -199,9 +240,8 @@ CSS
                     </div>
                     <span class="progress-description">
                         <?php
-                            $lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>PortailUsers::getIdClientUser(User::getCurrentUser()->id)])->orderBy('last_push DESC')->one();
-                            if(!is_null($lastPushObj)) {
-                                $lastPush = $lastPushObj->last_push;
+                            if(!is_null($lastPushObjVignette)) {
+                                $lastPush = $lastPushObjVignette->last_push;
                                 $year = substr($lastPush, 0, 4);
                                 $month = intval(substr($lastPush, 5, 2));
                                 $day = substr($lastPush, 8, 2);
@@ -212,7 +252,7 @@ CSS
 
                                 $dateSend =  $day . ' ' . $tMonths[$month] . ' ' . $year;
 
-                                echo $lastPushObj->nb_doc . ' documents le : '.$dateSend;
+                                echo $lastPushObjVignette->nb_doc . ' documents le : '.$dateSend;
                             }
                             else{
                                 echo ' - ';

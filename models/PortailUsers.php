@@ -88,6 +88,20 @@ class PortailUsers extends \yii\db\ActiveRecord
     }
 
     /**
+     * Retourne les identifiants des clients affectés au responsable utilisateur
+     * @param $iduser
+     * @return mixed
+     */
+    public static function getIdClientUserGroup($iduser){
+        $result = [];
+        $model = self::find()->andFilterWhere(['id_user'=> $iduser])->all();
+        foreach ($model as $item) {
+            array_push($result,$item->id_client);
+        }
+        return $result;
+    }
+
+    /**
      * Retourne la liste des utilisateurs du portail en fonction du type recherché
      * @param $idSearch id du type à rechercher
      * @param $type type à rechercher (labo / client)

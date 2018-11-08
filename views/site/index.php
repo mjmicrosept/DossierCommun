@@ -41,6 +41,7 @@ $this->title = 'P.C.R.A.M';
                         'listMonthAlert' => $listMonthAlert,
                         'idClient' => $idClient,
                         'isAdmin'=> User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) ? true : false,
+                        'isResponsable'=> User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP]) ? true : false,
                         'gridColumn' => $gridColumn,
                         'idLabo' => $idLabo
                     ]

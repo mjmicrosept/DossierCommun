@@ -91,7 +91,7 @@ class SiteController extends Controller
         $gridColumn = [];
         $entete = [];
 
-        if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER])){
+        if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER])){
             $data = [];
             $idClient = null;
             $idLabo = null;
@@ -109,13 +109,20 @@ class SiteController extends Controller
                     ->all();
             }
             else{
-                $idClient = PortailUsers::getIdClientUser(User::getCurrentUser()->id);
-                $idChilds = Client::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idClient])->all();
-                $aIds = [];
-                array_push($aIds,$idClient);
-                foreach ($idChilds as $idChild) {
-                    array_push($aIds,$idChild->id);
+                if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER])){
+                    $idClient = PortailUsers::getIdClientUser(User::getCurrentUser()->id);
+                    $idChilds = Client::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idClient])->all();
+                    $aIds = [];
+                    array_push($aIds,$idClient);
+                    foreach ($idChilds as $idChild) {
+                        array_push($aIds,$idChild->id);
+                    }
                 }
+                else{
+                    $aIds = PortailUsers::getIdClientUserGroup(User::getCurrentUser()->id);
+                }
+
+
                 $laboClientAssign = LaboClientAssign::find()
                     ->leftJoin('laboratoires', 'laboratoires.id = id_labo')
                     ->andFilterWhere(['in','id_client',$aIds])
@@ -142,7 +149,7 @@ class SiteController extends Controller
                 ],
             ]);
 
-            if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])){
+            if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP])){
                 $entete = [
                     [
                         'attribute'=>'id_labo',
@@ -165,7 +172,7 @@ class SiteController extends Controller
                     ],
                     [
                         'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                        'filter' => 'Client',
+                        'filter' => 'Etablissement',
                         'value' => function($model){
                             $client = Client::find()->andFilterWhere(['id'=>$model['id_client']])->one();
                             if(!is_null($client))
@@ -191,7 +198,7 @@ class SiteController extends Controller
                 array_push($gridColumn,$entete);
             }
 
-            if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER])){
+            if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP])){
                 $defaultColumns = [
                     [
                         'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
