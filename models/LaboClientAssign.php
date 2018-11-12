@@ -50,6 +50,27 @@ class LaboClientAssign extends \yii\db\ActiveRecord
     }
 
     /**
+     * Retourne un tableau d'id des labo affectés à un ou plusieurs clients
+     * @param $idClient
+     * @param $aIdClient
+     * @return array
+     */
+    public static function getListIdLaboFromClients($idClient,$aIdClient){
+        $laboList = null;
+        if(!is_null($idClient))
+            $laboList = self::find()->andFilterWhere(['id_client' => $idClient])->andFilterWhere(['assign' => 1])->all();
+
+        if(!is_null($aIdClient))
+            $laboList = self::find()->andFilterWhere(['IN', 'id_client', $aIdClient])->andFilterWhere(['assign' => 1])->all();
+
+        $aIds = [];
+        foreach ($laboList as $item) {
+            array_push($aIds,$item->id_labo);
+        }
+        return $aIds;
+    }
+
+    /**
      * Création d'une nouvelle entrée dans la table
      * @param $idLabo
      * @param $idClient

@@ -141,6 +141,7 @@ return [
     "UserCreateDDLEtablissementGroup"=>"Vous devez choisir un ou plusieurs établissements à affecter à cet utilisateur",
     "Affectation_client"=>"Affectations clients",
     "Result_Analyses"=>"Résultats d'analyses",
+    "Results_Analyses"=>"Résultats des analyses",
     "Janv"=>"Janvier",
     "Fev"=>"Février",
     "Ma"=>"Mars",
@@ -175,5 +176,7 @@ return [
     "Infos germe" => "Informations sur le germe",
     "Germe_update" => "Mise à jour du germe",
     "Germe_create" => "Création d'un germe",
-    "Client is analyzable" => "Est analysable"
+    "Client is analyzable" => "Est analysable",
+    "Synthese analyse" => "Synthèse des analyses",
+    "Filters" => "Filtres"
 ];

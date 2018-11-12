@@ -44,6 +44,19 @@ class Labo extends \yii\db\ActiveRecord
     }
 
     /**
+     * Retourne la liste brute id/nom en fonction des id passés en paramètres
+     * @return mixed
+     */
+    public static function getAsListFromIdsForDepDrop($aIds){
+        $result = [];
+        $laboList = self::find()->andFilterWhere(['IN','id',$aIds])->orderBy('raison_sociale')->all();
+        foreach ($laboList as $item) {
+            $result[$item->id] = $item->raison_sociale;
+        }
+        return $result;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function rules()
