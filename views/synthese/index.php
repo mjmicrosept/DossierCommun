@@ -55,13 +55,17 @@ JS
 
 <div class="row">
     <div class="col-sm-12">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
+        <div class="panel panel-primary box">
+            <div class="panel-heading box-header">
                 <strong>
                     <span class="fas fa-filter"></span> <?= Yii::t('microsept', 'Filters') ?>
                 </strong>
+                <div class="box-tools pull-right">
+                    <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                    </button>
+                </div>
             </div>
-            <div class="panel-body">
+            <div class="panel-body box-body">
                 <?php
                     echo TabsX::widget([
                         'items'=>$items,
@@ -94,6 +98,22 @@ JS
 $this->registerCss(<<<CSS
     .nav > li.disabled > a {
         color: #C7C7C7;
+    }
+    .box-header{
+        padding:10px 15px;
+    }
+    .box{
+        border-radius:5px;
+        border-top:1px solid transparent;
+    }
+    .btn-box-tool{
+        color:#FFF;
+    }
+    .btn-box-tool:hover{
+        color:#FFF;
+    }
+    .btn-box-tool:focus{
+        color:#FFF;
     }
 CSS
 );
