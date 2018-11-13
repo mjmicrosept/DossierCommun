@@ -38,7 +38,7 @@ return [
         'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
         'items' => [
             ['label' => '<span class="fas fa-project-diagram"></span> Services', 'url' => ['/analyse-service/index']],
-            ['label' => '<span class="fas fa-vials"></span> Germes', 'url' => ['/analyse-germe/index']],
+            //['label' => '<span class="fas fa-vials"></span> Germes', 'url' => ['/analyse-germe/index']],
         ],
         'visible' => Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])
     ],

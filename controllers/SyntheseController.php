@@ -13,11 +13,18 @@ use app\models\AppCommon;
 use app\models\User;
 use app\models\Client;
 use app\models\Labo;
+use app\models\LaboSearch;
 use app\models\LaboClientAssign;
 use app\models\AnalyseGerme;
 use app\models\AnalyseService;
+use app\models\AnalyseConformite;
+use app\models\AnalyseInterpretation;
+use app\models\AnalyseData;
+use app\models\AnalyseDataGerme;
 use app\models\PortailUsers;
 use app\models\FilterPrefUser;
+use app\models\FilterPrefKeyword;
+use app\models\FilterPrefPrelevement;
 use app\models\FilterModel;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
@@ -55,16 +62,36 @@ class SyntheseController extends Controller
         $modelList = [];
         $idUser = User::getCurrentUser()->id;
 
-        $filterList = FilterPrefUser::find()->andFilterWhere(['id_user'=>$idUser])->groupBy('id_model')->all();
+        /*$filterList = FilterPrefUser::find()->andFilterWhere(['id_user'=>$idUser])->groupBy('id_model')->all();
         foreach ($filterList as $filter) {
             if(!isset($modelList[$filter->id_service]))
                 $modelList[$filter->id_service] = [];
 
             $model = FilterModel::find()->andFilterWhere(['id'=>$filter->id_model])->one();
             array_push($modelList[$filter->id_service],['id_model'=>$filter->id_model,'libelle'=>$model->libelle]);
-        }
-        Yii::trace($modelList);
+        }*/
 
+        $aModelKeyWord = FilterModel::find()
+            ->leftJoin('filter_pref_keyword','filter_model.id = filter_pref_keyword.id_model')
+            ->andFilterWhere(['filter_model.id_user'=>$idUser])
+            ->groupBy('id_model')
+            ->all();
+        foreach ($aModelKeyWord as $item) {
+            if(!isset($modelList['germe']))
+                $modelList['germe'] = [];
+            array_push($modelList['germe'],['id_model'=>$item->id,'libelle'=>$item->libelle]);
+        }
+
+        $aModelKeyWord = FilterModel::find()
+            ->leftJoin('filter_pref_prelevement','filter_model.id = filter_pref_prelevement.id_model')
+            ->andFilterWhere(['filter_model.id_user'=>$idUser])
+            ->groupBy('id_model')
+            ->all();
+        foreach ($aModelKeyWord as $item) {
+            if(!isset($modelList['prelevement']))
+                $modelList['prelevement'] = [];
+            array_push($modelList['prelevement'],['id_model'=>$item->id,'libelle'=>$item->libelle]);
+        }
 
         if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
             $idClient = PortailUsers::find()->andFilterWhere(['id_user' => $idUser])->one()->id_client;
@@ -94,13 +121,22 @@ class SyntheseController extends Controller
                 'label'=>'<i class="fas fa-home"></i> Général',
                 'content'=>self::getGeneralFilterContent($idClient,$clientList,$laboList),
                 'active'=>true
+            ],
+            [
+                'label'=>'<i class="fas fa-vials"></i> Germes',
+                'content'=>self::getGermeFilterContent(),
+            ],
+            [
+                'label'=>'<i class="fas fa-syringe"></i> Prélèvement',
+                'content'=>self::getPrelevementFilterContent(),
             ]
         ];
 
-        $servicesTabs = self::getServiceTabs();
+        //ONGLETS DES SERVICES (A METTRE DE COTE)
+        /*$servicesTabs = self::getServiceTabs();
         foreach ($servicesTabs as $servicesTab) {
             array_push($tItems,$servicesTab);
-        }
+        }*/
 
         return $this->render('index', [
             'items'=>$tItems,
@@ -119,7 +155,7 @@ class SyntheseController extends Controller
 
         foreach ($listService as $item) {
             $service = [
-                'label'=>'<i class="fas fa-user"></i> '.$item->libelle,
+                'label'=>'<i class="fas fa-project-diagram"></i> '.$item->libelle,
                 'content'=>self::getServiceFilterContent($item->id),
                 'headerOptions' => ['class'=>'disabled service-tabs','id'=>'service-'.$item->id],
             ];
@@ -156,6 +192,60 @@ class SyntheseController extends Controller
         }
         $result .= '</form>';
         $result .= '</div>';
+
+        return $result;
+    }
+
+    /**
+     * Retourne le contenu du filtre des germes
+     * @return string
+     */
+    private static function getGermeFilterContent(){
+        $result = '';
+        $result .= '<div class="row" style="margin-bottom:30px;">';
+            $result .= '<button class="btn btn-primary btn-save-pref" data-tab="germe" style="float:right;margin:10px;"><i class="fas fa-filter"></i> Sauvegarder les préférences</button>';
+            $result .= '<button class="btn btn-success btn-load-pref" data-tab="germe" style="float:right;margin:10px;"><i class="fas fa-filter"></i> Charger les préférences</button>';
+        $result .= '</div>';
+        $result .= '<div class="row">';
+            $result .= '<div class="col-sm-3">';
+                $result .= '<div class="form-group field-germe-new">';
+                    $result .= '<label class="control-label" style="margin-left:15px;" for="input-germe-add"> Mot clé</label>';
+                    $result .= '<div class="col-sm-3 form-control" style="border:none;">';
+                        $result .= '<input type="text" class="form-control" id="input-germe-add" value=""/>';
+                    $result .= '</div>';
+                $result .= '</div>';
+            $result .= '</div>';
+            $result .= '<div class="col-sm-3">';
+                $result .= '<button class="btn btn-default btn-add-word" style="margin-top: 30px;"><i class="fas fa-angle-double-right"></i></button>';
+            $result .= '</div>';
+            $result .= '<div class="col-sm-6">';
+                $result .= '<div class="box box-info">';
+                    $result .= '<div class="box-header with-border">';
+                        $result .= '<h3 class="box-title">Liste des mots clés</h3>';
+                    $result .= '</div>';
+                    $result .= '<div class="row">';
+                        $result .= '<div class="col-sm-6">';
+                            $result .= '<ul id="list-word1">';
+                            $result .= '</ul>';
+                        $result .= '</div>';
+                         $result .= '<div class="col-sm-6">';
+                            $result .= '<ul id="list-word2">';
+                            $result .= '</ul>';
+                        $result .= '</div>';
+                    $result .= '</div>';
+
+                $result .= '</div>';
+            $result .= '</div>';
+        $result .= '</div>';
+        $result .= '<div class="row">';
+
+        $result .= '</div>';
+        $result .= '<br/>';
+        return $result;
+    }
+
+    private static function getPrelevementFilterContent(){
+        $result = '';
 
         return $result;
     }
@@ -272,7 +362,7 @@ class SyntheseController extends Controller
                         'type' => Form::INPUT_WIDGET,
                         'widgetClass' => '\kartik\select2\Select2',
                         'options' => [
-                            'data' => [0=>'Non conforme',1=>'Conforme'],
+                            'data' => ArrayHelper::map(AnalyseConformite::find()->orderBy('libelle')->asArray()->all(), 'id', 'libelle'),
                             'options' => [
                                 'placeholder' => 'Sélectionner une ou plusieurs conclusions', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
                             ],
@@ -420,6 +510,89 @@ class SyntheseController extends Controller
     }
 
     /**
+     * Fonction d'enregistrement des préférences de filtres sur les germes
+     * @return array
+     */
+    public function actionSavePrefKeyWord(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $_data = Json::decode($_POST['data']);
+        $keyWordList = $_data['keyWordList'];
+        $modelExist = $_data['modelExist'];
+        $modelNew = $_data['modelNew'];
+        Yii::trace($_data);
+
+        $modelName = '';
+        //Modèle existant
+        if($modelNew == ''){
+            //On supprime (ce qui sera plus rapide que de boucler) les préférence de cet utilisateur pour ce service et ce modèle
+            FilterPrefKeyword::deleteAll(['id_user'=>User::getCurrentUser()->id,'id_model'=>$modelExist]);
+
+            //Pour chaque germe on enregistre en préférence
+            for($i = 0; $i < count($keyWordList);$i++){
+                $filter = new FilterPrefKeyword();
+                $filter->id_user = User::getCurrentUser()->id;
+                $filter->keyword = $keyWordList[$i];
+                $filter->id_model = intval($modelExist);
+
+                if(!$filter->save())
+                    $errors = true;
+            }
+            $model = FilterModel::find()->andFilterWhere(['id'=>$modelExist])->one();
+            $modelName = $model->libelle;
+        }
+        else{
+            //On crée le nouveau modèle
+            $model = new FilterModel();
+            $model->id_user = User::getCurrentUser()->id;
+            $model->libelle = $modelNew;
+            if(!$model->save())
+                $errors = true;
+            if(!$errors) {
+                //Pour chaque germe on enregistre en préférence
+                for ($i = 0; $i < count($keyWordList); $i++) {
+                    $filter = new FilterPrefKeyword();
+                    $filter->id_user = User::getCurrentUser()->id;
+                    $filter->keyword = $keyWordList[$i];
+                    $filter->id_model = intval($model->id);
+
+                    if (!$filter->save())
+                        $errors = true;
+                }
+            }
+            $modelName = $modelNew;
+        }
+
+        return ['errors'=>$errors,'modelName'=>$modelName];
+    }
+
+
+    /**
+     * Fonction de chargement des préférences de filtres sur les germes
+     * @return array
+     */
+    public function actionLoadPrefKeyWord(){
+        $errors = false;
+        $keyWordList = [];
+        $modelName = '';
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $_data = Json::decode($_POST['data']);
+        $modelExist = $_data['modelExist'];
+
+        //On charge les filtres pour l'utilisateur, le service donné et le modèle donné
+        $prefList = FilterPrefKeyword::find()->andFilterWhere(['id_user'=>User::getCurrentUser()->id])->andFilterWhere(['id_model'=>$modelExist])->all();
+
+        foreach ($prefList as $pref) {
+            array_push($keyWordList,$pref->keyword);
+        }
+
+        $model = FilterModel::find()->andFilterWhere(['id'=>$modelExist])->one();
+        $modelName = $model->libelle;
+
+        return ['errors'=>$errors,'keyWordList'=>$keyWordList,'modelName'=>$modelName];
+    }
+
+    /**
      * Fonction d'enregistrement des préférences de filtres sur les germes en fonction du service
      * @return array
      */
@@ -502,5 +675,18 @@ class SyntheseController extends Controller
         $modelName = $model->libelle;
 
         return ['errors'=>$errors,'germList'=>$germList,'modelName'=>$modelName];
+    }
+
+    public function actionGetSyntheseResult(){
+        $_data = Json::decode($_POST['data']);
+        Yii::trace($_data);
+
+        $searchModel = new LaboSearch();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
+        return $this->renderPartial('grid-synthese', [
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
+        ]);
     }
 }

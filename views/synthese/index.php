@@ -27,7 +27,12 @@ $this->params['breadcrumbs'][] = Yii::t('microsept', 'Synthese analyse');
 
 $baseUrl = Yii::$app->request->baseUrl;
 $urlSavePref = Url::to(['/synthese/save-pref-user']);
+$urlSavePrefKeyWord = Url::to(['/synthese/save-pref-key-word']);
+$urlSavePrefPrelevement = Url::to(['/synthese/save-pref-prelevement']);
 $urlLoadPref = Url::to(['/synthese/load-pref-user']);
+$urlLoadPrefKeyWord = Url::to(['/synthese/load-pref-key-word']);
+$urlLoadPrefPrelevement = Url::to(['/synthese/load-pref-prelevement']);
+$urlGetSyntheseResult = Url::to(['/synthese/get-synthese-result']);
 
 $list_model = json_encode([]);
 if(isset($modelList))
@@ -35,8 +40,13 @@ if(isset($modelList))
 
 $this->registerJS(<<<JS
     var url = {
-        savePref:'{$urlSavePref}',
-        loadPref:'{$urlLoadPref}',
+        //savePref:'{$urlSavePref}',
+        //loadPref:'{$urlLoadPref}',
+        savePrefKeyWord:'{$urlSavePrefKeyWord}',
+        loadPrefKeyWord:'{$urlLoadPrefKeyWord}',
+        savePrefPrelevement:'{$urlSavePrefPrelevement}',
+        loadPrefPrelevement:'{$urlLoadPrefPrelevement}',
+        getSyntheseResult:'{$urlGetSyntheseResult}',
     };
 JS
 );
@@ -89,6 +99,10 @@ JS
                 </strong>
             </div>
             <div class="panel-body" style="padding:20px 50px 20px 50px;">
+                <?php Pjax::begin([
+                    'id'=>'synthese-grid',
+                ]) ?>
+                <?php Pjax::end() ?>
             </div>
         </div>
     </div>
@@ -119,6 +133,252 @@ CSS
 );
 
 $this->registerJS(<<<JS
+    //Click sur le bouton d'ajout de mot clé
+    $('.btn-add-word').click(function(){
+        var keyWord = $('#input-germe-add').val();
+        $('#input-germe-add').val('');
+        
+        var listKeyWord1 = $('#list-word1');
+        var listKeyWord2 = $('#list-word2');
+        var index = 0;
+        $('.li-word').each(function(){
+           index++; 
+        });
+        
+        var li = $(document.createElement('li')).addClass('li-word').attr({
+            'data-uuid':index + 1,
+            'id' : 'li-word-' + (index + 1)
+        }).css({
+            'padding':'10px'
+        });
+        var libelle = $(document.createElement('label')).text(keyWord);
+        var icon = $(document.createElement('i')).addClass('fas fa-times delete-word').css({
+            'cursor':'pointer',
+            'color':'red',
+            'margin-left': '10px'
+        }).attr({
+            'data-uuid':index + 1
+        });
+        
+        li.append(libelle);
+        li.append(icon);
+        if(index%2 == 0)
+            listKeyWord1.append(li);
+        else 
+            listKeyWord2.append(li);
+    });
+
+    //Click sur la suppression des mots clés
+    $(document).on('click','.delete-word',function(){
+        var uuid = $(this).data('uuid');
+        var li = $('#li-word-' + uuid);
+
+        li.remove();
+        
+        var index = 1;
+        $('#list-word1 > li.li-word').each(function(){
+            var uuid = $(this).data('uuid');
+            $(this).attr('data-uuid',index).attr('id','li-word-'+index);
+            index += 2;
+        });
+        
+        var index = 2;
+        $('#list-word2 > li.li-word').each(function(){
+            var uuid = $(this).data('uuid');
+            $(this).attr('data-uuid',index).attr('id','li-word-'+index);
+            index += 2;
+        });
+        
+    });
+    
+    //Click sur le bouton de sauvegarde des préférences
+    $('.btn-save-pref').click(function(){
+        var tab = $(this).data('tab');
+        if(tab == 'germe'){
+            //Onglet des germes
+            //On récupère tous les mots clés qu'on va placer dans un tableau
+            var aKeyWord = [];
+            $('.li-word > label').each(function(){
+                aKeyWord.push($(this).text());
+            });
+            var selectModel = '<select id="model-list" class="swal2-input">';
+            selectModel += '<option value="" disabled selected>Choisir le modèle</option>';
+            if({$list_model}.length != 0){
+                if({$list_model}['germe'] != undefined){
+                    if({$list_model}['germe'].length != 0){
+                        for(var i = 0;i < {$list_model}['germe'].length;i++){
+                            selectModel += '<option value="'+ {$list_model}['germe'][i]["id_model"] +'">' + {$list_model}['germe'][i]["libelle"] + '</option>';
+                        }
+                    }
+                }
+            }
+            selectModel += '</select>';
+            
+            swal({
+                title :'Sauvegarde',
+                type : 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Sauvegarder',
+                cancelButtonText: 'Annuler',
+                html:
+                '<h4>Choix du modèle</h4>'+
+                selectModel +
+                '<h4>Créer un modèle</h4>'+
+                '<input id="new-model" class="swal2-input" />',
+                preConfirm: function() {
+                    return new Promise(function(resolve) {
+                        if(document.getElementById('new-model').value == '' && document.getElementById('model-list').value == ''){
+                            swal.showValidationError(
+                                'Vous devez renseigner un modèle existant ou en créer un nouveau.'
+                            )
+                        }
+                        else
+                        {
+                           swal.resetValidationError();
+                           resolve([
+                                document.getElementById('model-list').value,
+                                document.getElementById('new-model').value,
+                            ]);
+                        }
+                    });
+                }
+            }).then(function(result) {
+                if (result){
+                    $('.loader').show();
+                    var data = JSON.stringify({
+                        keyWordList : aKeyWord,
+                        modelExist : result[0],
+                        modelNew : result[1]
+                    });
+                    $.post(url.savePrefKeyWord, {data:data}, function(response) {
+                        if(response.error){
+                            $('.loader').hide();
+                            swal(
+                              'Sauvegarde impossible',
+                              'Une erreur est survenue lors de la sauvegarde, veuillez contacter un administrateur.',
+                              'error'
+                            )
+                        }
+                        else{
+                            $('.loader').hide();
+                            swal(
+                              'Sauvegarde réussie',
+                              'Vos préférences ont bien été enregistrées sous le modèle ' + response.modelName + '.',
+                              'success'
+                            )
+                        }
+                    });
+                }
+            })
+        }
+        else if(tab == 'prelevement'){
+            //Onglet des prélèvements
+        }
+    });
+    
+    //Click sur le bouton de chargement des préférences
+    $('.btn-load-pref').click(function(){
+        var tab = $(this).data('tab');
+        if(tab == 'germe'){
+            var selectModel = '<select id="model-list" class="swal2-input">';
+            selectModel += '<option value="" disabled selected>Choisir le modèle</option>';
+            if({$list_model}.length != 0){
+                if({$list_model}['germe'] != undefined){
+                    if({$list_model}['germe'].length != 0){
+                        for(var i = 0;i < {$list_model}['germe'].length;i++){
+                            selectModel += '<option value="'+ {$list_model}['germe'][i]["id_model"] +'">' + {$list_model}['germe'][i]["libelle"] + '</option>';
+                        }
+                    }
+                }
+            }
+            selectModel += '</select>';
+    
+            swal({
+                title :'Chargement',
+                type : 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Charger',
+                cancelButtonText: 'Annuler',
+                html:
+                '<h4>Choix du modèle</h4>'+
+                selectModel,
+                preConfirm: function() {
+                    return new Promise(function(resolve) {
+                        if(document.getElementById('model-list').value == ''){
+                            swal.showValidationError(
+                                'Vous devez choisir un modèle existant.'
+                            )
+                        }
+                        else
+                        {
+                           swal.resetValidationError();
+                           resolve([
+                                document.getElementById('model-list').value,
+                            ]);
+                        }
+                    });
+                }
+            }).then(function(result) {
+                if (result){
+                    $('.loader').show();
+                    var data = JSON.stringify({
+                        modelExist : result[0],
+                    });
+                    $.post(url.loadPrefKeyWord, {data:data}, function(response) {
+                        if(response.error){
+                            $('.loader').hide();
+                            swal(
+                              'Chargement impossible',
+                              'Une erreur est survenue lors du chargement, veuillez contacter un administrateur.',
+                              'error'
+                            )
+                        }
+                        else{
+                            $('.loader').hide();
+                            if(response.keyWordList.length != 0){
+                                var listKeyWord1 = $('#list-word1');
+                                var listKeyWord2 = $('#list-word2');
+                                
+                               for(var i = 0; i < response.keyWordList.length; i++){
+                                    var li = $(document.createElement('li')).addClass('li-word').attr({
+                                        'data-uuid':i + 1,
+                                        'id' : 'li-word-' + (i + 1)
+                                    }).css({
+                                        'padding':'10px'
+                                    });
+                                    var libelle = $(document.createElement('label')).text(response.keyWordList[i]);
+                                    var icon = $(document.createElement('i')).addClass('fas fa-times delete-word').css({
+                                        'cursor':'pointer',
+                                        'color':'red',
+                                        'margin-left': '10px'
+                                    }).attr({
+                                        'data-uuid':i + 1
+                                    });
+                                    
+                                    li.append(libelle);
+                                    li.append(icon);
+                                    if(i%2 == 0)
+                                        listKeyWord1.append(li);
+                                    else 
+                                        listKeyWord2.append(li);
+                               }
+                               swal(
+                                  'Chargement réussie',
+                                  'Vos préférences du modèle ' + response.modelName + ' ont bien été chargées.',
+                                  'success'
+                                )
+                           }
+                        }
+                    });
+                }
+            })
+        }
+        else if(tab == 'prelevement'){
+            //Onglet des prélèvements
+        }
+    });
+    
+
     //Click sur le bouton d'affichage des résultats
     $('.btn-see-results').click(function(){
         var error = [];
@@ -128,7 +388,7 @@ $this->registerJS(<<<JS
         var listConclusion = $('#kvform-conclusion').val();
         var dateDebut = $('#kvform-datedebut').val();
         var dateFin = $('#kvform-datefin').val();
-        var listGerm = [];
+        /*var listGerm = [];
         
         if(listService.length != 0){
             for(var i = 0; i < listService.length;i++){
@@ -138,7 +398,7 @@ $this->registerJS(<<<JS
                     }
                 });
             }
-        }
+        }*/
         
         //Vérification des erreurs de filtres
         if(listEtablissement.length == 0)
@@ -164,22 +424,29 @@ $this->registerJS(<<<JS
         }
         else{
             $('.loader').show();
+            var data = JSON.stringify({
+                listEtablissement : listEtablissement,
+                listLabo : listLabo,
+                listService : listService,
+                listConclusion : listConclusion,
+                dateDebut : dateDebut,
+                dateFin : dateFin,
+                //listGerm : listGerm
+            });
+            $.post(url.getSyntheseResult, {data:data}, function(response) {
+                $('#synthese-grid').html(response);
+                $('.loader').hide();
+            });
         }
-        //console.log(listEtablissement);
-        //console.log(listLabo);
-        //console.log(listService);
-        //console.log(listConclusion);
-        //console.log(dateDebut);
-        //console.log(dateFin);
-        //console.log(listGerm);
     });
 
     $('#kvform-etablissement').change(function(){
         $('#hfIdClient').val($(this).val());
     });
-
+    
+    //ONGLETS DES SERVICES (A METTRE DE COTE)
     //Changement de valeur dans la liste des services pour accéder aux tabs correspondants
-    $('#kvform-service').change(function(){
+    /*$('#kvform-service').change(function(){
         $('.service-tabs').each(function(){
            if(!$(this).hasClass('disabled'))
                $(this).addClass('disabled');
@@ -356,7 +623,7 @@ $this->registerJS(<<<JS
                 });
             }
         })
-    });
+    });*/
 JS
 );
 

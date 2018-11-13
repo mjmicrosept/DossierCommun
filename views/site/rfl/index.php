@@ -195,6 +195,7 @@ else
             'hover'=>true,
             'bordered'=>true,
             'bootstrap'=>true,
+            'floatHeader'=>true,
             'panel' => [
                 'type' => \kartik\grid\GridView::TYPE_PRIMARY,
                 'heading' => '<i class="fa fa-dashboard"></i>  Tableau de bord',

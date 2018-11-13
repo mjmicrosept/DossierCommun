@@ -5,20 +5,20 @@ namespace app\models;
 use Yii;
 
 /**
- * This is the model class for table "filter_model".
+ * This is the model class for table "analyse_interpretation".
  *
  * @property int $id
- * @property int $id_user
  * @property string $libelle
+ * @property int $conforme
  */
-class FilterModel extends \yii\db\ActiveRecord
+class AnalyseInterpretation extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'filter_model';
+        return 'analyse_interpretation';
     }
 
     /**
@@ -27,9 +27,9 @@ class FilterModel extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['libelle','id_user'], 'required'],
-            [['id_user'], 'integer'],
-            [['libelle'], 'string', 'max' => 80],
+            [['libelle'], 'required'],
+            [['conforme'], 'integer'],
+            [['libelle'], 'string', 'max' => 255],
         ];
     }
 
@@ -41,7 +41,7 @@ class FilterModel extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'libelle' => 'Libelle',
-            'id_user' => 'Id user',
+            'conforme' => 'Conforme',
         ];
     }
 }
