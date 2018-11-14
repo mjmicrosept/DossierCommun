@@ -18,6 +18,8 @@ use app\models\LaboClientAssign;
 use app\models\AnalyseGerme;
 use app\models\AnalyseService;
 use app\models\AnalyseConformite;
+use app\models\AnalyseConditionnement;
+use app\models\AnalyseLieuPrelevement;
 use app\models\AnalyseInterpretation;
 use app\models\AnalyseData;
 use app\models\AnalyseDataGerme;
@@ -71,11 +73,13 @@ class SyntheseController extends Controller
             array_push($modelList[$filter->id_service],['id_model'=>$filter->id_model,'libelle'=>$model->libelle]);
         }*/
 
+        //Génération de la liste des préférences
         $aModelKeyWord = FilterModel::find()
             ->leftJoin('filter_pref_keyword','filter_model.id = filter_pref_keyword.id_model')
             ->andFilterWhere(['filter_model.id_user'=>$idUser])
             ->groupBy('id_model')
             ->all();
+        //Partie mots clés
         foreach ($aModelKeyWord as $item) {
             if(!isset($modelList['germe']))
                 $modelList['germe'] = [];
@@ -87,6 +91,7 @@ class SyntheseController extends Controller
             ->andFilterWhere(['filter_model.id_user'=>$idUser])
             ->groupBy('id_model')
             ->all();
+        //Partie lieux de prélèvements
         foreach ($aModelKeyWord as $item) {
             if(!isset($modelList['prelevement']))
                 $modelList['prelevement'] = [];
@@ -197,7 +202,7 @@ class SyntheseController extends Controller
     }
 
     /**
-     * Retourne le contenu du filtre des germes
+     * Retourne le contenu du filtre des mots clés pour la recherche de germes
      * @return string
      */
     private static function getGermeFilterContent(){
@@ -244,8 +249,61 @@ class SyntheseController extends Controller
         return $result;
     }
 
+    /**
+     * Retourne le contenu du filtre des prélèvements (conditionnement et lieu)
+     * @return string
+     */
     private static function getPrelevementFilterContent(){
         $result = '';
+        $result .= '<div class="row">';
+        $result .= '<button class="btn btn-primary btn-save-pref" data-tab="prelevement" style="float:right;margin:10px;"><i class="fas fa-filter"></i> Sauvegarder les préférences</button>';
+        $result .= '<button class="btn btn-success btn-load-pref" data-tab="prelevement" style="float:right;margin:10px;"><i class="fas fa-filter"></i> Charger les préférences</button>';
+        $result .= '</div>';
+        $result .= '<form id="kvform" class="form-vertical" action="" method="post" role="form">';
+        $result .= Form::widget([
+            'formName' => 'kvform',
+            'form' => ActiveForm::begin(),
+            'columns' => 2,
+            'compactGrid' => true,
+
+            // set global attribute defaults
+            'attributeDefaults' => [
+                'labelOptions' => ['class' => 'col-sm-3 control-label', 'style' => 'margin-top:20px;'],
+                'inputContainer' => ['class' => 'col-sm-6 form-control', 'style' => 'border:none;'],
+                'container' => ['class' => 'form-group field-user-etablissementGroupAdmin'],
+            ],
+            'attributes' => [
+                'conditionnement' => [
+                    'type' => Form::INPUT_WIDGET,
+                    'widgetClass' => '\kartik\select2\Select2',
+                    'options' => [
+                        'data' => ArrayHelper::map(AnalyseConditionnement::find()->andFilterWhere(['active' => 1])->orderBy('libelle')->asArray()->all(), 'id', 'libelle'),
+                        'options' => [
+                            'placeholder' => 'Sélectionner un ou plusieurs conditionnements', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                        ],
+                        'pluginOptions' => [
+                            'allowClear' => true,
+                        ]
+                    ],
+                    'label' => 'Conditionnements',
+                ],
+                'lieu_prelevement' => [
+                    'type' => Form::INPUT_WIDGET,
+                    'widgetClass' => '\kartik\select2\Select2',
+                    'options' => [
+                        'data' => ArrayHelper::map(AnalyseLieuPrelevement::find()->andFilterWhere(['active' => 1])->orderBy('libelle')->asArray()->all(), 'id', 'libelle'),
+                        'options' => [
+                            'placeholder' => 'Sélectionner un ou plusieurs leiux de prélèvements', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                        ],
+                        'pluginOptions' => [
+                            'allowClear' => true,
+                        ]
+                    ],
+                    'label' => 'Lieux de prélèvements',
+                ],
+            ]
+        ]);
+        $result .= '</form>';
 
         return $result;
     }
@@ -590,6 +648,127 @@ class SyntheseController extends Controller
         $modelName = $model->libelle;
 
         return ['errors'=>$errors,'keyWordList'=>$keyWordList,'modelName'=>$modelName];
+    }
+
+    /**
+     * Fonction d'enregistrement des préférences de filtres sur les prélèvements
+     * @return array
+     */
+    public function actionSavePrefPrelevement(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $_data = Json::decode($_POST['data']);
+        $conditionnement = $_data['conditionnement'];
+        $lieuPrelevement = $_data['lieuPrelevement'];
+        $modelExist = $_data['modelExist'];
+        $modelNew = $_data['modelNew'];
+        Yii::trace($_data);
+
+        $modelName = '';
+        //Modèle existant
+        if($modelNew == ''){
+            //On supprime (ce qui sera plus rapide que de boucler) les préférence de cet utilisateur pour ce service et ce modèle
+            FilterPrefPrelevement::deleteAll(['id_user'=>User::getCurrentUser()->id,'id_model'=>$modelExist]);
+
+            //Pour chaque conditionnement on enregistre en préférence
+            if(count($conditionnement) != 0) {
+                for ($i = 0; $i < count($conditionnement); $i++) {
+                    $filter = new FilterPrefPrelevement();
+                    $filter->id_user = User::getCurrentUser()->id;
+                    $filter->id_conditionnement = $conditionnement[$i];
+                    $filter->id_model = intval($modelExist);
+
+                    if (!$filter->save())
+                        $errors = true;
+                }
+            }
+
+            //Pour chaque lieu de prélèvement on enregistre en préférence
+            if(count($lieuPrelevement) != 0) {
+                for ($i = 0; $i < count($lieuPrelevement); $i++) {
+                    $filter = new FilterPrefPrelevement();
+                    $filter->id_user = User::getCurrentUser()->id;
+                    $filter->id_lieu_prelevement = $lieuPrelevement[$i];
+                    $filter->id_model = intval($modelExist);
+
+                    if (!$filter->save())
+                        $errors = true;
+                }
+            }
+
+            $model = FilterModel::find()->andFilterWhere(['id'=>$modelExist])->one();
+            $modelName = $model->libelle;
+        }
+        else{
+            //On crée le nouveau modèle
+            $model = new FilterModel();
+            $model->id_user = User::getCurrentUser()->id;
+            $model->libelle = $modelNew;
+            if(!$model->save())
+                $errors = true;
+            if(!$errors) {
+                //Pour chaque conditionnement on enregistre en préférence
+                if(count($conditionnement) != 0) {
+                    for ($i = 0; $i < count($conditionnement); $i++) {
+                        $filter = new FilterPrefPrelevement();
+                        $filter->id_user = User::getCurrentUser()->id;
+                        $filter->id_conditionnement = $conditionnement[$i];
+                        $filter->id_model = intval($modelExist);
+
+                        if (!$filter->save())
+                            $errors = true;
+                    }
+                }
+
+                //Pour chaque lieu de prélèvement on enregistre en préférence
+                if(count($lieuPrelevement) != 0) {
+                    for ($i = 0; $i < count($lieuPrelevement); $i++) {
+                        $filter = new FilterPrefPrelevement();
+                        $filter->id_user = User::getCurrentUser()->id;
+                        $filter->id_lieu_prelevement = $lieuPrelevement[$i];
+                        $filter->id_model = intval($modelExist);
+
+                        if (!$filter->save())
+                            $errors = true;
+                    }
+                }
+            }
+            $modelName = $modelNew;
+        }
+
+        return ['errors'=>$errors,'modelName'=>$modelName];
+    }
+
+    /**
+     * Fonction de chargement des préférences de filtres sur les prélèvements
+     * @return array
+     */
+    public function actionLoadPrefPrelevement(){
+        $errors = false;
+        $conditionnementList = [];
+        $lieuPrelevementList = [];
+        $modelName = '';
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $_data = Json::decode($_POST['data']);
+        $modelExist = $_data['modelExist'];
+
+        //On charge les filtres pour l'utilisateur, le service donné et le modèle donné
+        $prefList = FilterPrefPrelevement::find()->andFilterWhere(['id_user'=>User::getCurrentUser()->id])->andFilterWhere(['id_model'=>$modelExist])->all();
+
+        foreach ($prefList as $pref) {
+            if(is_null($pref->id_conditionnement))
+                array_push($lieuPrelevementList,$pref->id_lieu_prelevement);
+            else
+                array_push($conditionnementList,$pref->id_conditionnement);
+        }
+
+        $model = FilterModel::find()->andFilterWhere(['id'=>$modelExist])->one();
+        $modelName = $model->libelle;
+
+        Yii::trace($lieuPrelevementList);
+        Yii::trace($conditionnementList);
+
+        return ['errors'=>$errors,'lieuPrelevementList'=>$lieuPrelevementList,'conditionnementList'=>$conditionnementList,'modelName'=>$modelName];
     }
 
     /**

@@ -15,8 +15,8 @@ class m160408_074844_create_filter_pref_prelevement extends Migration
         $this->createTable('filter_pref_prelevement', [
             'id' => $this->primaryKey(),
             'id_user' => $this->integer(11)->notNull(),
-            'id_conditionnement' => $this->integer(11)->notNull(),
-            'id_lieu_prelevement' => $this->integer(11)->notNull(),
+            'id_conditionnement' => $this->integer(11),
+            'id_lieu_prelevement' => $this->integer(11),
             'id_model' => $this->integer(11)->notNull(),
         ]);
 

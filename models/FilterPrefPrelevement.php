@@ -29,7 +29,7 @@ class FilterPrefPrelevement extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id_user', 'id_conditionnement', 'id_lieu_prelevement', 'id_model'], 'required'],
+            [['id_user', 'id_model'], 'required'],
             [['id_user', 'id_conditionnement', 'id_lieu_prelevement', 'id_model'], 'integer'],
         ];
     }

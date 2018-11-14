@@ -133,6 +133,18 @@ CSS
 );
 
 $this->registerJS(<<<JS
+    //Ajout de l'overflow sur les tabs dans le cas de liste select 2 multiple trop longue
+    $('.tab-content').each(function(){
+        $(this).css({'overflow':'-webkit-paged-x'});        
+    });
+    $('#kvform > div.row > div.col-sm-6').each(function(){
+        $(this).css({'overflow':'-webkit-paged-x'});   
+    })
+    $('.select2-search__field').each(function(){
+       $(this).css({'width':'700px'}); 
+    });
+
+
     //Click sur le bouton d'ajout de mot clé
     $('.btn-add-word').click(function(){
         var keyWord = $('#input-germe-add').val();
@@ -273,6 +285,90 @@ $this->registerJS(<<<JS
         }
         else if(tab == 'prelevement'){
             //Onglet des prélèvements
+            //On récupère tous les conditionnements
+            var aConditionnement = $('#kvform-conditionnement').val();
+            //On récupère tous les lieux de prélèvements
+            var aLieuPrelevement = $('#kvform-lieu_prelevement').val();
+            
+            if(aConditionnement.length == 0 && aLieuPrelevement.length == 0){
+                swal(
+                  'Saisie des filtres',
+                  'Vous devez renseigner des filtres',
+                  'info'
+                )
+            }
+            else{
+                var selectModel = '<select id="model-list" class="swal2-input">';
+                selectModel += '<option value="" disabled selected>Choisir le modèle</option>';
+                if({$list_model}.length != 0){
+                    if({$list_model}['prelevement'] != undefined){
+                        if({$list_model}['prelevement'].length != 0){
+                            for(var i = 0;i < {$list_model}['prelevement'].length;i++){
+                                selectModel += '<option value="'+ {$list_model}['prelevement'][i]["id_model"] +'">' + {$list_model}['prelevement'][i]["libelle"] + '</option>';
+                            }
+                        }
+                    }
+                }
+                selectModel += '</select>';
+                
+                swal({
+                    title :'Sauvegarde',
+                    type : 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sauvegarder',
+                    cancelButtonText: 'Annuler',
+                    html:
+                    '<h4>Choix du modèle</h4>'+
+                    selectModel +
+                    '<h4>Créer un modèle</h4>'+
+                    '<input id="new-model" class="swal2-input" />',
+                    preConfirm: function() {
+                        return new Promise(function(resolve) {
+                            if(document.getElementById('new-model').value == '' && document.getElementById('model-list').value == ''){
+                                swal.showValidationError(
+                                    'Vous devez renseigner un modèle existant ou en créer un nouveau.'
+                                )
+                            }
+                            else
+                            {
+                               swal.resetValidationError();
+                               resolve([
+                                    document.getElementById('model-list').value,
+                                    document.getElementById('new-model').value,
+                                ]);
+                            }
+                        });
+                    }
+                }).then(function(result) {
+                    if (result){
+                        $('.loader').show();
+                        var data = JSON.stringify({
+                            conditionnement : aConditionnement,
+                            lieuPrelevement : aLieuPrelevement,
+                            modelExist : result[0],
+                            modelNew : result[1]
+                        });
+                        $.post(url.savePrefPrelevement, {data:data}, function(response) {
+                            if(response.error){
+                                $('.loader').hide();
+                                swal(
+                                  'Sauvegarde impossible',
+                                  'Une erreur est survenue lors de la sauvegarde, veuillez contacter un administrateur.',
+                                  'error'
+                                )
+                            }
+                            else{
+                                $('.loader').hide();
+                                swal(
+                                  'Sauvegarde réussie',
+                                  'Vos préférences ont bien été enregistrées sous le modèle ' + response.modelName + '.',
+                                  'success'
+                                )
+                            }
+                        });
+                    }
+                })
+            }
         }
     });
     
@@ -375,6 +471,82 @@ $this->registerJS(<<<JS
         }
         else if(tab == 'prelevement'){
             //Onglet des prélèvements
+            var selectModel = '<select id="model-list" class="swal2-input">';
+            selectModel += '<option value="" disabled selected>Choisir le modèle</option>';
+            if({$list_model}.length != 0){
+                if({$list_model}['prelevement'] != undefined){
+                    if({$list_model}['prelevement'].length != 0){
+                        for(var i = 0;i < {$list_model}['prelevement'].length;i++){
+                            selectModel += '<option value="'+ {$list_model}['prelevement'][i]["id_model"] +'">' + {$list_model}['prelevement'][i]["libelle"] + '</option>';
+                        }
+                    }
+                }
+            }
+            selectModel += '</select>';
+    
+            swal({
+                title :'Chargement',
+                type : 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Charger',
+                cancelButtonText: 'Annuler',
+                html:
+                '<h4>Choix du modèle</h4>'+
+                selectModel,
+                preConfirm: function() {
+                    return new Promise(function(resolve) {
+                        if(document.getElementById('model-list').value == ''){
+                            swal.showValidationError(
+                                'Vous devez choisir un modèle existant.'
+                            )
+                        }
+                        else
+                        {
+                           swal.resetValidationError();
+                           resolve([
+                                document.getElementById('model-list').value,
+                            ]);
+                        }
+                    });
+                }
+            }).then(function(result) {
+                if (result){
+                    $('.loader').show();
+                    var data = JSON.stringify({
+                        modelExist : result[0],
+                    });
+                    $.post(url.loadPrefPrelevement, {data:data}, function(response) {
+                        if(response.error){
+                            $('.loader').hide();
+                            swal(
+                              'Chargement impossible',
+                              'Une erreur est survenue lors du chargement, veuillez contacter un administrateur.',
+                              'error'
+                            )
+                        }
+                        else{
+                            $('.loader').hide();
+                            if(response.lieuPrelevementList.length != 0){
+                               for(var i = 0; i < response.lieuPrelevementList.length; i++){
+                                    $('#kvform-lieu_prelevement option[value="'+ response.lieuPrelevementList[i]+'"]').prop("selected", "selected").change();
+                               }
+                           }
+                           
+                           if(response.conditionnementList.length != 0){
+                               for(var i = 0; i < response.conditionnementList.length; i++){
+                                   console.log(response.conditionnementList[i]);
+                                    $('#kvform-conditionnement option[value="'+ response.conditionnementList[i]+'"]').prop("selected", "selected").change();
+                               }
+                           }
+                           swal(
+                              'Chargement réussie',
+                              'Vos préférences du modèle ' + response.modelName + ' ont bien été chargées.',
+                              'success'
+                            )
+                        }
+                    });
+                }
+            })
         }
     });
     
@@ -388,6 +560,23 @@ $this->registerJS(<<<JS
         var listConclusion = $('#kvform-conclusion').val();
         var dateDebut = $('#kvform-datedebut').val();
         var dateFin = $('#kvform-datefin').val();
+        var aKeyWord = [];
+        $('.li-word > label').each(function(){
+            aKeyWord.push($(this).text());
+        });
+        var listConditionnement = $('#kvform-conditionnement').val();
+        var listLieuPrelevement = $('#kvform-lieu_prelevement').val();
+        
+        console.log(listEtablissement);
+        console.log(listLabo);
+        console.log(listService);
+        console.log(listConclusion);
+        console.log(dateDebut);
+        console.log(dateFin);
+        console.log(aKeyWord);
+        console.log(listConditionnement);
+        console.log(listLieuPrelevement);
+        
         /*var listGerm = [];
         
         if(listService.length != 0){
