@@ -13,9 +13,12 @@ use Yii;
  * @property int $id_client
  * @property int $id_parent
  * @property int $id_service
+ * @property int $id_conditionnement
+ * @property int $id_lieu_prelevement
  * @property int $id_interpretation
  * @property int $id_conformite
  * @property string $designation
+ * @property string $commentaire
  * @property string $date_analyse
  */
 class AnalyseData extends \yii\db\ActiveRecord
@@ -34,10 +37,10 @@ class AnalyseData extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['num_analyse', 'id_labo', 'id_client', 'id_parent', 'id_service', 'id_interpretation','id_conformite', 'designation'], 'required'],
-            [['num_analyse', 'id_labo', 'id_client', 'id_parent', 'id_service', 'id_interpretation','id_conformite'], 'integer'],
+            [['num_analyse', 'id_labo', 'id_client', 'id_service','id_conformite', 'designation'], 'required'],
+            [['num_analyse', 'id_labo', 'id_client', 'id_parent', 'id_service', 'id_interpretation','id_conformite','id_conditionnement','id_lieu_prelevement'], 'integer'],
             [['date_analyse'], 'safe'],
-            [['designation'], 'string', 'max' => 255],
+            [['designation','commentaire'], 'string', 'max' => 255],
         ];
     }
 
@@ -53,9 +56,12 @@ class AnalyseData extends \yii\db\ActiveRecord
             'id_client' => 'Id Client',
             'id_parent' => 'Id Parent',
             'id_service' => 'Id Service',
+            'id_conditionnement' => 'Id Conditionnement',
+            'id_lieu_prelevement' => 'Id Lieu Prélèvement',
             'id_conclusion' => 'Id Conclusion',
             'designation' => 'Designation',
             'date_analyse' => 'Date Analyse',
+            'commentaire' => 'Commentaire',
         ];
     }
 }

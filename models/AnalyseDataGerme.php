@@ -9,8 +9,10 @@ use Yii;
  *
  * @property int $id
  * @property int $id_analyse
- * @property int $id_germe
- * @property string $valeur
+ * @property string $libelle
+ * @property string $resultat
+ * @property string $expression
+ * @property string $interpretation
  */
 class AnalyseDataGerme extends \yii\db\ActiveRecord
 {
@@ -28,9 +30,10 @@ class AnalyseDataGerme extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id_analyse', 'id_germe'], 'required'],
-            [['id_analyse', 'id_germe'], 'integer'],
+            [['id_analyse','libelle'], 'required'],
+            [['id_analyse'], 'integer'],
             [['resultat','expression','interpretation'], 'string', 'max' => 50],
+            [['libelle'], 'string', 'max' => 255],
         ];
     }
 
@@ -42,8 +45,10 @@ class AnalyseDataGerme extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'id_analyse' => 'Id Analyse',
-            'id_germe' => 'Id Germe',
-            'valeur' => 'Valeur',
+            'libelle' => 'Libelle',
+            'resultat' => 'Résultat',
+            'expression' => 'Expression',
+            'interpretation' => 'Interprétation',
         ];
     }
 }
