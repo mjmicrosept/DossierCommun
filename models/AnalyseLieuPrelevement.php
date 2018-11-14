@@ -5,20 +5,20 @@ namespace app\models;
 use Yii;
 
 /**
- * This is the model class for table "analyse_interpretation".
+ * This is the model class for table "analyse_lieu_prelevement".
  *
  * @property int $id
  * @property string $libelle
- * @property int $conforme
+ * @property int $active
  */
-class AnalyseInterpretation extends \yii\db\ActiveRecord
+class AnalyseLieuPrelevement extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'analyse_interpretation';
+        return 'analyse_lieu_prelevement';
     }
 
     /**
@@ -27,9 +27,9 @@ class AnalyseInterpretation extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['libelle','conforme','active'], 'required'],
-            [['conforme','active'], 'integer'],
-            [['libelle'], 'string', 'max' => 255],
+            [['libelle'], 'required'],
+            [['active'], 'integer'],
+            [['libelle'], 'string', 'max' => 80],
         ];
     }
 
@@ -41,7 +41,7 @@ class AnalyseInterpretation extends \yii\db\ActiveRecord
         return [
             'id' => 'ID',
             'libelle' => 'Libelle',
-            'conforme' => 'Conforme',
+            'active' => 'Active',
         ];
     }
 }

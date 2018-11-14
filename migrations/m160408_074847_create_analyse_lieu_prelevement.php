@@ -2,20 +2,19 @@
 /**
  * Created by PhpStorm.
  * User: JMaratier
- * Date: 12/11/2018
- * Time: 17:05
+ * Date: 14/11/2018
+ * Time: 10:05
  */
 
 use yii\db\Migration;
 
-class m160408_074839_create_analyse_interpretation extends Migration
+class m160408_074847_create_analyse_lieu_prelevement extends Migration
 {
     public function up()
     {
-        $this->createTable('analyse_interpretation', [
+        $this->createTable('analyse_lieu_prelevement', [
             'id' => $this->primaryKey(),
-            'libelle' => $this->string(255)->notNull(),
-            'conforme' => $this->boolean()->notNull(),
+            'libelle' => $this->string(80)->notNull(),
             'active' => $this->boolean()->notNull()->defaultValue(1),
         ]);
 
@@ -24,6 +23,6 @@ class m160408_074839_create_analyse_interpretation extends Migration
 
     public function down()
     {
-        $this->dropTable('analyse_interpretation');
+        $this->dropTable('analyse_lieu_prelevement');
     }
 }

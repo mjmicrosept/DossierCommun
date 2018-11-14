@@ -14,7 +14,8 @@ class m160408_074841_insert_analyse_conformite extends Migration
     {
         $this->batchInsert('analyse_conformite',['id', 'libelle'],[
             [1, 'Conforme'],
-            [2, 'Non conforme']
+            [2, 'Non conforme'],
+            [3, 'Absence de conclusion']
         ]);
     }
 
