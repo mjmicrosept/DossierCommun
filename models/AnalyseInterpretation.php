@@ -44,4 +44,33 @@ class AnalyseInterpretation extends \yii\db\ActiveRecord
             'conforme' => 'Conforme',
         ];
     }
+
+    /**
+     * Retourne la liste brute id/nom en fonction des id passés en paramètres
+     * @return mixed
+     */
+    public static function getAsListFromIdsForDepDrop(){
+        $result = [];
+        $interpretationList = self::find()->andFilterWhere(['active'=> 1])->orderBy('libelle')->all();
+        foreach ($interpretationList as $item) {
+            $result[$item->id] = $item->libelle;
+        }
+        return $result;
+    }
+
+    /**
+     * Retourne un tableau d'id des interpretation en fonction des id conclusions
+     * @param $aIdConclusion
+     * @param $all
+     * @return array|null|\yii\db\ActiveRecord[]
+     */
+    public static function getListIdInterpretationFromConclusion($aIdConclusion,$all){
+        $interpretationList = null;
+        if(!$all)
+            $interpretationList = self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['IN','conforme',$aIdConclusion])->all();
+        else
+            $interpretationList = self::find()->andFilterWhere(['active' => 1])->all();
+
+        return $interpretationList;
+    }
 }

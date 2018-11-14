@@ -322,6 +322,7 @@ class SyntheseController extends Controller
         if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]))
             $idTemoin = $idClient;
         $dataLabo = Labo::getAsListFromIdsForDepDrop($laboList);
+        $dataInterpretation = AnalyseInterpretation::getAsListFromIdsForDepDrop($laboList);
         $strClientIds = '';
         foreach ($clientList as $item) {
             if($strClientIds == '')
@@ -340,6 +341,7 @@ class SyntheseController extends Controller
         $result = '';
         $result .= '<input type=hidden id="hfAllIdClient" value="'.$strClientIds.'"/>';
         $result .= '<input type=hidden id="hfIdClient" value="'. $idTemoin .'"/>';
+        $result .= '<input type=hidden id="hfIdConclusion" value=""/>';
         $result .= '<form id="kvform" class="form-vertical" action="" method="post" role="form">';
 
         if(!User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER])) {
@@ -435,10 +437,12 @@ class SyntheseController extends Controller
             $result .= '</div></div>';
             $result .= '</form>';
 
+            $result .= '<div class="row">';
+            $result .= '<div class="col-sm-6">';
             $result .= '<form id="kvform" class="form-vertical" action="" method="post" role="form">';
             $result .= Form::widget([
                 'formName' => 'kvform',
-                'columns' => 4,
+                'columns' => 2,
                 'compactGrid' => true,
 
                 // set global attribute defaults
@@ -472,10 +476,30 @@ class SyntheseController extends Controller
                             ]
                         ],
                         'label' => 'Date de fin',
-                    ],
+                    ]
                 ]
             ]);
             $result .= '</form>';
+            $result .= '</div>';
+            $result .= '<div class="col-sm-6">';
+            $result .= '<div class="row">';
+            $result .= '<div class="col-sm-12">';
+            $result .= '<label class="col-sm-6" style="margin-top:20px;" for="child-id-interpretation">Interprétations</label>';
+            $result .= '<div class="col-sm-6 form-control" style="border:none;">';
+            $result .= DepDrop::widget([
+                'type' => DepDrop::TYPE_SELECT2,
+                'data' => $dataInterpretation,
+                'name' => 'interpretation',
+                'options' => ['id' => 'child-id-interpretation', 'placeholder' => 'Aucun'],
+                'select2Options' => ['pluginOptions' => ['allowClear' => true, 'multiple' => true]],
+                'pluginOptions' => [
+                    'depends' => ['kvform-conclusion'],
+                    'url' => Url::to(['/synthese/get-interpretation-from-ids-conclusion']),
+                    'params' => ['hfIdConclusion'],
+                    'placeholder' => 'Sélectionner une ou plusieurs interprétations'
+                ]
+            ]);
+            $result .= '</div></div></div></div></div>';
         }
         else{
             //User de type simple utilisateur (responsable que SON établissement)
@@ -561,6 +585,36 @@ class SyntheseController extends Controller
             $listLabo = Labo::find()->andFilterWhere(['active' => 1])->andFilterWhere(['IN','id',$aIdsLabo])->select('id, raison_sociale')->all();
             foreach ($listLabo as $item) {
                 array_push($result,['id'=>$item->id,'name'=>$item->raison_sociale]);
+            }
+        }
+
+        return ['output'=>$result];
+    }
+
+    /**
+     * Récupère la liste des interprétations possibles en fonction des conclusions sélectionnés
+     * @return array
+     */
+    public function actionGetInterpretationFromIdsConclusion(){
+        $result = [];
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = $_POST['depdrop_params'];
+        $conclusionIdInterpretation = $_data[0];
+        $conclusionIdInterpretation = explode(',',$conclusionIdInterpretation);
+
+        if($_data[0] != '') {
+            $aIdsInterpretation = null;
+            $aIdsInterpretation = AnalyseInterpretation::getListIdInterpretationFromConclusion($conclusionIdInterpretation,false);
+            foreach ($aIdsInterpretation as $item) {
+                array_push($result,['id'=>$item->id,'name'=>$item->libelle]);
+            }
+        }
+        else{
+            $aIdsInterpretation = null;
+            $aIdsInterpretation = AnalyseInterpretation::getListIdInterpretationFromConclusion(null,true);
+            foreach ($aIdsInterpretation as $item) {
+                array_push($result,['id'=>$item->id,'name'=>$item->libelle]);
             }
         }
 

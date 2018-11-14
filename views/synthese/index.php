@@ -534,7 +534,6 @@ $this->registerJS(<<<JS
                            
                            if(response.conditionnementList.length != 0){
                                for(var i = 0; i < response.conditionnementList.length; i++){
-                                   console.log(response.conditionnementList[i]);
                                     $('#kvform-conditionnement option[value="'+ response.conditionnementList[i]+'"]').prop("selected", "selected").change();
                                }
                            }
@@ -558,6 +557,7 @@ $this->registerJS(<<<JS
         var listLabo = $('#child-id').val();
         var listService = $('#kvform-service').val();
         var listConclusion = $('#kvform-conclusion').val();
+        var listInterpretation = $('#child-id-interpretation').val();
         var dateDebut = $('#kvform-datedebut').val();
         var dateFin = $('#kvform-datefin').val();
         var aKeyWord = [];
@@ -567,15 +567,16 @@ $this->registerJS(<<<JS
         var listConditionnement = $('#kvform-conditionnement').val();
         var listLieuPrelevement = $('#kvform-lieu_prelevement').val();
         
-        console.log(listEtablissement);
-        console.log(listLabo);
-        console.log(listService);
-        console.log(listConclusion);
-        console.log(dateDebut);
-        console.log(dateFin);
-        console.log(aKeyWord);
-        console.log(listConditionnement);
-        console.log(listLieuPrelevement);
+        //console.log(listEtablissement);
+        //console.log(listLabo);
+        //console.log(listService);
+        //console.log(listConclusion);
+        //console.log(listInterpretation);
+        //console.log(dateDebut);
+        //console.log(dateFin);
+        //console.log(aKeyWord);
+        //console.log(listConditionnement);
+        //console.log(listLieuPrelevement);
         
         /*var listGerm = [];
         
@@ -631,6 +632,9 @@ $this->registerJS(<<<JS
 
     $('#kvform-etablissement').change(function(){
         $('#hfIdClient').val($(this).val());
+    });
+    $('#kvform-conclusion').change(function(){
+        $('#hfIdConclusion').val($(this).val());
     });
     
     //ONGLETS DES SERVICES (A METTRE DE COTE)
