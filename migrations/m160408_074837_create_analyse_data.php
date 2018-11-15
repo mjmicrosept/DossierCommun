@@ -14,7 +14,7 @@ class m160408_074837_create_analyse_data extends Migration
     {
         $this->createTable('analyse_data', [
             'id' => $this->primaryKey(),
-            'num_analyse' => $this->integer(30)->notNull(),
+            'num_analyse' => $this->string(80)->notNull(),
             'id_labo' => $this->integer(11)->notNull(),
             'id_client' => $this->integer(11)->notNull(),
             'id_parent' => $this->integer(11),

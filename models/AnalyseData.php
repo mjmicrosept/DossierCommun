@@ -8,7 +8,7 @@ use Yii;
  * This is the model class for table "analyse_data".
  *
  * @property int $id
- * @property int $num_analyse
+ * @property string $num_analyse
  * @property int $id_labo
  * @property int $id_client
  * @property int $id_parent
@@ -38,9 +38,10 @@ class AnalyseData extends \yii\db\ActiveRecord
     {
         return [
             [['num_analyse', 'id_labo', 'id_client', 'id_service','id_conformite', 'designation'], 'required'],
-            [['num_analyse', 'id_labo', 'id_client', 'id_parent', 'id_service', 'id_interpretation','id_conformite','id_conditionnement','id_lieu_prelevement'], 'integer'],
+            [['id_labo', 'id_client', 'id_parent', 'id_service', 'id_interpretation','id_conformite','id_conditionnement','id_lieu_prelevement'], 'integer'],
             [['date_analyse'], 'safe'],
             [['designation','commentaire'], 'string', 'max' => 255],
+            [['num_analyse'], 'string', 'max' => 80],
         ];
     }
 

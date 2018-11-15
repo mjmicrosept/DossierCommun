@@ -591,8 +591,8 @@ $this->registerJS(<<<JS
         }*/
         
         //Vérification des erreurs de filtres
-        if(listEtablissement.length == 0)
-            error.push('Sélectionner un ou plusieurs établissements.')
+        /*if(listEtablissement.length == 0)
+            error.push('Sélectionner un ou plusieurs établissements.')*/
         if(dateDebut == '')
             error.push('Choisir une date de début');
         if(dateFin == '')
@@ -622,6 +622,10 @@ $this->registerJS(<<<JS
                 dateDebut : dateDebut,
                 dateFin : dateFin,
                 //listGerm : listGerm
+                listInterpretation : listInterpretation,
+                aKeyWord : aKeyWord,
+                listConditionnement : listConditionnement,
+                listLieuPrelevement : listLieuPrelevement,
             });
             $.post(url.getSyntheseResult, {data:data}, function(response) {
                 $('#synthese-grid').html(response);

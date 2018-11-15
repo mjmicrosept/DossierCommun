@@ -32,11 +32,13 @@ use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\Response;
+use yii\data\ArrayDataProvider;
 
 use yii\helpers\Url;
 use kartik\form\ActiveForm;
 use kartik\builder\Form;
 use kartik\depdrop\DepDrop;
+use kartik\grid\GridView;
 
 
 class SyntheseController extends Controller
@@ -128,12 +130,12 @@ class SyntheseController extends Controller
                 'active'=>true
             ],
             [
-                'label'=>'<i class="fas fa-vials"></i> Germes',
-                'content'=>self::getGermeFilterContent(),
-            ],
-            [
                 'label'=>'<i class="fas fa-syringe"></i> Prélèvement',
                 'content'=>self::getPrelevementFilterContent(),
+            ],
+            [
+                'label'=>'<i class="fas fa-vials"></i> Germes',
+                'content'=>self::getGermeFilterContent(),
             ]
         ];
 
@@ -214,7 +216,7 @@ class SyntheseController extends Controller
         $result .= '<div class="row">';
             $result .= '<div class="col-sm-3">';
                 $result .= '<div class="form-group field-germe-new">';
-                    $result .= '<label class="control-label" style="margin-left:15px;" for="input-germe-add"> Mot clé</label>';
+                    $result .= '<label class="control-label" style="margin-left:15px;" for="input-germe-add"> Mot clé (contient)</label>';
                     $result .= '<div class="col-sm-3 form-control" style="border:none;">';
                         $result .= '<input type="text" class="form-control" id="input-germe-add" value=""/>';
                     $result .= '</div>';
@@ -910,16 +912,225 @@ class SyntheseController extends Controller
         return ['errors'=>$errors,'germList'=>$germList,'modelName'=>$modelName];
     }
 
+    /**
+     * Construit de tableau des résultats d'analyses en fonction des filtres
+     * @return string
+     */
     public function actionGetSyntheseResult(){
         $_data = Json::decode($_POST['data']);
-        Yii::trace($_data);
+        //Yii::trace($_data);
 
-        $searchModel = new LaboSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $listEtablissement = $_data['listEtablissement'];
+        $listLabo = $_data['listLabo'];
+        $listService = $_data['listService'];
+        $listConclusion = $_data['listConclusion'];
 
-        return $this->renderPartial('grid-synthese', [
-            'searchModel' => $searchModel,
+        $dateDebut = $_data['dateDebut'];
+        $year = substr($dateDebut, 6, 4);
+        $month = intval(substr($dateDebut, 3, 2));
+        $day = substr($dateDebut, 0, 2);
+        $dateDebut = $year . '-' . $month . '-' . $day;
+
+        $dateFin = $_data['dateFin'];
+        $year = substr($dateFin, 6, 4);
+        $month = intval(substr($dateFin, 3, 2));
+        $day = substr($dateFin, 0, 2);
+        $dateFin = $year . '-' . $month . '-' . $day;
+
+        $listInterpretation = $_data['listInterpretation'];
+        $aKeyWord = $_data['aKeyWord'];
+        $listConditionnement = $_data['listConditionnement'];
+        $listLieuPrelevement = $_data['listLieuPrelevement'];
+
+        $aGlobalData = [];
+        $data = [];
+
+        //Construction des données en fonction des filtres
+        //Construction de l'analyse globale (sans notion de germe)
+        $aAnalyseData = AnalyseData::find();
+        $aAnalyseData = $aAnalyseData->andWhere(['>=','date_analyse',$dateDebut]);
+        $aAnalyseData = $aAnalyseData->andWhere(['<=','date_analyse',$dateFin]);
+
+        if(count($listEtablissement) != 0)
+            $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_client',$listEtablissement]);
+        if(count($listLabo) != 0)
+            $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_labo',$listLabo]);
+        if(count($listService) != 0)
+            $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_service',$listService]);
+        if(count($listConclusion) != 0)
+            $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_conformite',$listConclusion]);
+        if(count($listInterpretation) != 0)
+            $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_interpretation',$listInterpretation]);
+        if(count($listConditionnement) != 0)
+            $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_conditionnement',$listConditionnement]);
+        if(count($listLieuPrelevement) != 0)
+            $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_lieu_prelevement',$listLieuPrelevement]);
+
+
+        $aAnalyseData = $aAnalyseData->orderBy('id_service,id_client,date_analyse')->all();
+
+        //Ajout des germes dans la requête
+        foreach ($aAnalyseData as $analyseData) {
+            if (!isset($data[$analyseData->id])) {
+                $data[$analyseData->id]['num_analyse'] = $analyseData->num_analyse;
+                $data[$analyseData->id]['id_labo'] = $analyseData->id_labo;
+                $data[$analyseData->id]['id_client'] = $analyseData->id_client;
+                $data[$analyseData->id]['id_parent'] = $analyseData->id_parent;
+                $data[$analyseData->id]['id_service'] = $analyseData->id_service;
+                $data[$analyseData->id]['prelevements']['id_conditionnement'] = $analyseData->id_conditionnement;
+                $data[$analyseData->id]['prelevements']['id_lieu_prelevement'] = $analyseData->id_lieu_prelevement;
+                $data[$analyseData->id]['id_interpretation'] = $analyseData->id_interpretation;
+                $data[$analyseData->id]['id_conformite'] = $analyseData->id_conformite;
+                $data[$analyseData->id]['designation'] = $analyseData->designation;
+                $data[$analyseData->id]['commentaire'] = $analyseData->commentaire;
+                $data[$analyseData->id]['date_analyse'] = $analyseData->date_analyse;
+            }
+
+            //On recherche tous les germes répertoriés sur cette analyse
+            $aAnalyseGerme = AnalyseDataGerme::find();
+            if(count($aKeyWord) != 0){
+                for($i = 0; $i < count($aKeyWord) ; $i++) {
+                    if($i == 0){
+                        $aAnalyseGerme = $aAnalyseGerme->andWhere(['like','libelle',$aKeyWord[$i]]);
+                    }
+                    else{
+                        $aAnalyseGerme = $aAnalyseGerme->orWhere(['like','libelle',$aKeyWord[$i]]);
+                    }
+                }
+            }
+            $aAnalyseGerme = $aAnalyseGerme->andFilterWhere(['id_analyse'=>$analyseData->id]);
+            $aAnalyseGerme = $aAnalyseGerme->all();
+
+            //On rajoute au tableau de données générales les données des germes pour chaque analyse
+            foreach ($aAnalyseGerme as $germe) {
+                //On récupères TOUS les germes d'une analyse qui contient le mot clé recherché
+                $aAnalyseGermeFromId = $aAnalyseGerme = AnalyseDataGerme::find()->andFilterWhere(['id_analyse'=>$germe->id_analyse])->all();
+                foreach ($aAnalyseGermeFromId as $item) {
+                    $data[$item->id_analyse]['germes'][$item->id]['libelle'] = $item->libelle;
+                    $data[$item->id_analyse]['germes'][$item->id]['resultat'] = $item->resultat;
+                    $data[$item->id_analyse]['germes'][$item->id]['expression'] = $item->expression;
+                    $data[$item->id_analyse]['germes'][$item->id]['interpretation'] = $item->interpretation;
+                }
+            }
+            if(count($aAnalyseGerme) != 0){
+                array_push($aGlobalData,$data[$analyseData->id]);
+            }
+        }
+
+        //Yii::trace($aGlobalData);
+
+        $dataProvider = new ArrayDataProvider([
+            'key'=>function($row) {
+                return $row['num_analyse'];
+            },
+            'allModels' => $aGlobalData,
+            'pagination' => [
+                'pageSize' => 1000
+            ]
+        ]);
+        $gridColumns = [
+            [
+                'label' => 'Service',
+                'value' => function($row) {
+                    return AnalyseService::find()->andFilterWhere(['id'=>$row['id_service']])->one()->libelle;
+                },
+                'contentOptions' => ['style'=>'font-weight:bold'],
+                'group'=>true,  // enable grouping,
+                'groupedRow'=>true,                    // move grouped column to a single grouped row
+                'groupOddCssClass'=>'kv-grouped-row',  // configure odd group cell css class
+                'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
+            ],
+            [
+                'label' => '',
+                'contentOptions' => ['style'=>'font-weight:bold'],
+                'value' => function($row) {
+                    return Client::find()->andFilterWhere(['id'=>$row['id_client']])->one()->name;
+                },
+                'vAlign'=>'middle',
+                'group'=>true,
+            ],
+            [
+                'label' => 'N° Analyse',
+                'value' => function($row) {
+                    return $row['num_analyse'];
+                },
+            ],
+            [
+                'label' => 'Conclusion',
+                'value' => function($row) {
+                    return AnalyseInterpretation::find()->andFilterWhere(['id'=>$row['id_interpretation']])->one()->libelle;
+                },
+            ],
+            [
+                'label' => 'Conformité',
+                'format'=>'raw',
+                'hAlign'=>'center',
+                'value' => function($row) {
+                    if($row['id_conformite'] == 1){
+                        return '<i class="fa fa-circle text-green"></i>';
+                    }
+                    elseif ($row['id_conformite'] == 2){
+                        return '<i class="fa fa-circle text-red"></i>';
+                    }
+                    else{
+                        return '<i class="fa fa-circle text-yellow"></i>';
+                    }
+                },
+            ],
+            [
+                'label' => 'Désignation',
+                'value' => function($row) {
+                    return $row['designation'];
+                },
+            ],
+            [
+                'label' => 'Commentaire',
+                'value' => function($row) {
+                    if($row['commentaire'] == '')
+                        return '-';
+                    else
+                        return $row['commentaire'];
+                },
+            ],
+            [
+                'label' => 'Date analyse',
+                'value' => function($row) {
+                    $year = substr($row['date_analyse'], 0, 4);
+                    $month = intval(substr($row['date_analyse'], 5, 2));
+                    $day = substr($row['date_analyse'], 8, 2);
+
+                    $tMonths = [1 => "Jan", 2 => "Fév", 3 => "Mars", 4 => "Avr", 5 => "Mai", 6 => "Juin", 7 => "Juil", 8 => "Août", 9 => "Sept", 10 => "Oct", 11 => "Nov", 12 => "Déc"];
+
+                    return $day . ' ' . $tMonths[$month] . ' ' . $year;
+                },
+            ],
+            [
+                'class'=>'kartik\grid\ExpandRowColumn',
+                'width'=>'50px',
+                'value'=>function ($model, $key, $index, $column) {
+                    return GridView::ROW_COLLAPSED;
+                },
+                'detail'=>function ($model, $key, $index, $column) {
+                    return Yii::$app->controller->renderPartial('_grid-synthese-detail', [
+                        'germes'=>$model['germes'],
+                        'prelevements'=>$model['prelevements']
+                    ]);
+                },
+                'disabled' => function($model) {
+                    return false;
+                },
+                'headerOptions'=>['class'=>'kartik-sheet-style'],
+                'expandOneOnly'=>true,
+                'detailRowCssClass' => 'primary-content',
+                'contentOptions' => function($model) {
+                    return ['id' => $model['num_analyse']];
+                },
+            ]
+        ];
+
+        return $this->renderAjax('grid-synthese', [
             'dataProvider' => $dataProvider,
+            'gridColumns' => $gridColumns
         ]);
     }
 }
