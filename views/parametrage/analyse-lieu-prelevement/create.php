@@ -6,8 +6,8 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseLieuPrelevement */
 
-$this->title = 'Create Analyse Lieu Prelevement';
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Lieu Prelevements', 'url' => ['index']];
+$this->title = Yii::t('microsept','LieuPrelevement_create');
+$this->params['breadcrumbs'][] = ['label' => 'Lieux de prélèvements', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="analyse-lieu-prelevement-create">
@@ -16,6 +16,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form', [
         'model' => $model,
+        'id' => $id,
     ]) ?>
 
 </div>

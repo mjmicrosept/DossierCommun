@@ -8,6 +8,8 @@ use app\models\AnalyseLieuPrelevementSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\Json;
+use yii\web\Response;
 
 /**
  * AnalyseLieuPrelevementController implements the CRUD actions for AnalyseLieuPrelevement model.
@@ -66,12 +68,25 @@ class AnalyseLieuPrelevementController extends Controller
     {
         $model = new AnalyseLieuPrelevement();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        $isValid = true;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            try {
+                $isValid = $model->save();
+            }
+            catch(Exception $e){
+                Yii::trace($model->errors);
+            }
+
+            if ($isValid) {
+                Yii::$app->session->setFlash('success', 'Le lieu de prélèvement <b>'. $model->libelle .'</b> à bien été crée');
+                return $this->redirect(['analyse-lieu-prelevement/index']);
+            }
         }
 
         return $this->render('../parametrage/analyse-lieu-prelevement/create', [
             'model' => $model,
+            'id'=>null,
         ]);
     }
 
@@ -84,14 +99,26 @@ class AnalyseLieuPrelevementController extends Controller
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+        $model = $this->findModel($id);;
+        $isValid = true;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            try {
+                $isValid = $model->save();
+            }
+            catch(Exception $e){
+                Yii::trace($model->errors);
+            }
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            if ($isValid) {
+                Yii::$app->session->setFlash('success', 'Le lieu de prélèvement <b>'. $model->libelle .'</b> à bien été mis à jour');
+                return $this->redirect(['analyse-lieu-prelevement/index']);
+            }
         }
 
         return $this->render('../parametrage/analyse-lieu-prelevement/update', [
             'model' => $model,
+            'id' => $model->id,
         ]);
     }
 
@@ -123,5 +150,55 @@ class AnalyseLieuPrelevementController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    /**
+     * Désactivation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionDesactivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $conditionnementId = $_data['modelId'];
+        $model = $this->findModel($conditionnementId);
+        $model->active = 0;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'Le lieu de prélèvement <b>' . $model->libelle . '</b> à bien été désactivé');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de la désactivation du lieu de prélèvement  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-lieu-prelevement/index']);
+
+        return ['errors'=>$errors];
+    }
+
+    /**
+     * Activation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionActivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $conditionnementId = $_data['modelId'];
+        $model = $this->findModel($conditionnementId);
+        $model->active = 1;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'Le lieu de prélèvement <b>' . $model->libelle . '</b> à bien été activé');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de l\'activation du lieu de prélèvement  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-lieu-prelevement/index']);
+
+        return ['errors'=>$errors];
     }
 }
