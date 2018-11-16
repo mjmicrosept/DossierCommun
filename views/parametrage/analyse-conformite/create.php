@@ -6,8 +6,8 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseConformite */
 
-$this->title = 'Create Analyse Conformite';
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Conformites', 'url' => ['index']];
+$this->title = Yii::t('microsept','Conformite_create');
+$this->params['breadcrumbs'][] = ['label' => 'Conformités', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="analyse-conformite-create">
@@ -16,6 +16,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form', [
         'model' => $model,
+        'id' => $id,
     ]) ?>
 
 </div>

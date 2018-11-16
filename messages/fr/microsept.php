@@ -176,6 +176,9 @@ return [
     "Infos germe" => "Informations sur le germe",
     "Germe_update" => "Mise à jour du germe",
     "Germe_create" => "Création d'un germe",
+    "Conformite_create" => "Création d'une conformité",
+    "Conformite_update" => "Mise à jour de la conformité",
+    "Edit conformite" => "Modifier cette conformité",
     "Client is analyzable" => "Est analysable",
     "Synthese analyse" => "Synthèse des analyses",
     "Filters" => "Filtres"

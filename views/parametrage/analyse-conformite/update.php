@@ -5,10 +5,10 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseConformite */
 
-$this->title = 'Update Analyse Conformite: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Conformites', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = Yii::t('microsept','Conformite_update'). ' : ' . $model->libelle;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('microsept','Conformités'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $model->libelle, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = Yii::t('microsept','Update');
 ?>
 <div class="analyse-conformite-update">
 
@@ -16,6 +16,7 @@ $this->params['breadcrumbs'][] = 'Update';
 
     <?= $this->render('_form', [
         'model' => $model,
+        'id' => $id,
     ]) ?>
 
 </div>

@@ -2,7 +2,6 @@
 
 use webvimark\modules\UserManagement\components\GhostHtml;
 use yii\widgets\DetailView;
-use webvimark\extensions\GridPageSize\GridPageSize;
 use app\assets\components\SweetAlert\SweetAlertAsset;
 use yii\helpers\Url;
 use app\models\AnalyseService;
