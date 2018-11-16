@@ -179,6 +179,9 @@ return [
     "Conformite_create" => "Création d'une conformité",
     "Conformite_update" => "Mise à jour de la conformité",
     "Edit conformite" => "Modifier cette conformité",
+    "Edit interpretation" => "Modifier cette interprétation",
+    "Interpretation_create" => "Création d'une interprétation",
+    "Interpretation_update" => "Mise à jour de l'interprétation",
     "Client is analyzable" => "Est analysable",
     "Synthese analyse" => "Synthèse des analyses",
     "Filters" => "Filtres"

@@ -6,8 +6,8 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseInterpretation */
 
-$this->title = 'Create Analyse Interpretation';
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Interpretations', 'url' => ['index']];
+$this->title = Yii::t('microsept','Interpretation_create');
+$this->params['breadcrumbs'][] = ['label' => 'Interprétations', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="analyse-interpretation-create">
@@ -16,6 +16,9 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form', [
         'model' => $model,
+        'id' => $id,
+        'idConformite' => $idConformite,
+        'listConformite'=>$listConformite,
     ]) ?>
 
 </div>

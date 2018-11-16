@@ -5,9 +5,12 @@ namespace app\controllers;
 use Yii;
 use app\models\AnalyseInterpretation;
 use app\models\AnalyseInterpretationSearch;
+use app\models\AnalyseConformite;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\Json;
+use yii\web\Response;
 
 /**
  * AnalyseInterpretationController implements the CRUD actions for AnalyseInterpretation model.
@@ -65,13 +68,38 @@ class AnalyseInterpretationController extends Controller
     public function actionCreate()
     {
         $model = new AnalyseInterpretation();
+        $listConformite = AnalyseConformite::getAsList();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        $isValid = true;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            try {
+
+                if(isset(Yii::$app->request->post()['kvform']['conformite'])) {
+                    $model->conforme = intval(Yii::$app->request->post()['kvform']['conformite']);
+                }
+                else{
+                    $isValid = false;
+                }
+
+                if($isValid)
+                    $isValid = $model->save();
+            }
+            catch(Exception $e){
+                Yii::trace($model->errors);
+            }
+
+            if ($isValid) {
+                Yii::$app->session->setFlash('success', 'L\'interprétation <b>'. $model->libelle .'</b> à bien été créee');
+                return $this->redirect(['analyse-interpretation/index']);
+            }
         }
 
         return $this->render('../parametrage/analyse-interpretation/create', [
             'model' => $model,
+            'id'=>null,
+            'idConformite'=>null,
+            'listConformite' => $listConformite
         ]);
     }
 
@@ -85,13 +113,37 @@ class AnalyseInterpretationController extends Controller
     public function actionUpdate($id)
     {
         $model = $this->findModel($id);
+        $listConformite = AnalyseConformite::getAsList();
+        $isValid = true;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            try {
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+                if(isset(Yii::$app->request->post()['kvform']['conformite'])) {
+                    $model->conforme = intval(Yii::$app->request->post()['kvform']['conformite']);
+                }
+                else{
+                    $isValid = false;
+                }
+
+                if($isValid)
+                    $isValid = $model->save();
+            }
+            catch(Exception $e){
+                Yii::trace($model->errors);
+            }
+
+            if ($isValid) {
+                Yii::$app->session->setFlash('success', 'L\'interprétation <b>'. $model->libelle .'</b> à bien été mise à jour');
+                return $this->redirect(['analyse-interpretation/index']);
+            }
         }
 
         return $this->render('../parametrage/analyse-interpretation/update', [
             'model' => $model,
+            'id' => $model->id,
+            'idConformite'=>$model->conforme,
+            'listConformite' => $listConformite
         ]);
     }
 
@@ -107,6 +159,56 @@ class AnalyseInterpretationController extends Controller
         $this->findModel($id)->delete();
 
         return $this->redirect(['../parametrage/analyse-interpretation/index']);
+    }
+
+    /**
+     * Désactivation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionDesactivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $interpretationId = $_data['modelId'];
+        $model = $this->findModel($interpretationId);
+        $model->active = 0;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'L\'interprétation <b>' . $model->libelle . '</b> à bien été désactivée');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de la désactivation de l\'interprétation  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-interpretation/index']);
+
+        return ['errors'=>$errors];
+    }
+
+    /**
+     * Activation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionActivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $interpretationId = $_data['modelId'];
+        $model = $this->findModel($interpretationId);
+        $model->active = 1;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'L\'interprétation <b>' . $model->libelle . '</b> à bien été activée');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de l\'activation de l\'interprétation  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-interpretation/index']);
+
+        return ['errors'=>$errors];
     }
 
     /**

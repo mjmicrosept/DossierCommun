@@ -14,7 +14,7 @@ use app\models\AnalyseLieuPrelevement;
 
 ?>
 <div class="panel panel-default" style="margin-top:10px;">
-    <div class="panel-heading">Liste des germes</div>
+    <div class="panel-heading">Prélèvement</div>
     <table class="table">
         <thead class="thead-dark">
         <th>Conditionnement</th>

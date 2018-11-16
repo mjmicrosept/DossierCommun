@@ -5,10 +5,10 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseInterpretation */
 
-$this->title = 'Update Analyse Interpretation: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Interpretations', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = Yii::t('microsept','Interpretation_update'). ' : ' . $model->libelle;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('microsept','Interprétations'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $model->libelle, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = Yii::t('microsept','Update');
 ?>
 <div class="analyse-interpretation-update">
 
@@ -16,6 +16,9 @@ $this->params['breadcrumbs'][] = 'Update';
 
     <?= $this->render('_form', [
         'model' => $model,
+        'id' => $id,
+        'idConformite' => $idConformite,
+        'listConformite'=>$listConformite,
     ]) ?>
 
 </div>
