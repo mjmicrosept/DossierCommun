@@ -5,10 +5,10 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseConditionnement */
 
-$this->title = 'Update Analyse Conditionnement: ' . $model->id;
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Conditionnements', 'url' => ['index']];
-$this->params['breadcrumbs'][] = ['label' => $model->id, 'url' => ['view', 'id' => $model->id]];
-$this->params['breadcrumbs'][] = 'Update';
+$this->title = Yii::t('microsept','Conditionnement_update'). ' : ' . $model->libelle;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('microsept','Conditionnements'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $model->libelle, 'url' => ['view', 'id' => $model->id]];
+$this->params['breadcrumbs'][] = Yii::t('microsept','Update');
 ?>
 <div class="analyse-conditionnement-update">
 
@@ -16,6 +16,7 @@ $this->params['breadcrumbs'][] = 'Update';
 
     <?= $this->render('_form', [
         'model' => $model,
+        'id' => $id,
     ]) ?>
 
 </div>

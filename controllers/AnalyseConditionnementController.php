@@ -8,6 +8,8 @@ use app\models\AnalyseConditionnementSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\helpers\Json;
+use yii\web\Response;
 
 /**
  * AnalyseConditionnementController implements the CRUD actions for AnalyseConditionnement model.
@@ -66,12 +68,25 @@ class AnalyseConditionnementController extends Controller
     {
         $model = new AnalyseConditionnement();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        $isValid = true;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            try {
+                $isValid = $model->save();
+            }
+            catch(Exception $e){
+                Yii::trace($model->errors);
+            }
+
+            if ($isValid) {
+                Yii::$app->session->setFlash('success', 'Le conditionnement <b>'. $model->libelle .'</b> à bien été crée');
+                return $this->redirect(['analyse-conditionnement/index']);
+            }
         }
 
         return $this->render('../parametrage/analyse-conditionnement/create', [
             'model' => $model,
+            'id'=>null,
         ]);
     }
 
@@ -84,14 +99,26 @@ class AnalyseConditionnementController extends Controller
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+        $model = $this->findModel($id);;
+        $isValid = true;
+        if (Yii::$app->request->isPost) {
+            $model->load(Yii::$app->request->post());
+            try {
+                $isValid = $model->save();
+            }
+            catch(Exception $e){
+                Yii::trace($model->errors);
+            }
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            if ($isValid) {
+                Yii::$app->session->setFlash('success', 'Le conditionnement <b>'. $model->libelle .'</b> à bien été mis à jour');
+                return $this->redirect(['analyse-conditionnement/index']);
+            }
         }
 
         return $this->render('../parametrage/analyse-conditionnement/update', [
             'model' => $model,
+            'id' => $model->id,
         ]);
     }
 
@@ -123,5 +150,55 @@ class AnalyseConditionnementController extends Controller
         }
 
         throw new NotFoundHttpException('The requested page does not exist.');
+    }
+
+    /**
+     * Désactivation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionDesactivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $conditionnementId = $_data['modelId'];
+        $model = $this->findModel($conditionnementId);
+        $model->active = 0;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'Le conditionnement <b>' . $model->libelle . '</b> à bien été désactivé');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de la désactivation du conditionnement  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-conditionnement/index']);
+
+        return ['errors'=>$errors];
+    }
+
+    /**
+     * Activation d'un service
+     * @return array|Response
+     * @throws NotFoundHttpException
+     */
+    public function actionActivate(){
+        $errors = false;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $conditionnementId = $_data['modelId'];
+        $model = $this->findModel($conditionnementId);
+        $model->active = 1;
+
+        if($model->save()) {
+            Yii::$app->session->setFlash('success', 'Le conditionnement <b>' . $model->libelle . '</b> à bien été activé');
+        }
+        else{
+            Yii::$app->session->setFlash('danger', 'Une erreur est survenue lors de l\'activation du conditionnement  <b>' . $model->libelle . '</b>');
+        }
+        return $this->redirect(['analyse-conditionnement/index']);
+
+        return ['errors'=>$errors];
     }
 }

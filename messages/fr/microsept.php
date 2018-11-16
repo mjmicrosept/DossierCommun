@@ -182,6 +182,12 @@ return [
     "Edit interpretation" => "Modifier cette interprétation",
     "Interpretation_create" => "Création d'une interprétation",
     "Interpretation_update" => "Mise à jour de l'interprétation",
+    "Edit conditionnement" => "Modifier ce conditionnement",
+    "Conditionnement_create" => "Création d'un conditionnement",
+    "Conditionnement_update" => "Mise à jour du conditionnement",
+    "Edit lieu prelevement" => "Modifier ce lieu de prélèvement",
+    "LieuPrelevement_create" => "Création d'un lieu de prélèvement",
+    "LieuPrelevement_update" => "Mise à jour du lieu de prélèvement",
     "Client is analyzable" => "Est analysable",
     "Synthese analyse" => "Synthèse des analyses",
     "Filters" => "Filtres"

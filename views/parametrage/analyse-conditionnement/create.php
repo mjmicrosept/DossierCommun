@@ -6,8 +6,8 @@ use yii\helpers\Html;
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseConditionnement */
 
-$this->title = 'Create Analyse Conditionnement';
-$this->params['breadcrumbs'][] = ['label' => 'Analyse Conditionnements', 'url' => ['index']];
+$this->title = Yii::t('microsept','Conditionnement_create');
+$this->params['breadcrumbs'][] = ['label' => 'Conditionnements', 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="analyse-conditionnement-create">
@@ -16,6 +16,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form', [
         'model' => $model,
+        'id' => $id,
     ]) ?>
 
 </div>

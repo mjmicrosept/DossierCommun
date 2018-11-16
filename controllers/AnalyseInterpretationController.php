@@ -90,7 +90,7 @@ class AnalyseInterpretationController extends Controller
             }
 
             if ($isValid) {
-                Yii::$app->session->setFlash('success', 'L\'interprétation <b>'. $model->libelle .'</b> à bien été créee');
+                Yii::$app->session->setFlash('success', 'L\'interprétation <b>'. $model->libelle .'</b> à bien été crée');
                 return $this->redirect(['analyse-interpretation/index']);
             }
         }
