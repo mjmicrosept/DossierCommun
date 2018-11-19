@@ -270,7 +270,7 @@ class SyntheseController extends Controller
 
             // set global attribute defaults
             'attributeDefaults' => [
-                'labelOptions' => ['class' => 'col-sm-3 control-label', 'style' => 'margin-top:20px;'],
+                'labelOptions' => ['class' => 'col-sm-6 control-label', 'style' => 'margin-top:20px;'],
                 'inputContainer' => ['class' => 'col-sm-6 form-control', 'style' => 'border:none;'],
                 'container' => ['class' => 'form-group field-user-etablissementGroupAdmin'],
             ],

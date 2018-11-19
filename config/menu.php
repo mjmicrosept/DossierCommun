@@ -89,7 +89,7 @@ return [
         'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
 //        'linkTemplate' => '<a target="{target}" href="{url}">{label}</a>',
         'items' => [
-            ['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
+            //['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
             ['label' => '<span class="fas fa-table"></span> Synthèse', 'url' => ['/synthese/index'],'visible' => !Yii::$app->user->isSuperAdmin && !User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])],
         ],
 //        'visible' => Yii::$app->user->isSuperAdmin
