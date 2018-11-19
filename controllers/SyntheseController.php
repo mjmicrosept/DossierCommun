@@ -769,7 +769,7 @@ class SyntheseController extends Controller
                         $filter = new FilterPrefPrelevement();
                         $filter->id_user = User::getCurrentUser()->id;
                         $filter->id_conditionnement = $conditionnement[$i];
-                        $filter->id_model = intval($modelExist);
+                        $filter->id_model = intval($model->id);
 
                         if (!$filter->save())
                             $errors = true;
@@ -782,7 +782,7 @@ class SyntheseController extends Controller
                         $filter = new FilterPrefPrelevement();
                         $filter->id_user = User::getCurrentUser()->id;
                         $filter->id_lieu_prelevement = $lieuPrelevement[$i];
-                        $filter->id_model = intval($modelExist);
+                        $filter->id_model = intval($model->id);
 
                         if (!$filter->save())
                             $errors = true;
