@@ -20,7 +20,7 @@ $web = Yii::getAlias('@web');
     <div id="wrapper">
         <div class="container">
             <div class="card card-container">
-                <img class="profile-img-card img img-responsive center-block img-circle" src="../../../images/logorfl_min.png"/>
+                <img class="profile-img-card img img-responsive center-block img-circle" src="../../../images/logo_pcram.png"/>
 
                 <?php $form = ActiveForm::begin([
                     'options'=>['autocomplete'=>'off'],

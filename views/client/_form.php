@@ -177,14 +177,21 @@ $this->registerJs(<<<JS
 	else{
 	    $('#client-check-isparent').attr({checked : 'checked'});
 		$('#client-check-actif').attr({checked : 'checked'});
-		$('#client-check-isanalyzable').attr({checked : 'checked'});
+		//$('#client-check-isanalyzable').attr({checked : 'checked'});
 	}
 	
 	$('#client-check-isparent').click(function(){
-	    if($(this).prop('checked'))
+	    if($(this).prop('checked')){
 	        $('.form-parent').hide();
-	    else 
+	        if($('#client-check-isanalyzable').prop('checked'))
+	            $('#client-check-isanalyzable').prop('checked',false);
+	            
+        }
+	    else{ 
 	        $('.form-parent').show();
+	        if(!$('#client-check-isanalyzable').prop('checked'))
+	            $('#client-check-isanalyzable').prop('checked',true);
+        }
 	})
 
 JS

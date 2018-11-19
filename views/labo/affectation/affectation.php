@@ -97,16 +97,16 @@ $this->params['breadcrumbs'][] = $this->title;
                                 foreach ($clientList as $client) {
                                     $childList = Client::find()->andFilterWhere(['id_parent'=>$client->id])->andFilterWhere(['active'=>1])->all();
                                     if(count($childList) != 0){
-                                        $result .= '<label><input type="checkbox" class="btn-chk-list-client" name="laboList[]" value="'.$client->id.'"> '.$client->name.'</label>';
+                                        $result .= '<label><input type="checkbox" class="btn-chk-list-client chk-parent chk-parent-'.$client->id.'" name="laboList[]" value="'.$client->id.'"> '.$client->name.'</label>';
                                         $result .= '<button type="button" class="btn btn-box-tool" data-clientid="'.$client->id.'" data-toggle="collapse" data-target="#collapse'.$client->id.'" style="margin-left:20px"><i class="fa fa-plus chevron-'.$client->id.'"></i></button><br>';
                                         $result .= '<div class="collapse" id="collapse'.$client->id.'" style="background-color:#e2e2e2"><div class="card card-body">';
                                         foreach ($childList as $child) {
-                                            $result .= '<label style="margin-left:20px"><input type="checkbox" class="btn-chk-list-client chk-child-'.$client->id.'" name="laboList[]" value="'.$child->id.'" data-parent="'.$client->id.'"> '.$child->name.'</label><br>';
+                                            $result .= '<label style="margin-left:20px"><input type="checkbox" class="btn-chk-list-client chk-child chk-child-'.$client->id.'" name="laboList[]" value="'.$child->id.'" data-parent="'.$client->id.'"> '.$child->name.'</label><br>';
                                         }
                                         $result .= '</div></div>';
                                     }
                                     else{
-                                        $result .= '<label><input type="checkbox" class="btn-chk-list-client" name="laboList[]" value="'.$client->id.'"> '.$client->name.'</label><br>';
+                                        $result .= '<label><input type="checkbox" class="btn-chk-list-client chk-parent chk-parent-'.$client->id.'" name="laboList[]" value="'.$client->id.'"> '.$client->name.'</label><br>';
                                     }
                                 }
                                 $result .= '</div>';
@@ -193,7 +193,7 @@ $this->registerJS(<<<JS
     });
     
     //Click sur les checkbox d'un parent
-    $('.btn-chk-list-client').click(function(){
+    $('.chk-parent').click(function(){
         if(!$('.btn-xs').hasClass('off')){
             var idClient = $(this).val();
             if($(this).prop('checked') == true){
@@ -209,6 +209,13 @@ $this->registerJS(<<<JS
                 }); 
             }
         }
+    });
+    
+    //Click sur un checkbox enfant pour cocher automatiquement le parent
+    $('.chk-child').click(function(){
+        var parentID = $(this).data('parent');
+        if(!$('.chk-parent-' + parentID).prop('checked'))
+            $('.chk-parent-' + parentID).prop('checked',true);
     });
 
 JS
