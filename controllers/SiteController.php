@@ -14,6 +14,13 @@ use app\models\PortailUsers;
 use app\models\Labo;
 use app\models\DocumentPushed;
 use app\models\DocumentAlerte;
+use app\models\AnalyseData;
+use app\models\AnalyseDataGerme;
+use app\models\AnalyseService;
+use app\models\AnalyseInterpretation;
+use app\models\AnalyseLieuPrelevement;
+use app\models\AnalyseConditionnement;
+use kartik\grid\GridView;
 
 class SiteController extends Controller
 {
@@ -88,9 +95,13 @@ class SiteController extends Controller
 
         $searchModelLabo = null;
         $dataProviderLabo = null;
+        $dataProviderAnalyse = null;
+        $aGlobalDataAnalyse = [];
+        $dataAnalyse = [];
         $gridColumn = [];
         $entete = [];
 
+        //Partie Tableau de bord des documents
         if(Yii::$app->user->isSuperadmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER])){
             $data = [];
             $idClient = null;
@@ -164,8 +175,8 @@ class SiteController extends Controller
                         'filterInputOptions'=>['placeholder'=>'Any supplier'],
                         'group'=>true,  // enable grouping,
                         'groupedRow'=>true, // move grouped column to a single grouped row
-                        'groupOddCssClass'=>'kv-grouped-row',  // configure odd group cell css class
-                        'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
+                        'groupOddCssClass'=>'kv-grouped-row2',  // configure odd group cell css class
+                        'groupEvenCssClass'=>'kv-grouped-row2', // configure even group cell css class
                         'value'=>function($model){
                             $labo = Labo::find()->andFilterWhere(['id'=>$model['id_labo']])->one();
                             if(!is_null($labo))
@@ -558,12 +569,197 @@ class SiteController extends Controller
             }
         }
 
+        //Partie tableau de bord des analyses
+        if(!Yii::$app->user->isSuperadmin && (User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]))){
+            $aAnalyseData = AnalyseData::find();
+            $aAnalyseData = $aAnalyseData->andFilterWhere(['id_conformite'=>2]);
+            $aListClientId = [];
+            if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])){
+                //On récupère tous les identifiants des établissement à rechercher (y compris le parent s'il est analysable)
+                $idParent = PortailUsers::find()->andFilterWhere(['id_user'=>User::getCurrentUser()->id])->one()->id_client;
+                $client = Client::find()->andFilterWhere(['id'=>$idParent])->one();
+                if($client->is_analyzable)
+                    array_push($aListClientId,$idParent);
+
+                $childList = Client::getChildList($idParent);
+                //var_dump($childList);die();
+                foreach ($childList as $child) {
+                    array_push($aListClientId,$child->id);
+                }
+            }
+            elseif(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP])){
+                $portailList = PortailUsers::find()->andFilterWhere(['id_user'=>User::getCurrentUser()->id])->all();
+                foreach ($portailList as $entry) {
+                    array_push($aListClientId,$entry->id_client);
+                }
+            }
+            else{
+                $id_client = PortailUsers::find()->andFilterWhere(['id_user'=>User::getCurrentUser()->id])->one()->id_client;
+                array_push($aListClientId,$id_client);
+            }
+
+            $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_client',$aListClientId]);
+            $aAnalyseData = $aAnalyseData->orderBy('id_service,id_client,date_analyse')->all();
+            //Ajout des germes dans la requête
+            foreach ($aAnalyseData as $analyseData) {
+                if (!isset($data[$analyseData->id])) {
+                    $dataAnalyse[$analyseData->id]['num_analyse'] = $analyseData->num_analyse;
+                    $dataAnalyse[$analyseData->id]['id_labo'] = $analyseData->id_labo;
+                    $dataAnalyse[$analyseData->id]['id_client'] = $analyseData->id_client;
+                    $dataAnalyse[$analyseData->id]['id_parent'] = $analyseData->id_parent;
+                    $dataAnalyse[$analyseData->id]['id_service'] = $analyseData->id_service;
+                    $dataAnalyse[$analyseData->id]['prelevements']['id_conditionnement'] = $analyseData->id_conditionnement;
+                    $dataAnalyse[$analyseData->id]['prelevements']['id_lieu_prelevement'] = $analyseData->id_lieu_prelevement;
+                    $dataAnalyse[$analyseData->id]['id_interpretation'] = $analyseData->id_interpretation;
+                    $dataAnalyse[$analyseData->id]['id_conformite'] = $analyseData->id_conformite;
+                    $dataAnalyse[$analyseData->id]['designation'] = $analyseData->designation;
+                    $dataAnalyse[$analyseData->id]['commentaire'] = $analyseData->commentaire;
+                    $dataAnalyse[$analyseData->id]['date_analyse'] = $analyseData->date_analyse;
+                }
+
+                //On recherche tous les germes répertoriés sur cette analyse
+                $aAnalyseGerme = AnalyseDataGerme::find();
+                $aAnalyseGerme = $aAnalyseGerme->andFilterWhere(['id_analyse'=>$analyseData->id]);
+                $aAnalyseGerme = $aAnalyseGerme->all();
+
+                //On rajoute au tableau de données générales les données des germes pour chaque analyse
+                foreach ($aAnalyseGerme as $germe) {
+                    //On récupères TOUS les germes d'une analyse qui contient le mot clé recherché
+                    $aAnalyseGermeFromId = AnalyseDataGerme::find()->andFilterWhere(['id_analyse'=>$germe->id_analyse])->all();
+                    foreach ($aAnalyseGermeFromId as $item) {
+                        $dataAnalyse[$item->id_analyse]['germes'][$item->id]['libelle'] = $item->libelle;
+                        $dataAnalyse[$item->id_analyse]['germes'][$item->id]['resultat'] = $item->resultat;
+                        $dataAnalyse[$item->id_analyse]['germes'][$item->id]['expression'] = $item->expression;
+                        $dataAnalyse[$item->id_analyse]['germes'][$item->id]['interpretation'] = $item->interpretation;
+                    }
+                }
+                if(count($aAnalyseGerme) != 0){
+                    array_push($aGlobalDataAnalyse,$dataAnalyse[$analyseData->id]);
+                }
+            }
+
+            $dataProviderAnalyse = new ArrayDataProvider([
+                'key'=>function($row) {
+                    return $row['num_analyse'];
+                },
+                'allModels' => $aGlobalDataAnalyse,
+                'pagination' => [
+                    'pageSize' => 1000
+                ]
+            ]);
+
+            $gridColumnAnalyse = [
+                [
+                    'label' => 'Service',
+                    'value' => function($row) {
+                        return AnalyseService::find()->andFilterWhere(['id'=>$row['id_service']])->one()->libelle;
+                    },
+                    'contentOptions' => ['style'=>'font-weight:bold'],
+                    'group'=>true,  // enable grouping,
+                    'groupedRow'=>true,                    // move grouped column to a single grouped row
+                    'groupOddCssClass'=>'kv-grouped-row',  // configure odd group cell css class
+                    'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
+                ],
+                [
+                    'label' => '',
+                    'contentOptions' => ['style'=>'font-weight:bold'],
+                    'value' => function($row) {
+                        return Client::find()->andFilterWhere(['id'=>$row['id_client']])->one()->name;
+                    },
+                    'vAlign'=>'middle',
+                    'group'=>true,
+                    'groupedRow'=>true,                    // move grouped column to a single grouped row
+                    'groupOddCssClass'=>'kv-grouped-child-row',  // configure odd group cell css class
+                    'groupEvenCssClass'=>'kv-grouped-child-row', // configure even group cell css class
+                ],
+                [
+                    'label' => 'N° Analyse',
+                    'value' => function($row) {
+                        return $row['num_analyse'];
+                    },
+                ],
+                [
+                    'label' => 'Conclusion',
+                    'value' => function($row) {
+                        return AnalyseInterpretation::find()->andFilterWhere(['id'=>$row['id_interpretation']])->one()->libelle;
+                    },
+                ],
+                [
+                    'label' => 'Conformité',
+                    'format'=>'raw',
+                    'hAlign'=>'center',
+                    'value' => function($row) {
+                        if($row['id_conformite'] == 1){
+                            return '<i class="fa fa-circle text-green"></i>';
+                        }
+                        elseif ($row['id_conformite'] == 2){
+                            return '<i class="fa fa-circle text-red"></i>';
+                        }
+                        else{
+                            return '<i class="fa fa-circle text-yellow"></i>';
+                        }
+                    },
+                ],
+                [
+                    'label' => 'Désignation',
+                    'value' => function($row) {
+                        return $row['designation'];
+                    },
+                ],
+                [
+                    'label' => 'Commentaire',
+                    'value' => function($row) {
+                        if($row['commentaire'] == '')
+                            return '-';
+                        else
+                            return $row['commentaire'];
+                    },
+                ],
+                [
+                    'label' => 'Date analyse',
+                    'value' => function($row) {
+                        $year = substr($row['date_analyse'], 0, 4);
+                        $month = intval(substr($row['date_analyse'], 5, 2));
+                        $day = substr($row['date_analyse'], 8, 2);
+
+                        $tMonths = [1 => "Jan", 2 => "Fév", 3 => "Mars", 4 => "Avr", 5 => "Mai", 6 => "Juin", 7 => "Juil", 8 => "Août", 9 => "Sept", 10 => "Oct", 11 => "Nov", 12 => "Déc"];
+
+                        return $day . ' ' . $tMonths[$month] . ' ' . $year;
+                    },
+                ],
+                [
+                    'class'=>'kartik\grid\ExpandRowColumn',
+                    'width'=>'50px',
+                    'value'=>function ($model, $key, $index, $column) {
+                        return GridView::ROW_COLLAPSED;
+                    },
+                    'detail'=>function ($model, $key, $index, $column) {
+                        return Yii::$app->controller->renderPartial('client/_grid-synthese-detail', [
+                            'germes'=>$model['germes'],
+                            'prelevements'=>$model['prelevements']
+                        ]);
+                    },
+                    'disabled' => function($model) {
+                        return false;
+                    },
+                    'headerOptions'=>['class'=>'kartik-sheet-style analyse-expanded'],
+                    'expandOneOnly'=>true,
+                    'detailRowCssClass' => 'primary-content',
+                    'contentOptions' => function($model) {
+                        return ['id' => $model['num_analyse']];
+                    },
+                ]
+            ];
+        }
+
         return $this->render('index',[
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'dataProviderAnalyse' => $dataProviderAnalyse,
             'listMonthAlert' => $listMonthAlert,
             'idClient' => $idClient,
             'gridColumn' => $gridColumn,
+            'gridColumnAnalyse' => $gridColumnAnalyse,
             'idLabo' => $idLabo
         ]);
     }

@@ -28,6 +28,21 @@ $this->registerCss(<<<CSS
         background-color: #00c0ef !important;*/
     }
     
+    .kv-grouped-child-row {
+        color: #000 !important;
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+        padding-left:20px;
+    }
+    .table-hover .kv-grouped-child-row:hover{
+        color: #000 !important;
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+        padding-left:20px;
+        /*color: #fff !important;
+        background-color: #00c0ef !important;*/
+    }
+    
     td.kv-group-odd {
         background-color: #d4e2e5 !important;
         border: 1px solid #f4f4f4;

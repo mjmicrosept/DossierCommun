@@ -1256,7 +1256,7 @@ class SyntheseController extends Controller
             //On rajoute au tableau de données générales les données des germes pour chaque analyse
             foreach ($aAnalyseGerme as $germe) {
                 //On récupères TOUS les germes d'une analyse qui contient le mot clé recherché
-                $aAnalyseGermeFromId = $aAnalyseGerme = AnalyseDataGerme::find()->andFilterWhere(['id_analyse'=>$germe->id_analyse])->all();
+                $aAnalyseGermeFromId = AnalyseDataGerme::find()->andFilterWhere(['id_analyse'=>$germe->id_analyse])->all();
                 foreach ($aAnalyseGermeFromId as $item) {
                     $data[$item->id_analyse]['germes'][$item->id]['libelle'] = $item->libelle;
                     $data[$item->id_analyse]['germes'][$item->id]['resultat'] = $item->resultat;
@@ -1300,6 +1300,9 @@ class SyntheseController extends Controller
                 },
                 'vAlign'=>'middle',
                 'group'=>true,
+                'groupedRow'=>true,                    // move grouped column to a single grouped row
+                'groupOddCssClass'=>'kv-grouped-child-row',  // configure odd group cell css class
+                'groupEvenCssClass'=>'kv-grouped-child-row', // configure even group cell css class
             ],
             [
                 'label' => 'N° Analyse',

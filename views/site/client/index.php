@@ -61,12 +61,12 @@ $this->registerCss(<<<CSS
         font-weight:bold;
         vertical-align: middle;
     }
-    .kv-grouped-row {
+    .kv-grouped-row2 {
         color: #31708f !important;
         background-color: #d9edf7 !important;
         border-color: #bce8f1 !important;
     }
-    .table-hover .kv-grouped-row:hover{
+    .table-hover .kv-grouped-row2:hover{
         color: #31708f !important;
         background-color: #d9edf7 !important;
         border-color: #bce8f1 !important;
@@ -88,6 +88,52 @@ $this->registerCss(<<<CSS
     }
     #grid-list-document-container{
         overflow-x: hidden;
+    }
+    
+    
+    .filter-header {
+        font-weight:bold;
+        vertical-align: middle;
+    }
+    .kv-grouped-row {
+        color: #FFF !important;
+        background-color: #009cc1 !important;
+        border: 1px solid #f4f4f4;
+    }
+    .table-hover .kv-grouped-row:hover{
+        color: #FFF !important;
+        background-color: #009cc1 !important;
+        border: 1px solid #f4f4f4;
+        /*color: #fff !important;
+        background-color: #00c0ef !important;*/
+    }
+    
+    .kv-grouped-child-row {
+        color: #000 !important;
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+        padding-left:20px;
+    }
+    .table-hover .kv-grouped-child-row:hover{
+        color: #000 !important;
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+        padding-left:20px;
+        /*color: #fff !important;
+        background-color: #00c0ef !important;*/
+    }
+    
+    td.kv-group-odd {
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+    }
+    td.kv-group-even {
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+    }
+    
+    .primary-content{
+        background-color:#6cc7e6 !important;
     }
 
 CSS
@@ -267,6 +313,55 @@ else{
     </div>
     <br/><br/><br/>
 
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Analyses</h3>
+
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                </button>
+                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="row" style="display:none">
+            <div class="col-sm-6">
+
+                <div class="form-inline pull-right">
+                    <?= \webvimark\extensions\GridPageSize\GridPageSize::widget([
+                        'pjaxId'=>'grid-list-analyses-pjax',
+                        'viewFile' => '@app/views/widgets/grid-page-size/index.php',
+                        'enableClearFilters' => true,
+                        'text' =>'',
+                    ]) ?>
+                    &nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="box-body" style="">
+            <?= \kartik\grid\GridView::widget([
+                'id' => 'synthese-grid',
+                'pjax' => true,
+                'pjaxSettings' => [
+                    'options'=>[
+                        'id'=>'synthese-grid-pjax'
+                    ]
+                ],
+                'bordered'=>true,
+                'bootstrap'=>true,
+                'floatHeader'=>true,
+                'panel' => [
+                    'type' => \kartik\grid\GridView::TYPE_PRIMARY,
+                    'heading' => '<i class="fa fa-dashboard"></i>  Tableau de bord',
+                    'before' => '',
+                ],
+                'toolbar'=>[],
+                'exportConfig' => [],
+                'dataProvider' => $dataProviderAnalyse,
+                'columns' => $gridColumnAnalyse
+            ]); ?>
+        </div>
+    </div>
 
     <div class="box box-info">
         <div class="box-header with-border">
@@ -396,7 +491,10 @@ $( document ).ready(function() {
     });
     
     $('.btn-actions > button').html('Actions <span class="caret"></span>');
-    $('th.skip-export').html('Actions');
+    $('th.skip-export').each(function(){
+        if(!$(this).hasClass('analyse-expanded'))
+            $(this).html('Actions');
+    });
 
     /**********************************************************/
     /* Actions de changements de valeurs de la liste des mois */
@@ -559,6 +657,23 @@ $( document ).ready(function() {
           'Reste à faire',
           'info'
         )
+    });
+    
+    $('.kv-expand-row').click(function(){
+        var tdParent = $(this).closest('td');
+        var id = tdParent.attr('id');
+        $('.kv-grid-table > tbody > tr').each(function(){
+            if($(this).data('key') != id){
+                if($(this).hasClass('primary-content'))
+                    $(this).removeClass('primary-content');
+            }
+        })
+        
+        var trParent = $(this).closest('tr');
+        if(!trParent.hasClass('primary-content'))
+            trParent.addClass('primary-content');
+        else
+            trParent.removeClass('primary-content');
     });
     
     
