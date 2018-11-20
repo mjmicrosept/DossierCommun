@@ -147,7 +147,8 @@ class SyntheseController extends Controller
 
         return $this->render('index', [
             'items'=>$tItems,
-            'modelList'=>$modelList
+            'modelList'=>$modelList,
+            'idClient'=>User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]) ? $idClient : 0,
         ]);
     }
 
@@ -324,7 +325,7 @@ class SyntheseController extends Controller
         if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]))
             $idTemoin = $idClient;
         $dataLabo = Labo::getAsListFromIdsForDepDrop($laboList);
-        $dataInterpretation = AnalyseInterpretation::getAsListFromIdsForDepDrop($laboList);
+        $dataInterpretation = AnalyseInterpretation::getAsListFromIdsForDepDrop();
         $strClientIds = '';
         foreach ($clientList as $item) {
             if($strClientIds == '')
@@ -341,9 +342,9 @@ class SyntheseController extends Controller
         }
 
         $result = '';
-        $result .= '<input type=hidden id="hfAllIdClient" value="'.$strClientIds.'"/>';
-        $result .= '<input type=hidden id="hfIdClient" value="'. $idTemoin .'"/>';
-        $result .= '<input type=hidden id="hfIdConclusion" value=""/>';
+        $result .= '<input type="hidden" id="hfAllIdClient" value="'.$strClientIds.'"/>';
+        $result .= '<input type="hidden" id="hfIdClient" value="'. $idTemoin .'"/>';
+        $result .= '<input type="hidden" id="hfIdConclusion" value=""/>';
         $result .= '<form id="kvform" class="form-vertical" action="" method="post" role="form">';
 
         if(!User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER])) {
@@ -536,7 +537,7 @@ class SyntheseController extends Controller
                         'type' => Form::INPUT_WIDGET,
                         'widgetClass' => '\kartik\select2\Select2',
                         'options' => [
-                            'data' => [0=>'Non conforme',1=>'Conforme'],
+                            'data' => ArrayHelper::map(AnalyseConformite::find()->orderBy('libelle')->asArray()->all(), 'id', 'libelle'),
                             'options' => [
                                 'placeholder' => 'Sélectionner une ou plusieurs conclusions', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
                             ],
@@ -549,6 +550,70 @@ class SyntheseController extends Controller
                 ]
             ]);
             $result .= '</form>';
+
+            $result .= '<div class="row">';
+            $result .= '<div class="col-sm-6">';
+            $result .= '<form id="kvform" class="form-vertical" action="" method="post" role="form">';
+            $result .= Form::widget([
+                'formName' => 'kvform',
+                'columns' => 2,
+                'compactGrid' => true,
+
+                // set global attribute defaults
+                'attributeDefaults' => [
+                    'labelOptions' => ['class' => 'col-sm-6 control-label', 'style' => 'margin-top:20px;'],
+                    'inputContainer' => ['class' => 'col-sm-6 form-control', 'style' => 'border:none;'],
+                ],
+                'attributes' => [
+                    'dateDebut' => [
+                        'type' => Form::INPUT_WIDGET,
+                        'widgetClass' => '\kartik\date\DatePicker',
+                        'options' => [
+                            'options' => [
+                                'placeholder' => 'Date de début', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                            ],
+                            'pluginOptions' => [
+                                'autoclose' => true,
+                            ]
+                        ],
+                        'label' => 'Date de début',
+                    ],
+                    'dateFin' => [
+                        'type' => Form::INPUT_WIDGET,
+                        'widgetClass' => '\kartik\date\DatePicker',
+                        'options' => [
+                            'options' => [
+                                'placeholder' => 'Date de fin', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                            ],
+                            'pluginOptions' => [
+                                'autoclose' => true,
+                            ]
+                        ],
+                        'label' => 'Date de fin',
+                    ]
+                ]
+            ]);
+            $result .= '</form>';
+            $result .= '</div>';
+            $result .= '<div class="col-sm-6">';
+            $result .= '<div class="row">';
+            $result .= '<div class="col-sm-12">';
+            $result .= '<label class="col-sm-6" style="margin-top:20px;" for="child-id-interpretation">Interprétations</label>';
+            $result .= '<div class="col-sm-6 form-control" style="border:none;">';
+            $result .= DepDrop::widget([
+                'type' => DepDrop::TYPE_SELECT2,
+                'data' => $dataInterpretation,
+                'name' => 'interpretation',
+                'options' => ['id' => 'child-id-interpretation', 'placeholder' => 'Aucun'],
+                'select2Options' => ['pluginOptions' => ['allowClear' => true, 'multiple' => true]],
+                'pluginOptions' => [
+                    'depends' => ['kvform-conclusion'],
+                    'url' => Url::to(['/synthese/get-interpretation-from-ids-conclusion']),
+                    'params' => ['hfIdConclusion'],
+                    'placeholder' => 'Sélectionner une ou plusieurs interprétations'
+                ]
+            ]);
+            $result .= '</div></div></div></div></div>';
         }
 
 
@@ -918,7 +983,7 @@ class SyntheseController extends Controller
      */
     public function actionGetSyntheseResult(){
         $_data = Json::decode($_POST['data']);
-        //Yii::trace($_data);
+        //Yii::trace($_data);die();
 
         $listEtablissement = $_data['listEtablissement'];
         $listLabo = $_data['listLabo'];

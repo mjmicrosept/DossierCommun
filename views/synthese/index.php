@@ -37,6 +37,9 @@ $urlGetSyntheseResult = Url::to(['/synthese/get-synthese-result']);
 $list_model = json_encode([]);
 if(isset($modelList))
     $list_model = json_encode($modelList);
+$idclient = 0;
+if(isset($idClient))
+    $idclient = $idClient;
 
 $this->registerJS(<<<JS
     var url = {
@@ -553,8 +556,16 @@ $this->registerJS(<<<JS
     //Click sur le bouton d'affichage des résultats
     $('.btn-see-results').click(function(){
         var error = [];
-        var listEtablissement = $('#kvform-etablissement').val();
-        var listLabo = $('#child-id').val();
+        var listEtablissement = null;
+        var listLabo = null;
+        if('{$idclient}' == 0){
+            listEtablissement = $('#kvform-etablissement').val();
+            listLabo = $('#child-id').val();
+        }
+        else{
+            listEtablissement = '{$idclient}';
+            listLabo = [];
+        }
         var listService = $('#kvform-service').val();
         var listConclusion = $('#kvform-conclusion').val();
         var listInterpretation = $('#child-id-interpretation').val();
