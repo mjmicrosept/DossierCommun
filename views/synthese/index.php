@@ -559,6 +559,7 @@ $this->registerJS(<<<JS
         var listEtablissement = null;
         var listLabo = null;
         if('{$idclient}' == 0){
+            console.log($('#kvform-etablissement').val());
             listEtablissement = $('#kvform-etablissement').val();
             listLabo = $('#child-id').val();
         }
@@ -578,9 +579,9 @@ $this->registerJS(<<<JS
         var listConditionnement = $('#kvform-conditionnement').val();
         var listLieuPrelevement = $('#kvform-lieu_prelevement').val();
         
-        //console.log(listEtablissement);
+        console.log(listEtablissement);
         //console.log(listLabo);
-        //console.log(listService);
+        console.log(listService);
         //console.log(listConclusion);
         //console.log(listInterpretation);
         //console.log(dateDebut);
@@ -644,10 +645,19 @@ $this->registerJS(<<<JS
             });
         }
     });
+    
+    $('#kvform-client').change(function(){
+        $('#hfIdParent').val($(this).val());
+    });
 
     $('#kvform-etablissement').change(function(){
         $('#hfIdClient').val($(this).val());
     });
+    
+    $('#etablissement-admin').change(function(){
+        $('#hfIdClient').val($(this).val());
+    });
+    
     $('#kvform-conclusion').change(function(){
         $('#hfIdConclusion').val($(this).val());
     });

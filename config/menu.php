@@ -114,8 +114,11 @@ return [
 //        'linkTemplate' => '<a target="{target}" href="{url}">{label}</a>',
         'items' => [
             //['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
-            ['label' => '<span class="fas fa-table"></span> Synthèse', 'url' => ['/synthese/index'],'visible' => !Yii::$app->user->isSuperAdmin && !User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])],
+            ['label' => '<span class="fas fa-table"></span> Synthèse',
+                'url' => ['/synthese/index'],
+                //'visible'=>true
+                'visible' => !User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) && !User::getCurrentUser()->hasRole([User::TYPE_LABO_USER]) ? true : Yii::$app->user->isSuperAdmin  ? true : false
+            ],
         ],
-//        'visible' => Yii::$app->user->isSuperAdmin
     ],
 ];

@@ -100,27 +100,31 @@ class SyntheseController extends Controller
             array_push($modelList['prelevement'],['id_model'=>$item->id,'libelle'=>$item->libelle]);
         }
 
-        if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
-            $idClient = PortailUsers::find()->andFilterWhere(['id_user' => $idUser])->one()->id_client;
-            $clients = Client::getChildList($idClient);
-            $clientList = [];
-            foreach ($clients as $client) {
-                array_push($clientList,$client->id);
+        if(!Yii::$app->user->isSuperAdmin && !User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+            if (User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])) {
+                $idClient = PortailUsers::find()->andFilterWhere(['id_user' => $idUser])->one()->id_client;
+                $clients = Client::getChildList($idClient);
+                $clientList = [];
+                foreach ($clients as $client) {
+                    array_push($clientList, $client->id);
+                }
+                $laboList = LaboClientAssign::getListIdLaboFromClients($idClient, $clientList);
+            } else {
+                if (User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP])) {
+                    $clientList = PortailUsers::getIdClientUserGroup($idUser);
+                    $laboList = LaboClientAssign::getListIdLaboFromClients($idClient, $clientList);
+                    $portailIdClient = PortailUsers::find()->andFilterWhere(['id_user' => $idUser])->one()->id_client;
+                    $idClient = Client::find()->andFilterWhere(['id' => $portailIdClient])->one()->id_parent;
+                } else {
+                    $idClient = PortailUsers::find()->andFilterWhere(['id_user' => $idUser])->one()->id_client;
+                    $clientList = [];
+                    array_push($clientList, $idClient);
+                }
             }
-            $laboList = LaboClientAssign::getListIdLaboFromClients($idClient,$clientList);
         }
         else{
-            if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP])){
-                $clientList = PortailUsers::getIdClientUserGroup($idUser);
-                $laboList = LaboClientAssign::getListIdLaboFromClients($idClient,$clientList);
-                $portailIdClient = PortailUsers::find()->andFilterWhere(['id_user'=>$idUser])->one()->id_client;
-                $idClient = Client::find()->andFilterWhere(['id'=>$portailIdClient])->one()->id_parent;
-            }
-            else{
-                $idClient = PortailUsers::find()->andFilterWhere(['id_user' => $idUser])->one()->id_client;
-                $clientList = [];
-                array_push($clientList,$idClient);
-            }
+            $clientList = [];
+            $laboList = [];
         }
 
         $tItems = [
@@ -343,11 +347,12 @@ class SyntheseController extends Controller
 
         $result = '';
         $result .= '<input type="hidden" id="hfAllIdClient" value="'.$strClientIds.'"/>';
+        $result .= '<input type="hidden" id="hfIdParent" value=""/>';
         $result .= '<input type="hidden" id="hfIdClient" value="'. $idTemoin .'"/>';
         $result .= '<input type="hidden" id="hfIdConclusion" value=""/>';
         $result .= '<form id="kvform" class="form-vertical" action="" method="post" role="form">';
 
-        if(!User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER])) {
+        if((User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP])) && !Yii::$app->user->isSuperAdmin) {
             //User de type Admin ou Responsable
             $result .= Form::widget([
                 'formName' => 'kvform',
@@ -504,8 +509,8 @@ class SyntheseController extends Controller
             ]);
             $result .= '</div></div></div></div></div>';
         }
-        else{
-            //User de type simple utilisateur (responsable que SON établissement)
+        elseif(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]) && !Yii::$app->user->isSuperAdmin){
+            //User de type simple utilisateur (responsable de SON établissement)
             $result .= Form::widget([
                 'formName' => 'kvform',
                 'form' => ActiveForm::begin(),
@@ -615,9 +620,177 @@ class SyntheseController extends Controller
             ]);
             $result .= '</div></div></div></div></div>';
         }
+        else{
+            $result .= Form::widget([
+                'formName' => 'kvform',
+                'form' => ActiveForm::begin(),
+                'columns' => 2,
+                'compactGrid' => true,
+
+                // set global attribute defaults
+                'attributeDefaults' => [
+                    'labelOptions' => ['class' => 'col-sm-3 control-label', 'style' => 'margin-top:20px;'],
+                    'inputContainer' => ['class' => 'col-sm-6 form-control', 'style' => 'border:none;'],
+                    'container' => ['class' => 'form-group field-user-etablissementGroupAdmin'],
+                ],
+                'attributes' => [
+                    'client' => [
+                        'type' => Form::INPUT_WIDGET,
+                        'widgetClass' => '\kartik\select2\Select2',
+                        'options' => [
+                            'data' => Client::getAsList(),
+                            'options' => [
+                                'placeholder' => 'Sélectionner un ou plusieurs clients', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => false
+                            ],
+                            'pluginOptions' => [
+                                'allowClear' => true,
+                            ]
+                        ],
+                        'label' => 'Clients',
+                    ],
+                    'service' => [
+                        'type' => Form::INPUT_WIDGET,
+                        'widgetClass' => '\kartik\select2\Select2',
+                        'options' => [
+                            'data' => ArrayHelper::map(AnalyseService::find()->andFilterWhere(['active' => 1])->orderBy('libelle')->asArray()->all(), 'id', 'libelle'),
+                            'options' => [
+                                'placeholder' => 'Sélectionner un ou plusieurs service', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                            ],
+                            'pluginOptions' => [
+                                'allowClear' => true,
+                            ]
+                        ],
+                        'label' => 'Services',
+                    ],
+                ]
+            ]);
+            $result .= '<div class="row"><div class="col-sm-6"><label class="col-sm-3" style="margin-top:20px;" for="child-id">Etablissements</label><div class="col-sm-6 form-control" style="border:none;">';
+            $result .= DepDrop::widget([
+                'type' => DepDrop::TYPE_SELECT2,
+                'data' => [],
+                'name' => 'etablissement',
+                'options' => ['id' => 'kvform-etablissement', 'placeholder' => 'Aucun'],
+                'select2Options' => ['pluginOptions' => ['allowClear' => true, 'multiple' => true]],
+                'pluginOptions' => [
+                    'depends' => ['kvform-client'],
+                    'url' => Url::to(['/synthese/get-etablissement-from-id-client']),
+                    'params' => ['hfIdParent'],
+                    'placeholder' => 'Sélectionner un ou plusieurs établissements'
+                ]
+            ]);
+            $result .= '</div></div>';
+            $result .= '<div class="col-sm-6">';
+            $result .= Form::widget([
+                'formName' => 'kvform',
+                'columns' => 2,
+                'compactGrid' => true,
+
+                // set global attribute defaults
+                'attributeDefaults' => [
+                    'labelOptions' => ['class' => 'col-sm-3 control-label', 'style' => 'margin-top:20px;'],
+                    'inputContainer' => ['class' => 'col-sm-6 form-control', 'style' => 'border:none;'],
+                ],
+                'attributes' => [
+                    'conclusion' => [
+                        'type' => Form::INPUT_WIDGET,
+                        'widgetClass' => '\kartik\select2\Select2',
+                        'options' => [
+                            'data' => ArrayHelper::map(AnalyseConformite::find()->orderBy('libelle')->asArray()->all(), 'id', 'libelle'),
+                            'options' => [
+                                'placeholder' => 'Sélectionner une ou plusieurs conclusions', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                            ],
+                            'pluginOptions' => [
+                                'allowClear' => true,
+                            ]
+                        ],
+                        'label' => 'Conclusions',
+                    ],
+                ]
+            ]);
+            $result .= '</div></div>';
+
+            $result .= '<div class="row">';
+            $result .= '<div class="col-sm-6">';
+            $result .= '<form id="kvform" class="form-vertical" action="" method="post" role="form">';
+            $result .= Form::widget([
+                'formName' => 'kvform',
+                'columns' => 2,
+                'compactGrid' => true,
+
+                // set global attribute defaults
+                'attributeDefaults' => [
+                    'labelOptions' => ['class' => 'col-sm-6 control-label', 'style' => 'margin-top:20px;'],
+                    'inputContainer' => ['class' => 'col-sm-6 form-control', 'style' => 'border:none;'],
+                ],
+                'attributes' => [
+                    'dateDebut' => [
+                        'type' => Form::INPUT_WIDGET,
+                        'widgetClass' => '\kartik\date\DatePicker',
+                        'options' => [
+                            'options' => [
+                                'placeholder' => 'Date de début', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                            ],
+                            'pluginOptions' => [
+                                'autoclose' => true,
+                            ]
+                        ],
+                        'label' => 'Date de début',
+                    ],
+                    'dateFin' => [
+                        'type' => Form::INPUT_WIDGET,
+                        'widgetClass' => '\kartik\date\DatePicker',
+                        'options' => [
+                            'options' => [
+                                'placeholder' => 'Date de fin', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                            ],
+                            'pluginOptions' => [
+                                'autoclose' => true,
+                            ]
+                        ],
+                        'label' => 'Date de fin',
+                    ]
+                ]
+            ]);
+            $result .= '</form>';
+            $result .= '</div>';
+            $result .= '<div class="col-sm-6">';
+            $result .= '<div class="row">';
+            $result .= '<div class="col-sm-12">';
+            $result .= '<label class="col-sm-6" style="margin-top:20px;" for="child-id-interpretation">Interprétations</label>';
+            $result .= '<div class="col-sm-6 form-control" style="border:none;">';
+            $result .= DepDrop::widget([
+                'type' => DepDrop::TYPE_SELECT2,
+                'data' => $dataInterpretation,
+                'name' => 'interpretation',
+                'options' => ['id' => 'child-id-interpretation', 'placeholder' => 'Aucun'],
+                'select2Options' => ['pluginOptions' => ['allowClear' => true, 'multiple' => true]],
+                'pluginOptions' => [
+                    'depends' => ['kvform-conclusion'],
+                    'url' => Url::to(['/synthese/get-interpretation-from-ids-conclusion']),
+                    'params' => ['hfIdConclusion'],
+                    'placeholder' => 'Sélectionner une ou plusieurs interprétations'
+                ]
+            ]);
+            $result .= '</div></div></div></div></div>';
+        }
 
 
         return $result;
+    }
+
+    /**
+     * Récupère la liste des établissements liés au client
+     * @return array
+     */
+    public function actionGetEtablissementFromIdClient(){
+        $result = [];
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = $_POST['depdrop_params'];
+        $clientId = $_data[0];
+        $result = Client::getChildList($clientId);
+
+        return ['output'=>$result];
     }
 
     /**
@@ -983,10 +1156,23 @@ class SyntheseController extends Controller
      */
     public function actionGetSyntheseResult(){
         $_data = Json::decode($_POST['data']);
-        //Yii::trace($_data);die();
+        Yii::trace($_data);//die();
 
-        $listEtablissement = $_data['listEtablissement'];
-        $listLabo = $_data['listLabo'];
+        if(isset($_data['listEtablissement']))
+            if($_data['listEtablissement'] != '')
+                $listEtablissement = $_data['listEtablissement'];
+            else
+                $listEtablissement = [];
+        else
+            $listEtablissement = [];
+
+        if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !Yii::$app->user->isSuperAdmin)
+            if($_data['listLabo'] != '')
+                $listLabo = $_data['listLabo'];
+            else
+                $listLabo = [];
+
+
         $listService = $_data['listService'];
         $listConclusion = $_data['listConclusion'];
 
@@ -1018,8 +1204,9 @@ class SyntheseController extends Controller
 
         if(count($listEtablissement) != 0)
             $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_client',$listEtablissement]);
-        if(count($listLabo) != 0)
-            $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_labo',$listLabo]);
+        if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !Yii::$app->user->isSuperAdmin)
+            if(count($listLabo) != 0)
+                $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_labo',$listLabo]);
         if(count($listService) != 0)
             $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_service',$listService]);
         if(count($listConclusion) != 0)
