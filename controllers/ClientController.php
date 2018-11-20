@@ -154,21 +154,22 @@ class ClientController extends Controller
             }
             $model->load(Yii::$app->request->post());
 
-            $model->active = 1;
-            $model->is_parent = 1;
-            $model->is_analyzable = 1;
             try {
-                if(!isset(Yii::$app->request->post()['Client']['active']))
-                    $model->active = 0;
-                if(!isset(Yii::$app->request->post()['Client']['is_parent'])) {
-                    $model->is_parent = 0;
-                    $model->id_parent = Yii::$app->request->post()['kvform']['client'];
+                if (Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])){
+                    $model->active = 1;
+                    $model->is_parent = 1;
+                    $model->is_analyzable = 1;
+                    if (!isset(Yii::$app->request->post()['Client']['active']))
+                        $model->active = 0;
+                    if (!isset(Yii::$app->request->post()['Client']['is_parent'])) {
+                        $model->is_parent = 0;
+                        $model->id_parent = Yii::$app->request->post()['kvform']['client'];
+                    } else {
+                        $model->id_parent = null;
+                    }
+                    if (!isset(Yii::$app->request->post()['Client']['is_analyzable']))
+                        $model->is_analyzable = 0;
                 }
-                else{
-                    $model->id_parent = null;
-                }
-                if(!isset(Yii::$app->request->post()['Client']['is_analyzable']))
-                    $model->is_analyzable = 0;
 
                 $isValid = $model->save();
             }

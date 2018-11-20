@@ -4,6 +4,7 @@ use webvimark\modules\UserManagement\components\GhostHtml;
 use app\assets\components\SweetAlert\SweetAlertAsset;
 use yii\widgets\DetailView;
 use yii\helpers\Url;
+use app\models\User;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Client */
@@ -20,9 +21,13 @@ $this->registerJS(<<<JS
 JS
 );
 
+$clientLabel = 'Etablissements';
+if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+    $clientLabel = 'Clients';
+
 
 $this->title = $model->name;
-$this->params['breadcrumbs'][] = ['label' => 'Clients', 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => $clientLabel, 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="client-view">
@@ -44,7 +49,9 @@ $this->params['breadcrumbs'][] = $this->title;
                                 'data-intro' => Yii::t('microsept', 'Edit client'),
                             ]
                         ) ?>
-                        <button class="btn btn-danger btn_delete"><i class="fa fa-trash"></i>&nbsp;Supprimer</button>
+                        <?php if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) : ?>
+                            <button class="btn btn-danger btn_delete"><i class="fa fa-trash"></i>&nbsp;Supprimer</button>
+                        <?php endif; ?>
                     </div>
                 </div>
 

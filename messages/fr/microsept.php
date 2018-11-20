@@ -103,6 +103,8 @@ return [
     "Client active" => "Actif",
     "Clients"=>"Clients",
     "ClientList"=>"Liste des clients",
+    "Etablissement_update" => "Mise à jour de l'établissement",
+    "Etablissements"=>"Etablissements",
     "Username" => "Utilisateur",
     "Remember me" => "Se souvenir de moi",
     "PortailAdmin" => "Admin du portail",

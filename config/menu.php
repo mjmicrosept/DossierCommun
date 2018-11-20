@@ -7,6 +7,29 @@
  */
 
 use app\models\User;
+use app\models\PortailUsers;
+use app\models\Client;
+
+$clientLabel = 'Etablissements';
+$clientIcon = 'fa fa-building';
+if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+    $clientLabel = 'Clients';
+    $clientIcon = 'fa fa-users';
+}
+
+$visibleClient = false;
+if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])){
+    $visibleClient = true;
+}
+else{
+    if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN])){
+        $idParent = PortailUsers::find()->andFilterWhere(['id_user'=>User::getCurrentUser()->id])->one()->id_client;
+        $aIdChild = Client::getChildList($idParent);
+        if(count($aIdChild) > 0)
+            $visibleClient = true;
+    }
+}
+
 
 return [
     [
@@ -58,14 +81,15 @@ return [
         ],
     ],
     [
-        'label' => '<a href="#"><i class="fa fa-users"></i>
-                                    <span>Clients</span>
+        'label' => '<a href="#"><i class="'.$clientIcon.'"></i>
+                                    <span>'.$clientLabel.'</span>
                                 <i class="fa fa-angle-left pull-right"></i></a>',
         'options' => ['class' => ' treeview'],
         'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
         'items' => [
             ['label' => '<span class="fa fa-list"></span> Liste', 'url' => ['/client/index']],
         ],
+        'visible'=>$visibleClient
     ],
     [
         'label' => '<a href="#"><i class="fa fa-file"></i>

@@ -110,7 +110,6 @@ class Client extends \yii\db\ActiveRecord
                     array_push($result, $item);
                 }
             }
-            Yii::trace($result);
             return $result;
         }
     }

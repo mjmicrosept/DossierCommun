@@ -5,6 +5,7 @@ use kartik\form\ActiveForm;
 use kartik\builder\Form;
 use kartik\builder\FormAsset;
 use app\assets\views\KartikCommonAsset;
+use app\models\User;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Client */
@@ -74,6 +75,7 @@ if(isset($id)) {
 
                 <?= $form->field($model, 'description')->textarea(['rows' => 6, 'data-step' => '2', 'data-intro' => Yii::t('microsept', 'Client description')]) ?>
 
+                <?php if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) : ?>
                 <div class="form-group field-client-check-isparent">
                     <div class="col-sm-8 col-sm-offset-2">
                         <div class="checkbox">
@@ -140,6 +142,7 @@ if(isset($id)) {
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
 
                 <div class="form-group">
                     <div class="col-md-offset-2 col-md-10">

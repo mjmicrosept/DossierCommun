@@ -7,6 +7,7 @@ use webvimark\extensions\GridPageSize\GridPageSize;
 use app\assets\components\SweetAlert\SweetAlertAsset;
 use yii\helpers\Url;
 use app\models\Client;
+use app\models\User;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\ClientSearch */
@@ -24,8 +25,14 @@ $this->registerJS(<<<JS
 JS
 );
 
-$this->title = 'Clients';
+$clientLabel = 'Etablissements';
+if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+    $clientLabel = 'Clients';
+
+$this->title = $clientLabel;
 $this->params['breadcrumbs'][] = $this->title;
+
+
 ?>
 <div class="client-index">
     <div class="panel panel-primary">
@@ -42,11 +49,15 @@ $this->params['breadcrumbs'][] = $this->title;
                             'text'=>Yii::t('microsept','Records per page')
                         ]) ?>
                         &nbsp;
-                        <?= GhostHtml::a(
-                            '<i class="fa fa-plus"></i> ' . Yii::t('microsept', 'Create'),
-                            ['/client/create'],
-                            ['class' => 'btn btn-success']
-                        ) ?>
+                        <?php
+                            if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+                                echo GhostHtml::a(
+                                    '<i class="fa fa-plus"></i> ' . Yii::t('microsept', 'Create'),
+                                    ['/client/create'],
+                                    ['class' => 'btn btn-success']
+                                );
+                            }
+                        ?>
                     </div>
                 </div>
             </div>
@@ -103,11 +114,16 @@ $this->params['breadcrumbs'][] = $this->title;
                         'template'=>'{view}{update}{delete}',
                         'buttons' => [
                             'delete' => function ($url, $model) {
+                                $display = 'none';
+                                if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+                                    $display = 'block';
+                                }
                                 return Html::a('<span class="glyphicon glyphicon-trash"></span>', '#', [
                                     'title' => Yii::t('microsept', 'Delete'),
                                     'class'=>'btn_delete',
                                     'data-id'=>$model->id,
                                     'data-name'=>$model->name,
+                                    'style'=>['display'=>$display]
                                 ]);
                             },
                         ]

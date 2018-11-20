@@ -6,6 +6,7 @@ use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use app\models\Client;
+use app\models\PortailUsers;
 
 /**
  * ClientSearch represents the model behind the search form of `app\models\Client`.
@@ -59,11 +60,23 @@ class ClientSearch extends Client
 
         // grid filtering conditions
         $query->andFilterWhere([
-            'id' => $this->id,
             'user_create' => $this->user_create,
             'date_create' => $this->date_create,
             'active' => $this->active,
         ]);
+
+        if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+            $query->andFilterWhere([
+                'id' => $this->id,
+            ]);
+        }
+        else{
+            $idParent = PortailUsers::find()->andFilterWhere(['id_user'=>User::getCurrentUser()->id])->one()->id_client;
+            $aIdChild = self::getChildList($idParent);
+            $query->andFilterWhere(['in',
+                'id',$aIdChild
+            ]);
+        }
 
         $query->andFilterWhere(['like', 'name', $this->name])
             ->andFilterWhere(['like', 'description', $this->description]);

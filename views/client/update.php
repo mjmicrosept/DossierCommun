@@ -1,12 +1,23 @@
 <?php
 
 use yii\helpers\Html;
+use app\models\User;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Client */
 
-$this->title = Yii::t('microsept','Client_update'). ' : ' . $model->name;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('microsept','Clients'), 'url' => ['index']];
+$clientTitle = 'Etablissement_update';
+if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+    $clientTitle = 'Client_update';
+
+$clientLabel = 'Etablissements';
+if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+    $clientLabel = 'Clients';
+
+
+
+$this->title = Yii::t('microsept',$clientTitle). ' : ' . $model->name;
+$this->params['breadcrumbs'][] = ['label' => Yii::t('microsept',$clientLabel), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->id]];
 $this->params['breadcrumbs'][] = Yii::t('microsept','Update');
 ?>
