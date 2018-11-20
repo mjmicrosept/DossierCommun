@@ -99,6 +99,7 @@ class SiteController extends Controller
         $aGlobalDataAnalyse = [];
         $dataAnalyse = [];
         $gridColumn = [];
+        $gridColumnAnalyse = [];
         $entete = [];
 
         //Partie Tableau de bord des documents
