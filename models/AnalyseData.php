@@ -142,7 +142,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                             //var_dump($aColumns).PHP_EOL;
                             if(isset($aColumns['1'])) {
                                 //Test d'existence de l'analyse en base
-                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['0']])->one();
+                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['0']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
                                     //Création des données générales
                                     $analyseData = new self();
