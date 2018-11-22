@@ -43,7 +43,8 @@
         "himiklab/yii2-recaptcha-widget" : "*",
         "wbraganca/yii2-fancytree-widget": "*",
         "devleaks/yii2-introjs": "*",
-        "kartik-v/yii2-widget-depdrop": "dev-master"
+        "kartik-v/yii2-widget-depdrop": "dev-master",
+        "yii2mod/yii2-ftp": "^1.0"
     },
     "require-dev": {
         "yiisoft/yii2-codeception": "*",

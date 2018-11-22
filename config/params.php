@@ -31,4 +31,10 @@ return [
 
     //MODE DECONNECTE
     'disconnectMode'=> false,
+    'analyses' => [
+        'host' => '127.0.0.1',
+        'login' => 'jmaratier',
+        'password' => 'Microsept49',
+        'fileAnalyse' => 'COMPILATIONANALYSES.csv',
+    ],
 ];
