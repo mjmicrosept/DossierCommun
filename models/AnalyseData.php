@@ -158,13 +158,29 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     //echo $aColumns['5'].PHP_EOL;
                                     if($aColumns['5'] == '')
                                         $conditionnement = null;
-                                    else
+                                    else {
                                         $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"))])->one();
+                                        if(is_null($conditionnement)){
+                                            $conditionnement = new AnalyseConditionnement();
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->active = 1;
+                                            if (!$conditionnement->save())
+                                                $error = true;
+                                        }
+                                    }
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
                                     if($aColumns['7'] == '')
                                         $lieuPrelevement = null;
-                                    else
+                                    else {
                                         $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
+                                        if(is_null($lieuPrelevement)){
+                                            $lieuPrelevement = new AnalyseLieuPrelevement();
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->active = 1;
+                                            if (!$lieuPrelevement->save())
+                                                $error = true;
+                                        }
+                                    }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
                                     if($aColumns['8'] == '')
                                         $interpretation = null;
