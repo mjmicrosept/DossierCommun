@@ -14,6 +14,7 @@ class m160408_074839_create_analyse_interpretation extends Migration
     {
         $this->createTable('analyse_interpretation', [
             'id' => $this->primaryKey(),
+            'id_labo' => $this->integer(11)->notNull(),
             'libelle' => $this->string(255)->notNull(),
             'conforme' => $this->boolean()->notNull(),
             'active' => $this->boolean()->notNull()->defaultValue(1),

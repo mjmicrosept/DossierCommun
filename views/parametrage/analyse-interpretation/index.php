@@ -7,6 +7,7 @@ use webvimark\extensions\GridPageSize\GridPageSize;
 use app\assets\components\SweetAlert\SweetAlertAsset;
 use yii\helpers\Url;
 use app\models\AnalyseConformite;
+use app\models\Labo;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\AnalyseInterpretationSearch */
@@ -63,6 +64,18 @@ JS
                 'dataProvider' => $dataProvider,
                 'filterModel' => $searchModel,
                 'columns' => [
+                    [
+                        'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
+                        'filter'=>'',
+                        'label'=>'Laboratoire',
+                        'format'=>'raw',
+                        'vAlign'=>'middle',
+                        'hAlign'=> 'center',
+                        'value'=>function($model){
+                            $labo = Labo::find()->andFilterWhere(['id'=>$model->id_labo])->one();
+                            return $labo->raison_sociale;
+                        }
+                    ],
                     [
                         'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
                         'filter'=>'',

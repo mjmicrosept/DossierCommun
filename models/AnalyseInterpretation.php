@@ -10,6 +10,8 @@ use Yii;
  * @property int $id
  * @property string $libelle
  * @property int $conforme
+ * @property int $active
+ * @property int $id_labo
  */
 class AnalyseInterpretation extends \yii\db\ActiveRecord
 {
@@ -27,8 +29,8 @@ class AnalyseInterpretation extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['libelle','conforme','active'], 'required'],
-            [['conforme','active'], 'integer'],
+            [['libelle','conforme','active','id_labo'], 'required'],
+            [['conforme','active','id_labo'], 'integer'],
             [['libelle'], 'string', 'max' => 255],
         ];
     }
@@ -42,6 +44,7 @@ class AnalyseInterpretation extends \yii\db\ActiveRecord
             'id' => 'ID',
             'libelle' => 'Libelle',
             'conforme' => 'Conforme',
+            'id_labo' => 'Id Labo',
         ];
     }
 

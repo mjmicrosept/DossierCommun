@@ -6,6 +6,7 @@ use Yii;
 use app\models\AnalyseInterpretation;
 use app\models\AnalyseInterpretationSearch;
 use app\models\AnalyseConformite;
+use app\models\Labo;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -69,14 +70,16 @@ class AnalyseInterpretationController extends Controller
     {
         $model = new AnalyseInterpretation();
         $listConformite = AnalyseConformite::getAsList();
+        $listLabo = Labo::getAsListActive();
 
         $isValid = true;
         if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             try {
-
-                if(isset(Yii::$app->request->post()['kvform']['conformite'])) {
+                $model->active = 1;
+                if(isset(Yii::$app->request->post()['kvform']['conformite']) && isset(Yii::$app->request->post()['kvform']['laboratoire'])) {
                     $model->conforme = intval(Yii::$app->request->post()['kvform']['conformite']);
+                    $model->id_labo = intval(Yii::$app->request->post()['kvform']['laboratoire']);
                 }
                 else{
                     $isValid = false;
@@ -84,6 +87,8 @@ class AnalyseInterpretationController extends Controller
 
                 if($isValid)
                     $isValid = $model->save();
+
+                Yii::trace($isValid);
             }
             catch(Exception $e){
                 Yii::trace($model->errors);
@@ -99,7 +104,9 @@ class AnalyseInterpretationController extends Controller
             'model' => $model,
             'id'=>null,
             'idConformite'=>null,
-            'listConformite' => $listConformite
+            'idLabo'=>null,
+            'listConformite' => $listConformite,
+            'listLabo'=>$listLabo
         ]);
     }
 
@@ -114,13 +121,15 @@ class AnalyseInterpretationController extends Controller
     {
         $model = $this->findModel($id);
         $listConformite = AnalyseConformite::getAsList();
+        $listLabo = Labo::getAsListActive();
         $isValid = true;
         if (Yii::$app->request->isPost) {
             $model->load(Yii::$app->request->post());
             try {
 
-                if(isset(Yii::$app->request->post()['kvform']['conformite'])) {
+                if(isset(Yii::$app->request->post()['kvform']['conformite']) && isset(Yii::$app->request->post()['kvform']['laboratoire'])) {
                     $model->conforme = intval(Yii::$app->request->post()['kvform']['conformite']);
+                    $model->id_labo = intval(Yii::$app->request->post()['kvform']['laboratoire']);
                 }
                 else{
                     $isValid = false;
@@ -143,7 +152,9 @@ class AnalyseInterpretationController extends Controller
             'model' => $model,
             'id' => $model->id,
             'idConformite'=>$model->conforme,
-            'listConformite' => $listConformite
+            'idLabo'=>$model->id_labo,
+            'listConformite' => $listConformite,
+            'listLabo'=>$listLabo
         ]);
     }
 

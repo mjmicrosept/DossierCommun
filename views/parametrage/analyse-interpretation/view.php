@@ -5,6 +5,7 @@ use yii\widgets\DetailView;
 use app\assets\components\SweetAlert\SweetAlertAsset;
 use yii\helpers\Url;
 use app\models\AnalyseConformite;
+use app\models\Labo;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\AnalyseInterpretation */
@@ -58,6 +59,13 @@ JS
             <?= DetailView::widget([
                 'model' => $model,
                 'attributes' => [
+                    [
+                        'label' => 'Laboratoire',
+                        'value' => function($model){
+                            $labo = Labo::find()->andFilterWhere(['id'=>$model->id_labo])->one();
+                            return $labo->raison_sociale;
+                        }
+                    ],
                     [
                         'label' => 'Conformité',
                         'value' => function($model){

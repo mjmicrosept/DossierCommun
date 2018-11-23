@@ -18,7 +18,9 @@ $this->params['breadcrumbs'][] = Yii::t('microsept','Update');
         'model' => $model,
         'id' => $id,
         'idConformite' => $idConformite,
+        'idLabo' => $idLabo,
         'listConformite'=>$listConformite,
+        'listLabo'=>$listLabo,
     ]) ?>
 
 </div>

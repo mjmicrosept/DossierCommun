@@ -12,10 +12,14 @@ KartikCommonAsset::register($this);
 
 $idInterpretation = 0;
 $idconformite = 0;
+$idlabo = 0;
 if(isset($id)) {
     $idInterpretation = $id;
     if (isset($idConformite)) {
         $idconformite = $idConformite;
+    }
+    if (isset($idLabo)) {
+        $idlabo = $idLabo;
     }
 }
 
@@ -62,6 +66,20 @@ if(isset($id)) {
                         'container'=>['class'=>'form-group form-parent'],
                     ],
                     'attributes'=>[
+                        'laboratoire'=>[
+                            'type'=>Form::INPUT_WIDGET,
+                            'widgetClass'=>'\kartik\select2\Select2',
+                            'options'=>[
+                                'data'=>$listLabo,
+                                'options' => [
+                                    'placeholder' => 'Sélectionner un laboratoire','dropdownCssClass' =>'dropdown-vente-livr',
+                                ],
+                                'pluginOptions' => [
+                                    'allowClear' => true,
+                                ],
+                            ],
+                            'label'=>'Laboratoire',
+                        ],
                         'conformite'=>[
                             'type'=>Form::INPUT_WIDGET,
                             'widgetClass'=>'\kartik\select2\Select2',
@@ -100,6 +118,10 @@ $this->registerJs(<<<JS
 //actions au chargement de la page en cas d'update
 	if({$idconformite} != 0){
         $('#kvform-conformite').val({$idconformite}).change();
+	}
+	
+	if({$idlabo} != 0){
+        $('#kvform-laboratoire').val({$idlabo}).change();
 	}
 
 JS
