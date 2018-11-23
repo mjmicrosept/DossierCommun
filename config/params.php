@@ -31,10 +31,14 @@ return [
 
     //MODE DECONNECTE
     'disconnectMode'=> false,
-    'analyses' => [
+    'ftp-analyses' => [
         'host' => '127.0.0.1',
         'login' => 'jmaratier',
         'password' => 'Microsept49',
         'fileAnalyse' => 'COMPILATIONANALYSES.csv',
     ],
+    'services'=>[
+        'generique'=>5
+    ]
+
 ];

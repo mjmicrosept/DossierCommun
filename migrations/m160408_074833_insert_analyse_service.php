@@ -16,7 +16,8 @@ class m160408_074833_insert_analyse_service extends Migration
             [1, 'Cosmétologie',1],
             [2, 'Eaux',1],
             [3, 'Hygiène alimentaire',1],
-            [4, 'Pharmacopée',1]
+            [4, 'Pharmacopée',1],
+            [5, 'Générique',1]
         ]);
     }
 

@@ -1313,7 +1313,10 @@ class SyntheseController extends Controller
             [
                 'label' => 'Conclusion',
                 'value' => function($row) {
-                    return AnalyseInterpretation::find()->andFilterWhere(['id'=>$row['id_interpretation']])->one()->libelle;
+                    if(is_null($row['id_interpretation']))
+                        return '-';
+                    else
+                        return AnalyseInterpretation::find()->andFilterWhere(['id'=>$row['id_interpretation']])->one()->libelle;
                 },
             ],
             [
