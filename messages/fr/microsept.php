@@ -192,5 +192,10 @@ return [
     "LieuPrelevement_update" => "Mise à jour du lieu de prélèvement",
     "Client is analyzable" => "Est analysable",
     "Synthese analyse" => "Synthèse des analyses",
-    "Filters" => "Filtres"
+    "Filters" => "Filtres",
+    "Edit liaison" => "Modifier cette liaison",
+    "Liaison_update" => "Mise à jour de la liaison",
+    "LiaisonCreateSuccess"=>"La liaison a été crée avec succès",
+    "LiaisonUpdateSuccess"=>"La liaison a été mise à jour avec succès",
+    "LiaisonCreateError"=>"Une erreur s'est produite, veuillez contacter l'administrateur"
 ];

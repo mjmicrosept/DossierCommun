@@ -40,9 +40,9 @@ class MappageIdClient extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
-            'id_labo' => 'Id Labo',
-            'id_portail_client' => 'Id Portail Client',
-            'id_lims_client' => 'Id Lims Client',
+            'id_labo' => 'Laboratoire',
+            'id_portail_client' => 'Client',
+            'id_lims_client' => 'Identifiant logiciel client',
         ];
     }
 }

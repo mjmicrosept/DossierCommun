@@ -307,21 +307,17 @@ if(isset($id)) {
 $this->registerJs(<<<JS
     //actions au chargement de la page en cas d'update
 	if({$iduser} != 0){
-	    console.log('1');
 		if($portalAdmin != 1){
-		    console.log('2');
 		    $('.field-user-check-permissions').css('display','none');
 		    $('.field-user-client').css('display','none');
 		    $('.field-user-labo').css('display','none');
 		}
 		else{
-		    console.log('3');
 		    $("input:radio").each(function(){
                 if($(this).val() == '$assign')
                     $(this).prop('checked',true);
             });
 		    if($modif_admin == 1){
-		        console.log('4');
 		        $('.field-user-client').css('display','none');
                 $('.field-user-labo').css('display','none');
                 $('#clientList option[value="{$id_client}"]').attr("selected", "selected");
@@ -329,19 +325,15 @@ $this->registerJs(<<<JS
                 $('.field-user-etablissement-group').css('display','none');
 		    }
 		    else{
-		        console.log('5');
                 if($id_labo == 0){
-                    console.log('6');
                     $('.field-user-client').css('display','block');
                     if({$id_etablissement} != 0){
-                        console.log('7');
                         $('.field-user-etablissement').css('display','block');
                         $('.field-user-etablissement-group').css('display','none');
                         if({$adminClientCreator} == 1)
                             $('.field-user-etablissementAdmin').css('display','block');
                     }
                     else{
-                        console.log('8');
                         if({$list_etablissement}.length != 0){
                             $('.field-user-etablissement').css('display','none');
                             $('.field-user-etablissementAdmin').css('display','none');
@@ -363,7 +355,6 @@ $this->registerJs(<<<JS
                     $('#hfIdParent').val({$id_client});
                 }
                 else{
-                    console.log('9');
                     $('.field-user-client').css('display','none');
                     if({$adminLaboCreator} != 1)
                         $('.field-user-labo').css('display','block');
@@ -428,7 +419,6 @@ $this->registerJs(<<<JS
                     $('.field-user-labo').hide();
                     break;
                 case 'radioPermissionClientUserGroup' :
-                    console.log('test');
                     $('.field-user-labo').hide();
                     $('.field-user-etablissement-group').show();
                     $('.field-user-client').show();
