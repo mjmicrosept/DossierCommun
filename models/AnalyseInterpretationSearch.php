@@ -19,7 +19,7 @@ class AnalyseInterpretationSearch extends AnalyseInterpretation
     {
         return [
             [['id', 'conforme', 'active'], 'integer'],
-            [['libelle'], 'safe'],
+            [['libelle','id_labo','conforme'], 'safe'],
         ];
     }
 
@@ -64,7 +64,9 @@ class AnalyseInterpretationSearch extends AnalyseInterpretation
             'active' => $this->active,
         ]);
 
-        $query->andFilterWhere(['like', 'libelle', $this->libelle]);
+        $query->andFilterWhere(['like', 'libelle', $this->libelle])
+            ->andFilterWhere(['id_labo' => $this->id_labo])
+            ->andFilterWhere(['conforme' => $this->conforme]);
 
         return $dataProvider;
     }

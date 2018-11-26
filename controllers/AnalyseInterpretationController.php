@@ -41,10 +41,12 @@ class AnalyseInterpretationController extends Controller
     {
         $searchModel = new AnalyseInterpretationSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $estActiveList = ['0'=>'Non','1'=>'Oui'];
 
         return $this->render('../parametrage/analyse-interpretation/index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'estActiveList' => $estActiveList
         ]);
     }
 

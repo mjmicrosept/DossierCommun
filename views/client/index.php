@@ -74,12 +74,27 @@ $this->params['breadcrumbs'][] = $this->title;
                 'columns' => [
                     'name',
                     'adresse',
-                    'code_postal',
+                    [
+                        'attribute' => 'code_postal',
+                        'width'=>'20px',
+                    ],
                     'ville',
-                    'description:ntext',
+                    [
+                        'format'=>'raw',
+                        'hAlign' =>'center',
+                        'attribute' => 'description',
+                        'width'=>'20px',
+                        'value' => function($model){
+                            if(is_null($model->description) || $model->description == '')
+                                return '';
+                            else
+                                return '<div style="text-align:center;float:right;margin-right:20px;margin-top:5px;"><span class="glyphicon glyphicon-info-sign obs_tooltip" style="color:rgb(0, 192, 239);top:5px;" title="Description" data-content="'.$model->description.'" ></span></div>';
+                        }
+                    ],
                     [
                         'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
-                        'filter'=>'',
+                        'filter'=>$estParentList,
+                        'attribute' => 'is_parent',
                         'label'=>'Est parent',
                         'format'=>'raw',
                         'vAlign'=>'middle',
@@ -92,8 +107,9 @@ $this->params['breadcrumbs'][] = $this->title;
                         }
                     ],
                     [
+                        'attribute'=>'id_parent',
                         'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
-                        'filter'=>'',
+                        'filter'=>\yii\helpers\ArrayHelper::map(Client::find()->andFilterWhere(['is_parent'=>1])->all(), 'id','name'),
                         'label'=>'Parent',
                         'value'=>function($model){
                             if(!is_null($model->id_parent)) {
@@ -112,11 +128,12 @@ $this->params['breadcrumbs'][] = $this->title;
                     ],
                     ['class' => 'yii\grid\ActionColumn',
                         'template'=>'{view}{update}{delete}',
+                        //'headerOptions' => ['style' => 'width:20%'],
                         'buttons' => [
                             'delete' => function ($url, $model) {
                                 $display = 'none';
                                 if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
-                                    $display = 'block';
+                                    $display = 'inline';
                                 }
                                 return Html::a('<span class="glyphicon glyphicon-trash"></span>', '#', [
                                     'title' => Yii::t('microsept', 'Delete'),
@@ -126,7 +143,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                     'style'=>['display'=>$display]
                                 ]);
                             },
-                        ]
+                        ],
                     ],
                  ]
             ]); ?>
@@ -139,8 +156,27 @@ $this->params['breadcrumbs'][] = $this->title;
 <?php
 
 $this->registerJs(<<<JS
+    $(document).on('pjax:success',function(){
+        $('.obs_tooltip').popover({
+            trigger:'hover',
+            content:$(this).data('content'),
+            placement:'top',
+            html:true,
+            trigger:'hover'
+        });
+    });
 
-    $('.btn_delete').click(function(){
+    $(document).ready(function(){
+        $('.obs_tooltip').popover({
+            trigger:'hover',
+            content:$(this).data('content'),
+            placement:'top',
+            html:true,
+            trigger:'hover'
+        });
+    });
+
+    $(document).on('click','.btn_delete',function(){
         var modelID = $(this).data('id');
         var modelName = $(this).data('name');
 

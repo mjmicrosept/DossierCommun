@@ -45,10 +45,12 @@ class ClientController extends Controller
     {
         $searchModel = new ClientSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $estParentList = ['0'=>'Non','1'=>'Oui'];
 
         return $this->render('index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'estParentList' => $estParentList
         ]);
     }
 

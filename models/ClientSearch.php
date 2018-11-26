@@ -18,10 +18,18 @@ class ClientSearch extends Client
      */
     public function rules()
     {
-        return [
-            [['id', 'user_create', 'active'], 'integer'],
-            [['name', 'description', 'date_create'], 'safe'],
-        ];
+        if(Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])) {
+            return [
+                [['id', 'user_create', 'active'], 'integer'],
+                [['name','adresse', 'code_postal', 'ville', 'description', 'date_create','id_parent','is_parent'], 'safe'],
+            ];
+        }
+        else{
+            return [
+                [['id', 'user_create', 'active'], 'integer'],
+                [['name','adresse', 'code_postal', 'ville', 'description', 'date_create'], 'safe'],
+            ];
+        }
     }
 
     /**
@@ -79,7 +87,13 @@ class ClientSearch extends Client
         }
 
         $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'description', $this->description]);
+            ->andFilterWhere(['like', 'description', $this->description])
+            ->andFilterWhere(['like', 'adresse', $this->adresse])
+            ->andFilterWhere(['like', 'code_postal', $this->code_postal])
+            ->andFilterWhere(['like', 'ville', $this->ville])
+            ->andFilterWhere(['id_parent'=>$this->id_parent])
+            ->andFilterWhere(['is_parent'=>$this->is_parent]);
+
 
         return $dataProvider;
     }

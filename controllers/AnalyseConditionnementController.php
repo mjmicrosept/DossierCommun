@@ -39,10 +39,12 @@ class AnalyseConditionnementController extends Controller
     {
         $searchModel = new AnalyseConditionnementSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $estActiveList = ['0'=>'Non','1'=>'Oui'];
 
         return $this->render('../parametrage/analyse-conditionnement/index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'estActiveList' => $estActiveList
         ]);
     }
 

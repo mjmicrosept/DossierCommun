@@ -39,10 +39,12 @@ class AnalyseLieuPrelevementController extends Controller
     {
         $searchModel = new AnalyseLieuPrelevementSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $estActiveList = ['0'=>'Non','1'=>'Oui'];
 
         return $this->render('../parametrage/analyse-lieu-prelevement/index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'estActiveList' => $estActiveList
         ]);
     }
 

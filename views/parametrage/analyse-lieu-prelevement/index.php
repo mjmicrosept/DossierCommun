@@ -65,7 +65,8 @@ JS
                     'libelle',
                     [
                         'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
-                        'filter'=>'',
+                        'filter'=>$estActiveList,
+                        'attribute' => 'active',
                         'label'=>'Actif',
                         'format'=>'raw',
                         'vAlign'=>'middle',
@@ -114,7 +115,7 @@ JS
 
 $this->registerJs(<<<JS
 
-    $('.btn_delete').click(function(){
+    $(document).on('click','.btn_delete',function(){
         var modelID = $(this).data('id');
         var modelName = $(this).data('name');
         var active = $(this).data('active');

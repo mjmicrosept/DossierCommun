@@ -66,11 +66,12 @@ JS
                 'columns' => [
                     [
                         'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
-                        'filter'=>'',
+                        'filter'=>\yii\helpers\ArrayHelper::map(Labo::find()->andFilterWhere(['active'=>1])->orderBy('raison_sociale')->all(), 'id','raison_sociale'),
                         'label'=>'Laboratoire',
+                        'attribute' => 'id_labo',
                         'format'=>'raw',
                         'vAlign'=>'middle',
-                        'hAlign'=> 'center',
+                        'hAlign'=> 'left',
                         'value'=>function($model){
                             $labo = Labo::find()->andFilterWhere(['id'=>$model->id_labo])->one();
                             return $labo->raison_sociale;
@@ -78,11 +79,12 @@ JS
                     ],
                     [
                         'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
-                        'filter'=>'',
+                        'filter'=>\yii\helpers\ArrayHelper::map(AnalyseConformite::find()->orderBy('libelle')->all(), 'id','libelle'),
+                        'attribute' => 'conforme',
                         'label'=>'Conformité',
                         'format'=>'raw',
                         'vAlign'=>'middle',
-                        'hAlign'=> 'center',
+                        'hAlign'=> 'left',
                         'value'=>function($model){
                             $conformite = AnalyseConformite::find()->andFilterWhere(['id'=>$model->conforme])->one();
                             return $conformite->libelle;
@@ -91,8 +93,9 @@ JS
                     'libelle',
                     [
                         'filterOptions' => ['class'=>'filter-header', 'style' => 'text-align:left;vertical-align:middle'],
-                        'filter'=>'',
+                        'filter'=>$estActiveList,
                         'label'=>'Actif',
+                        'attribute' => 'active',
                         'format'=>'raw',
                         'vAlign'=>'middle',
                         'hAlign'=> 'center',
@@ -140,7 +143,7 @@ JS
 
 $this->registerJs(<<<JS
 
-    $('.btn_delete').click(function(){
+    $(document).on('click','.btn_delete',function(){
         var modelID = $(this).data('id');
         var modelName = $(this).data('name');
         var active = $(this).data('active');

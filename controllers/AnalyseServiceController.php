@@ -39,10 +39,12 @@ class AnalyseServiceController extends Controller
     {
         $searchModel = new AnalyseServiceSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $estActifList = ['0'=>'Non','1'=>'Oui'];
 
         return $this->render('../parametrage/analyse-service/index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
+            'estActifList' => $estActifList
         ]);
     }
 

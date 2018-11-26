@@ -86,7 +86,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerJs(<<<JS
 
-    $('.btn_delete').click(function(){
+    $(document).on('click','.btn_delete',function(){
         var modelID = $(this).data('id');
         var modelName = $(this).data('name');
 
