@@ -9,6 +9,7 @@ use app\models\Client;
 use app\models\Labo;
 use kartik\depdrop\DepDrop;
 use yii\helpers\Url;
+use app\models\User;
 
 /* @var $this yii\web\View */
 /* @var $model app\models\Client */

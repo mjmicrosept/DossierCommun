@@ -8,6 +8,7 @@ use app\assets\components\SweetAlert\SweetAlertAsset;
 use yii\helpers\Url;
 use app\models\Client;
 use app\models\Labo;
+use app\models\User;
 
 /* @var $this yii\web\View */
 /* @var $searchModel app\models\AnalyseConditionnementSearch */

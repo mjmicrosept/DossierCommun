@@ -7,7 +7,6 @@ use app\models\AnalyseInterpretation;
 use app\models\AnalyseInterpretationSearch;
 use app\models\AnalyseConformite;
 use app\models\Labo;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\helpers\Json;

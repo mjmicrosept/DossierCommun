@@ -6,7 +6,6 @@ use Yii;
 use app\models\AnalyseConformite;
 use app\models\AnalyseConformiteSearch;
 use app\models\AnalyseInterpretation;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\helpers\Json;

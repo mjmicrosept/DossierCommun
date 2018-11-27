@@ -101,7 +101,7 @@ return [
 //        'linkTemplate' => '<a target="{target}" href="{url}">{label}</a>',
         'items' => [
             //['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
-            ['label' => '<span class="fas fa-cloud-upload-alt"></span> Upload', 'url' => ['/document/upload']],
+            ['label' => '<span class="fas fa-cloud-upload-alt"></span> Envoi des documents', 'url' => ['/document/upload']],
             ['label' => '<span class="fa fa-tag"></span> Résultats d\'analyses', 'url' => ['/document/result-analyse-index']],
         ],
 //        'visible' => Yii::$app->user->isSuperAdmin
@@ -120,6 +120,7 @@ return [
                 //'visible'=>true
                 'visible' => !User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) && !User::getCurrentUser()->hasRole([User::TYPE_LABO_USER]) ? true : Yii::$app->user->isSuperAdmin  ? true : false
             ],
+            ['label' => '<span class="fas fa-cloud-upload-alt"></span> Envoi des données', 'url' => ['/analyse-data/upload']],
         ],
     ],
 ];

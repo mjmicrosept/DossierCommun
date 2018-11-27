@@ -5,7 +5,6 @@ namespace app\controllers;
 use Yii;
 use app\models\AnalyseGerme;
 use app\models\AnalyseGermeSearch;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\helpers\Json;

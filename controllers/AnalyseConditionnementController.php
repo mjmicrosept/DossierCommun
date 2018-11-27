@@ -5,7 +5,6 @@ namespace app\controllers;
 use Yii;
 use app\models\AnalyseConditionnement;
 use app\models\AnalyseConditionnementSearch;
-use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
 use yii\helpers\Json;
