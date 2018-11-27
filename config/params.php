@@ -13,21 +13,39 @@ return [
     'roleClientUserGroup'=>'client_user_group',
     'roleClientUser'=>'client_user',
 
-    //PATH
+    //PATH DOSSIERS CLIENTS
     'dossierAdmin'=>dirname(__DIR__) .'/web/dossiers_clients/admin/',
     'dossierTemplate'=>dirname(__DIR__) .'/web/dossiers_clients/admin/template',
     'dossierClients'=>dirname(__DIR__) .'/web/dossiers_clients/actifs/',
     'dossierArchive'=>dirname(__DIR__) .'/web/dossiers_clients/archive/',
     'dossierRoot'=>dirname(__DIR__) .'/web/dossiers_clients/',
 
-    //URL
+    //URL DOSSIERS CLIENTS
     'urlAdmin'=>Yii::$app->request->baseUrl .'/dossiers_clients/admin/',
     'urlTemplate'=>Yii::$app->request->baseUrl .'/dossiers_clients/admin/template',
     'urlClients'=>Yii::$app->request->baseUrl .'/dossiers_clients/actifs/',
     'urlArchive'=>Yii::$app->request->baseUrl .'/dossiers_clients/archive/',
     'urlRoot'=>Yii::$app->request->baseUrl .'/dossiers_clients/',
 
+
     'arboClientFirstYear'=>2007,
+    //DONNEES LABORATOIRE
+    'laboratoire' => [
+        'path' => [
+            //'dossierAdmin'=>dirname(__DIR__) .'/web/dossiers_clients/admin/',
+            //'dossierTemplate'=>dirname(__DIR__) .'/web/dossiers_clients/admin/template',
+            'dossierLabo'=>dirname(__DIR__) .'/web/dossiers_labos/analyseData/',
+            //'dossierArchive'=>dirname(__DIR__) .'/web/dossiers_clients/archive/',
+            //'dossierRoot'=>dirname(__DIR__) .'/web/dossiers_clients/',
+        ],
+        'url' => [
+            //'urlAdmin'=>Yii::$app->request->baseUrl .'/dossiers_clients/admin/',
+            //'urlTemplate'=>Yii::$app->request->baseUrl .'/dossiers_clients/admin/template',
+            'urlLabo'=>Yii::$app->request->baseUrl .'/dossiers_labos/analyseData/',
+            //'urlArchive'=>Yii::$app->request->baseUrl .'/dossiers_clients/archive/',
+            //'urlRoot'=>Yii::$app->request->baseUrl .'/dossiers_clients/',
+        ]
+    ],
 
     //MODE DECONNECTE
     'disconnectMode'=> false,

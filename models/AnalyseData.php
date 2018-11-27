@@ -375,8 +375,12 @@ class AnalyseData extends \yii\db\ActiveRecord
                 case 13 :
                     break;
             }
-            if(!$error)
+            if(!$error) {
+                //On valide l'enregistrement des données
                 $transaction->commit();
+                //On supprime le fichier
+                unlink($filename);
+            }
             else
                 $transaction->rollBack();
             return true;

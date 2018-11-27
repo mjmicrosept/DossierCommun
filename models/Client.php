@@ -189,6 +189,19 @@ class Client extends \yii\db\ActiveRecord
     }
 
     /**
+     * Détermine si un client possède des établissements ou non
+     * @param $id
+     * @return bool
+     */
+    public static function hasChilds($id){
+        $childList = self::find()->andFilterWhere(['id_parent'=>$id])->count();
+        if($childList == 0)
+            return false;
+        else
+            return true;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function rules()

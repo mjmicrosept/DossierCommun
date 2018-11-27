@@ -157,7 +157,7 @@ return [
     "Nov"=>"Novembre",
     "Dec"=>"Décembre",
     "Resultat_De"=>"Résultats de la période : ",
-    "Upload_Labo"=>"Upload",
+    "Upload_Labo"=>"Envoi",
     "Upload_Doc_Analyse"=>"Envoi de documents d'analyses",
     "Send"=>"Envoyer",
     "LastSend"=>"Derniers envois",
@@ -197,5 +197,6 @@ return [
     "Liaison_update" => "Mise à jour de la liaison",
     "LiaisonCreateSuccess"=>"La liaison a été crée avec succès",
     "LiaisonUpdateSuccess"=>"La liaison a été mise à jour avec succès",
-    "LiaisonCreateError"=>"Une erreur s'est produite, veuillez contacter l'administrateur"
+    "LiaisonCreateError"=>"Une erreur s'est produite, veuillez contacter l'administrateur",
+    "Upload_Doc_Data"=>"Envoi des données d'analyses"
 ];
