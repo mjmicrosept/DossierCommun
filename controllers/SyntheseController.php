@@ -1166,6 +1166,12 @@ class SyntheseController extends Controller
         else
             $listEtablissement = [];
 
+        //On rempli le tableau des établissements par les identifiants des établissements accessible par l'utilisateur connecté (sauf si admin car accès à tout)
+        if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperAdmin){
+            $listEtablissement = PortailUsers::getIdClientUserGroup(User::getCurrentUser()->id);
+        }
+        Yii::trace($listEtablissement);
+
         if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !Yii::$app->user->isSuperAdmin)
             if($_data['listLabo'] != '')
                 $listLabo = $_data['listLabo'];
