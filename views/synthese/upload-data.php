@@ -27,6 +27,7 @@ $this->params['breadcrumbs'][] = Yii::t('microsept', 'Upload_Labo');
 $baseUrl = Yii::$app->request->baseUrl;
 $urlFileUpload = Url::to(['/analyse-data/file-upload']);
 $urlGetIdInterneLabo = Url::to(['/analyse-data/get-id-interne-labo']);
+$urlGetHistorique = Url::to(['/analyse-data/get-historique']);
 
 $isAdmin = 0;
 if($admin)
@@ -36,6 +37,7 @@ $this->registerJS(<<<JS
     var url = {
         fileUpload:'{$urlFileUpload}',
         getIdInterneLabo:'{$urlGetIdInterneLabo}',
+        getHistorique:'{$urlGetHistorique}',
     };
     
     var admin = '{$isAdmin}';
@@ -55,14 +57,14 @@ JS
 <h2 class="lte-hide-title"><?= $this->title ?></h2>
 
 <div class="row">
-    <div class="col-sm-6">
+    <div class="col-sm-12">
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <strong>
                     <span class="fa fa-upload"></span> <?= Yii::t('microsept', 'Send') ?>
                 </strong>
                 <div style="float:right !important;">
-                    <label>Voir l'dentifiant interne : </label>
+                    <label>Voir l'identifiant interne : </label>
                     <input type="checkbox" id="toggle-event" data-onstyle="success" data-toggle="toggle" data-size="mini" data-on="Oui" data-off="Non">
                 </div>
             </div>
@@ -161,18 +163,47 @@ JS
                             </div>
                         </div>
                         <div class="form-group id-interne-labo" style="display:none;">
-                            <label class="col-md-3">Identifiant interne : </label>
+                            <label class="col-md-3">Identifiant interne</label>
                             <div class="col-md-3">
                                 <input type="text" class="form-control" id="IdInterne" disabled>
                             </div>
                         </div>
                         <?= Html::endForm(); ?>
                         <div class="file-loading">
-                            <input id="upload-input" name="upload-files[]" type="file" multiple>
+                            <input id="upload-input" name="upload-files[]" type="file">
                         </div>
                     </fieldset>
                 </div>
                 <hr/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <strong>
+                    <span class="fas fa-history"></span> <?= Yii::t('microsept', 'Historique') ?>
+                </strong>
+            </div>
+            <div class="panel-body panel-historique" style="padding:20px 50px 20px 50px;">
+                <div class="panel panel-default" style="margin-top:10px;">
+                    <div class="panel-heading">Derniers envois</div>
+                    <table class="table table-historique">
+                        <thead class="thead-dark">
+                            <th>Date</th>
+                            <th>Par</th>
+                            <th>Fichier</th>
+                            <th>Nb lignes</th>
+                            <th>Client</th>
+                            <th>Etablissement</th>
+                        </thead>
+                        <tbody class="body-historique">
+
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -195,10 +226,13 @@ $this->registerJS(<<<JS
         if($(this).val() != ''){
             $('#hfIdLabo').val($(this).val());
             $('#kvform-client').prop('disabled',false);
+            getHistorique();
         }
         else{
+            $('#hfIdLabo').val('');
             $('#kvform-client').prop('disabled',true);
             $('#kvform-client').val('').change();
+            getHistorique();
         }
     });
     
@@ -255,7 +289,6 @@ $this->registerJS(<<<JS
             $('.fileinput-upload').prop('disabled',true);
             $('.fileinput-upload').addClass('disabled');
             $('.box-files').html('');
-            //loadFilesDetail();
         }
     });
     
@@ -293,8 +326,7 @@ $this->registerJS(<<<JS
     
     $("#upload-input").on('filebatchuploadsuccess',function(event,data){
         var extradata = data.extra;
-        
-        //loadFilesDetail();
+        getHistorique();
     });
     
     /*******************************************************/
@@ -305,7 +337,30 @@ $this->registerJS(<<<JS
     $('.btn-file').prop('disabled',true);
     $('.btn-file').addClass('disabled');
     $('.fileinput-upload').prop('disabled',true);
+    
+    if($('#hfIdLabo').val() != ''){
+        getHistorique();
+    }
     /*******************************************************/
+    
+    function getHistorique(){
+        var data = JSON.stringify({
+            idLabo:$('#hfIdLabo').val(),
+        });
+        $.post(url.getHistorique, {data:data}, function(response) {
+            if(response.error == false){
+                if(response.result != ''){
+                    $('.body-historique').html(response.result);
+                }
+                else{
+                    $('.table-historique > tbody.body-historique').html('<tr><td colspan="6">Aucun fichier envoyé.</td></tr>');
+                }
+            }
+            else{
+                $('.table-historique > tbody.body-historique').html('<tr><td colspan="6">Erreur de récupération des données.</td></tr>');
+            }
+        })
+    }
 
 JS
 );

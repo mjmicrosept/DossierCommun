@@ -21,11 +21,7 @@ use app\models\User;
 use yii\helpers\Json;
 use yii\web\Response;
 use app\models\MappageIdClient;
-use yii\console\ExitCode;
-use yii\base\Exception;
-use yii\db\conditions\AndCondition;
-use yii\helpers\Console;
-use yii2mod\ftp\FtpClient;
+use app\models\DataPushed;
 use app\models\AnalyseData;
 
 
@@ -119,6 +115,42 @@ class AnalyseDataController extends Controller
     }
 
     /**
+     * Récupération de l'historique des dernières données envoyées
+     * @return array
+     */
+    public function actionGetHistorique(){
+        $errors = false;
+        $result = '';
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idLabo = intval($_data['idLabo']);
+
+        $aDataPushed = DataPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->orderBy('last_push')->all();
+        foreach ($aDataPushed as $item) {
+            $user = User::find()->andFilterWhere(['id'=>$item->id_user])->one();
+            $client = Client::find()->andFilterWhere(['id'=>$item->id_parent])->one();
+            $etablissement = Client::find()->andFilterWhere(['id'=>$item->id_client])->one();
+            $year = substr($item->last_push, 0, 4);
+            $month = intval(substr($item->last_push, 5, 2));
+            $day = substr($item->last_push, 8, 2);
+            $tMonths = [1 => "Jan", 2 => "Fév", 3 => "Mars", 4 => "Avr", 5 => "Mai", 6 => "Juin", 7 => "Juil", 8 => "Août", 9 => "Sept", 10 => "Oct", 11 => "Nov", 12 => "Déc"];
+            $date = $day . ' ' . $tMonths[$month] . ' ' . $year;
+
+            $result .= '<tr>';
+            $result .= '<td>'.$date.'</td>';
+            $result .= '<td>'.$user->username.'</td>';
+            $result .= '<td>'.$item->filename.'</td>';
+            $result .= '<td>'.$item->nb_lignes.'</td>';
+            $result .= '<td>'.$client->name.'</td>';
+            $result .= '<td>'.$etablissement->name.'</td>';
+            $result .= '</tr>';
+        }
+
+        return ['error'=>$errors,'result'=>$result];
+    }
+
+    /**
      * Upload des documents
      * @return array
      */
@@ -177,7 +209,10 @@ class AnalyseDataController extends Controller
 
         //On insère les données du fichier dans la base de données
         if(count($error == 0)){
-            AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $_FILES['upload-files']['name'][0], $idLabo,$idEtablissement,$idClient);
+            if(!AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $_FILES['upload-files']['name'][0], $idLabo,$idEtablissement,$idClient,$_FILES['upload-files']['name'][0])) {
+                array_push($error, 'L\'importation des données a échouée.');
+                array_push($errorkey, 0);
+            }
         }
         //On récupère le nom du dossier client
         return ['error'=>$error, 'errorkeys'=>$errorkey];

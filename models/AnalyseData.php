@@ -67,12 +67,19 @@ class AnalyseData extends \yii\db\ActiveRecord
     }
 
     /**
-     * Insère en base les données des analyses récupérées sur le ftp
+     * Insère en base les données des analyses récupérées via le fileinput ou le ftp
      * @param $filename
+     * @param $idLabo
+     * @param $idClient
+     * @param $idParent
+     * @param null $name
+     * @return bool
+     * @throws \yii\db\Exception
      */
-    public static function insertAllFromCsv($filename,$idLabo,$idClient,$idParent){
+    public static function insertAllFromCsv($filename,$idLabo,$idClient,$idParent,$name = null){
         $file = file($filename);
         $error = false;
+        $nbLignes = 0;
         $transaction = self::getDb()->beginTransaction();
 
         try {
@@ -127,6 +134,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                                 //Test d'existence de l'analyse en base
                                 $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['3']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
+                                    $nbLignes++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['3'];
@@ -273,6 +281,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                                 //Test d'existence de l'analyse en base
                                 $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['0']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
+                                    $nbLignes++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['0'];
@@ -375,20 +384,38 @@ class AnalyseData extends \yii\db\ActiveRecord
                 case 13 :
                     break;
             }
+
             if(!$error) {
                 //On valide l'enregistrement des données
                 $transaction->commit();
+                //On renseigne la table data_pushed
+                $logData = new DataPushed();
+                $logData->id_user = User::getCurrentUser()->id;
+                $logData->filename = $name;
+                $logData->id_labo = intval($idLabo);
+                $logData->id_client = intval($idClient);
+                $logData->id_parent = intval($idParent);
+                $logData->nb_lignes = intval($nbLignes);
+                $logData->save();
                 //On supprime le fichier
                 unlink($filename);
+                return true;
             }
-            else
+            else {
                 $transaction->rollBack();
-            return true;
+                //On supprime le fichier
+                unlink($filename);
+                return false;
+            }
+
         } catch (Exception $e) {
             $transaction->rollBack();
             Yii::error($e->getMessage(), 'analyse/importation');
             echo $e->getMessage();
-            throw $e;
+            //throw $e;
+            //On supprime le fichier
+            unlink($filename);
+            return false;
         }
     }
 }
