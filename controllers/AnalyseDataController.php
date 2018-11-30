@@ -209,8 +209,9 @@ class AnalyseDataController extends Controller
 
         //On insère les données du fichier dans la base de données
         if(count($error == 0)){
-            if(!AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $_FILES['upload-files']['name'][0], $idLabo,$idEtablissement,$idClient,$_FILES['upload-files']['name'][0])) {
-                array_push($error, 'L\'importation des données a échouée.');
+            $errorLine = AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $_FILES['upload-files']['name'][0], $idLabo,$idEtablissement,$idClient,$_FILES['upload-files']['name'][0]);
+            if(!is_null($errorLine)){
+                array_push($error, 'L\'importation des données a échouée à la ligne '.$errorLine.'.');
                 array_push($errorkey, 0);
             }
         }

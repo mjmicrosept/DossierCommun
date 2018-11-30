@@ -3,6 +3,7 @@
 namespace app\models;
 
 use Yii;
+use yii\db\IntegrityException;
 
 /**
  * This is the model class for table "analyse_data".
@@ -81,6 +82,7 @@ class AnalyseData extends \yii\db\ActiveRecord
         $error = false;
         $nbLignes = 0;
         $transaction = self::getDb()->beginTransaction();
+        $ligneError = null;
 
         try {
             //index à 0 correspond à la 1ere ligne (les entêtes qui serviront pour les germes)
@@ -151,8 +153,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $conditionnement = new AnalyseConditionnement();
                                             $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['21']), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
-                                            if (!$conditionnement->save())
+                                            if (!$conditionnement->save()) {
                                                 $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
                                         }
                                     }
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
@@ -164,8 +168,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
                                             $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
-                                            if (!$lieuPrelevement->save())
+                                            if (!$lieuPrelevement->save()) {
                                                 $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
@@ -188,8 +194,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $analyseData->date_analyse = '1970-01-02';
                                     }
 
-                                    if (!$analyseData->save())
+                                    if (!$analyseData->save()) {
                                         $error = true;
+                                        $ligneError = $nbLignes;
+                                    }
 
                                     //Création des données relatives aux germes
                                     foreach ($aGermes as $germe) {
@@ -204,8 +212,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $analyseDataGerme->expression = '';
                                                 $analyseDataGerme->interpretation = '';
 
-                                                if (!$analyseDataGerme->save())
+                                                if (!$analyseDataGerme->save()) {
                                                     $error = true;
+                                                    $ligneError = $nbLignes;
+                                                }
                                             }
                                         }
                                     }
@@ -302,8 +312,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $conditionnement = new AnalyseConditionnement();
                                             $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
-                                            if (!$conditionnement->save())
+                                            if (!$conditionnement->save()) {
                                                 $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
                                         }
                                     }
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
@@ -315,8 +327,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
                                             $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
-                                            if (!$lieuPrelevement->save())
+                                            if (!$lieuPrelevement->save()) {
                                                 $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
@@ -324,6 +338,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $interpretation = null;
                                     else
                                         $interpretation = AnalyseInterpretation::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
                                     $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['1']), ENT_QUOTES, "UTF-8"));
@@ -334,8 +349,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $dateAnalyse = $year . '-' . $month . '-' . $day;
                                     $analyseData->date_analyse = $dateAnalyse;
 
-                                    if (!$analyseData->save())
+                                    if (!$analyseData->save()) {
                                         $error = true;
+                                        $ligneError = $nbLignes;
+                                    }
 
                                     //Création des données relatives aux germes
                                     foreach ($aGermes as $germe) {
@@ -352,8 +369,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $interpretation = !isset($aColumns[$germe['interpretation']]) ? '' : html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[$germe['interpretation']])), ENT_QUOTES, "UTF-8"));
                                                 $analyseDataGerme->interpretation = $interpretation;
 
-                                                if (!$analyseDataGerme->save())
+                                                if (!$analyseDataGerme->save()) {
                                                     $error = true;
+                                                    $ligneError = $nbLignes;
+                                                }
                                             }
                                         }
                                     }
@@ -399,23 +418,33 @@ class AnalyseData extends \yii\db\ActiveRecord
                 $logData->save();
                 //On supprime le fichier
                 unlink($filename);
-                return true;
+                return $ligneError;
             }
             else {
                 $transaction->rollBack();
                 //On supprime le fichier
                 unlink($filename);
-                return false;
+                return $ligneError;
             }
 
-        } catch (Exception $e) {
+        }catch (\yii\db\IntegrityException $e) {
             $transaction->rollBack();
-            Yii::error($e->getMessage(), 'analyse/importation');
-            echo $e->getMessage();
+            //Yii::error($e->getMessage(), 'analyse/importation');
+            //echo $e->getMessage();
             //throw $e;
             //On supprime le fichier
             unlink($filename);
-            return false;
+            $ligneError = $nbLignes;
+            return $ligneError;
+        }catch (\yii\db\Exception $e) {
+            $transaction->rollBack();
+            //Yii::error($e->getMessage(), 'analyse/importation');
+            //echo $e->getMessage();
+            //throw $e;
+            //On supprime le fichier
+            unlink($filename);
+            $ligneError = $nbLignes;
+            return $ligneError;
         }
     }
 }
