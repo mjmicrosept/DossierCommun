@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = $this->title;
                                 <li>
                                     <?= GhostHtml::a(
                                         UserManagementModule::t('microsept', '<i class="text-info fa fa-caret-right"></i> '.Yii::t('microsept','E-mail')),
-                                        ['/user-management/user/change-email']
+                                        ['/user-management/user/change-email','profile'=>true]
                                     ) ?>
                                 </li>
                                 <li>

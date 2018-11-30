@@ -52,12 +52,12 @@ $this->registerCss(<<<CSS
         font-weight:bold;
         vertical-align: middle;
     }
-    .kv-grouped-row {
+    .kv-grouped-row2 {
         color: #31708f !important;
         background-color: #d9edf7 !important;
         border-color: #bce8f1 !important;
     }
-    .table-hover .kv-grouped-row:hover{
+    .table-hover .kv-grouped-row2:hover{
         color: #31708f !important;
         background-color: #d9edf7 !important;
         border-color: #bce8f1 !important;
@@ -79,6 +79,52 @@ $this->registerCss(<<<CSS
     }
     #grid-list-document-container{
         overflow-x: hidden;
+    }
+    
+    
+    .filter-header {
+        font-weight:bold;
+        vertical-align: middle;
+    }
+    .kv-grouped-row {
+        color: #FFF !important;
+        background-color: #009cc1 !important;
+        border: 1px solid #f4f4f4;
+    }
+    .table-hover .kv-grouped-row:hover{
+        color: #FFF !important;
+        background-color: #009cc1 !important;
+        border: 1px solid #f4f4f4;
+        /*color: #fff !important;
+        background-color: #00c0ef !important;*/
+    }
+    
+    .kv-grouped-child-row {
+        color: #000 !important;
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+        padding-left:20px;
+    }
+    .table-hover .kv-grouped-child-row:hover{
+        color: #000 !important;
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+        padding-left:20px;
+        /*color: #fff !important;
+        background-color: #00c0ef !important;*/
+    }
+    
+    td.kv-group-odd {
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+    }
+    td.kv-group-even {
+        background-color: #d4e2e5 !important;
+        border: 1px solid #f4f4f4;
+    }
+    
+    .primary-content{
+        background-color:#6cc7e6 !important;
     }
 
 CSS

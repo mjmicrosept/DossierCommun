@@ -54,7 +54,6 @@ class AuthController extends BaseController
         }
 
         $model = new LoginForm();
-
         if ( Yii::$app->request->isAjax AND $model->load(Yii::$app->request->post()) )
         {
             Yii::$app->response->format = Response::FORMAT_JSON;
@@ -73,7 +72,10 @@ class AuthController extends BaseController
                 //return $this->redirect(['/user-management/auth/logout', 'error' => 'Autorisation expirée']);
             //else {
                 //Yii::$app->session->set('__licence.info', $infoLicence);
-                return $this->redirect('/index.php');
+                if(isset(Yii::$app->request->post()['alerte-link']) && Yii::$app->request->post()['alerte-link'] != '')
+                    return $this->redirect([Yii::$app->request->baseUrl.'/alerte/change-statut','alerte'=>Yii::$app->request->post()['alerte-link']]);
+                else
+                    return $this->redirect('/index.php');
             //}
 //            $user = User::getCurrentUser();
 //

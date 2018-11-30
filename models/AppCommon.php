@@ -13,6 +13,11 @@ use Yii;
 
 class AppCommon
 {
+    const MAIL_ERROR_NOERROR = 0;
+    const MAIL_ERROR_NOMAILUSER = 1;
+    const MAIL_ERROR_NOSEND = 2;
+    const MAIL_ERROR_NOMAILLABO = 3;
+
     /**
      * Liste des mois de l'année
      * @var array
@@ -237,100 +242,5 @@ class AppCommon
 
         return $result;
 
-    }
-
-    /**
-     * Envoi d'un mail d'alerte pour le cas d'une période sans document
-     * @param $idClient
-     * @param $idLabo
-     * @param $idUser
-     * @param $periode
-     * @return bool
-     */
-    public static function mailPeriodeMissing($idClient,$idLabo,$idUser,$periode){
-        $error = false;
-        $userList = User::find()->andFilterWhere(['<>','email',null])->all();
-        $email = '';
-        foreach ($userList as $item) {
-            if(User::isPortailAdmin($item->id))
-                $email = $item->email;
-        }
-        if($email != '') {
-            $body = 'Alerte période missing <br><br>Client : '.$idClient.'<br>Labo : '.$idLabo.'<br>Periode : '.$periode;
-            $message = \Swift_Message::newInstance();
-            $transport = \Swift_SmtpTransport::newInstance('smtp.gmail.com', 587, 'tls');
-            $transport->setStreamOptions(['ssl' => [
-                'allow_self_signed' => true,
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-            ]]);
-            // on utilise cette adresse pour l'instant
-            $transport->setUsername("maratier.microsept@gmail.com");
-            $transport->setPassword("K9dzk4t_1138");
-            $message->setTo(array(
-                $email => "Client"
-            ));
-            $message->setSubject('Dossier commun - Alerte periode missing');
-            $message->setContentType("text/html");
-            $message->setBody($body);
-            $message->setFrom($email);
-
-            // on va générer ici un pdf
-            //$message->attach(\Swift_Attachment::newInstance($doc, 'document.pdf', 'application/pdf'));
-            $mailer = \Swift_Mailer::newInstance($transport);
-            $mailer->send($message, $failedRecipients);
-        }
-        else{
-            $error = true;
-        }
-
-        return $error;
-    }
-
-    /**
-     * Envoi d'un mail d'alerte pour le cas d'aucun document présent pour un labo
-     * @param $idClient
-     * @param $idLabo
-     * @param $idUser
-     * @return bool
-     */
-    public static function mailGeneralNoDocument($idClient,$idLabo,$idUser){
-        $error = false;
-        $userList = User::find()->andFilterWhere(['<>','email',null])->all();
-        $email = '';
-        foreach ($userList as $item) {
-            if(User::isPortailAdmin($item->id))
-                $email = $item->email;
-        }
-        if($email != '') {
-            $body = 'Alerte no document de test';
-            $message = \Swift_Message::newInstance();
-            $transport = \Swift_SmtpTransport::newInstance('smtp.gmail.com', 587, 'tls');
-            $transport->setStreamOptions(['ssl' => [
-                'allow_self_signed' => true,
-                'verify_peer' => false,
-                'verify_peer_name' => false,
-            ]]);
-            // on utilise cette adresse pour l'instant
-            $transport->setUsername("maratier.microsept@gmail.com");
-            $transport->setPassword("K9dzk4t_1138");
-            $message->setTo(array(
-                $email => "Client"
-            ));
-            $message->setSubject('Dossier commun - Alerte no document');
-            $message->setContentType("text/html");
-            $message->setBody($body);
-            $message->setFrom($email);
-
-            // on va générer ici un pdf
-            //$message->attach(\Swift_Attachment::newInstance($doc, 'document.pdf', 'application/pdf'));
-            $mailer = \Swift_Mailer::newInstance($transport);
-            $mailer->send($message, $failedRecipients);
-        }
-        else{
-            $error = true;
-        }
-
-        return $error;
     }
 }

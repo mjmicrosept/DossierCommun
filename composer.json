@@ -39,7 +39,7 @@
         "kartik-v/yii2-tabs-x": "*",
         "zxbodya/yii2-elfinder": "*@dev",
         "yiisoft/yii2-httpclient": "~2.0.0",
-        "bower-asset/sweetalert2": "^2.0",
+        "bower-asset/sweetalert2": "^6.4.1",
         "himiklab/yii2-recaptcha-widget" : "*",
         "wbraganca/yii2-fancytree-widget": "*",
         "devleaks/yii2-introjs": "*",

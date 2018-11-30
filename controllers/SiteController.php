@@ -277,7 +277,7 @@ class SiteController extends Controller
                         'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #ffc789!important;','data-qte'=>'66'],
                         'label'=>'Alertes',
                         'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                        'filter' => 'Date',
+                        'filter' => 'Etat',
                         'format'=>'raw',
                         'hAlign'=>'center',
                         'vAlign'=>'middle',
@@ -332,18 +332,45 @@ class SiteController extends Controller
                         'value' => function($model){
                             $idLabo = $model['id_labo'];
                             $idClient = $model['id_client'];
-                            $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->andFilterWhere(['active'=>1])->all();
+                            $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_etablissement'=>$idClient])->andFilterWhere(['active'=>1])->one();
                             if(is_null($aAlerte))
                                 return '';
                             else{
                                 if(count($aAlerte) == 0)
                                     return '';
-                                else
-                                    return '<i class="fa fa-check text-green"></i>';
+                                else{
+                                    if($aAlerte->vue == 0){
+                                        switch($aAlerte->type){
+                                            case DocumentAlerte::TYPE_NODOC :
+                                                return '<i class="fas fa-sync fa-2x text-red fa-spin"></i>';
+                                                break;
+                                            case DocumentAlerte::TYPE_PERIODE_MISSING :
+                                                return '<i class="fas fa-sync fa-2x text-orange fa-spin"></i>';
+                                                break;
+                                            case DocumentAlerte::TYPE_SENDMAIL :
+                                                return '<i class="fas fa-envelope-square fa-2x text-orange"></i>';
+                                                break;
+                                        }
+                                    }
+                                    else
+                                        return '<strong><i class="fas fa-check-square fa-2x text-green"></i></strong>';
+                                }
+
                             }
                         },
                         'contentOptions' => function ($model, $key, $index, $column) {
-                            return ['class'=>'idlabo-'.$model['id_labo'].'-check'];
+                            $idLabo = $model['id_labo'];
+                            $idClient = $model['id_client'];
+                            $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_etablissement'=>$idClient])->andFilterWhere(['active'=>1])->one();
+                            if(is_null($aAlerte))
+                                return ['class'=>'idlabo-'.$model['id_client'].'-check','data-idalerte'=>''];
+                            else{
+                                if(count($aAlerte) == 0)
+                                    return ['class'=>'idlabo-'.$model['id_client'].'-check','data-idalerte'=>''];
+                                else
+                                    return ['class'=>'idlabo-'.$model['id_client'].'-check','data-idalerte'=>$aAlerte->id];
+                            }
+
                         }
                     ],
                     [
@@ -351,24 +378,57 @@ class SiteController extends Controller
                         'dropdown' => true,
                         'dropdownOptions' => ['class' => 'float-left btn-actions'],
                         'dropdownMenu' => ['style'=>'left:-120px !important;'],
-                        'template' => '{periode} {nodoc} {mailadmin}',
+                        'template' => '{periode} {nodoc} {mailadmin} {deletealerte}',
                         'urlCreator' => function($action, $model, $key, $index) { return '#'; },
                         'viewOptions' => ['title' => 'This will launch the book details page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
                         'updateOptions' => ['title' => 'This will launch the book update page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
                         'deleteOptions' => ['title' => 'This will launch the book delete action. Disabled for this demo!', 'data-toggle' => 'tooltip'],
                         'buttons'=>[
                             'periode' => function ($url, $model, $key) {
-                                return '<li class="li-alerte"><span class="periode-alerte span-alerte" data-labo="'.$model['id_labo'].'" title="Période sans documents"><span class="glyphicon glyphicon-time" style="margin-right:10px;"></span> Période sans documents</span></li>';
+                                $nbDocTotal = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->sum('nb_doc');
+                                if(is_null($nbDocTotal))
+                                    return '';
+                                else {
+                                    $idLabo = $model['id_labo'];
+                                    $idClient = $model['id_client'];
+                                    $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_etablissement'=>$idClient])->andFilterWhere(['active'=>1])->one();
+                                    if(is_null($aAlerte))
+                                        return '<li class="li-alerte"><span class="periode-alerte span-alerte" data-etablissement="' . $model['id_client'] . '" data-labo="' . $model['id_labo'] . '" title="Période sans documents"><span class="glyphicon glyphicon-time" style="margin-right:10px;"></span> Période sans documents</span></li>';
+                                    else
+                                        return '';
+                                }
                             },
                             'nodoc' => function ($url, $model, $key) {
                                 $nbDocTotal = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->sum('nb_doc');
-                                if(is_null($nbDocTotal))
-                                    return '<li class="li-alerte"><span class="nodoc-alerte span-alerte" data-labo="'.$model['id_labo'].'" title="Pas de documents pour ce laboratoire"><span class="glyphicon glyphicon-level-up" style="margin-right:10px;"></span> Pas de documents</span></li>';
+                                if(is_null($nbDocTotal)) {
+                                    $idLabo = $model['id_labo'];
+                                    $idClient = $model['id_client'];
+                                    $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_etablissement' => $idClient])->andFilterWhere(['active' => 1])->one();
+                                    if (is_null($aAlerte))
+                                        return '<li class="li-alerte"><span class="nodoc-alerte span-alerte" data-etablissement="' . $model['id_client'] . '" data-labo="' . $model['id_labo'] . '" title="Pas de documents pour ce laboratoire"><span class="glyphicon glyphicon-level-up" style="margin-right:10px;"></span> Pas de documents</span></li>';
+                                    else
+                                        return '';
+                                }
                                 else
                                     return '';
                             },
                             'mailadmin' => function ($url, $model, $key) {
-                                return '<li class="li-alerte"><span class="mailadmin-alerte span-alerte" data-labo="'.$model['id_labo'].'" title="Envoyer un mail à l\'administrateur"><span class="glyphicon glyphicon-envelope" style="margin-right:10px;"></span> Envoyer un mail</span></li>';
+                                $idLabo = $model['id_labo'];
+                                $idClient = $model['id_client'];
+                                $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_etablissement'=>$idClient])->andFilterWhere(['active'=>1])->one();
+                                if(is_null($aAlerte))
+                                    return '<li class="li-alerte"><span class="mailadmin-alerte span-alerte" data-etablissement="'.$model['id_client'].'" data-labo="'.$model['id_labo'].'" title="Envoyer un mail au laboratoire"><span class="glyphicon glyphicon-envelope" style="margin-right:10px;"></span> Envoyer un mail</span></li>';
+                                else
+                                    return '';
+                            },
+                            'deletealerte' => function ($url, $model, $key) {
+                                $idLabo = $model['id_labo'];
+                                $idClient = $model['id_client'];
+                                $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_etablissement'=>$idClient])->andFilterWhere(['active'=>1])->one();
+                                if(is_null($aAlerte))
+                                    return '<li class="li-alerte lialerte-'.$model['id_client'].'" style="pointer-events:none;"><span class="deletealerte-alerte deletealerte-'.$model['id_client'].' span-alerte" data-etablissement="'.$model['id_client'].'" data-labo="'.$model['id_labo'].'" title="Supprimer l\'alerte"><span class="glyphicon glyphicon-trash" style="margin-right:10px;"></span> Supprimer l\'alerte</span></li>';
+                                else
+                                    return '<li class="li-alerte lialerte-'.$model['id_client'].'" style="pointer-events:auto;"><span class="deletealerte-alerte deletealerte-'.$model['id_client'].' span-alerte" data-etablissement="'.$model['id_client'].'" data-labo="'.$model['id_labo'].'" data-idalerte="'.$aAlerte->id.'" title="Supprimer l\'alerte"><span class="glyphicon glyphicon-trash" style="margin-right:10px;"></span> Supprimer l\'alerte</span></li>';
                             },
                         ],
                         'headerOptions' => ['class' => 'kartik-sheet-style'],
@@ -396,8 +456,10 @@ class SiteController extends Controller
 
             $laboClientAssign = LaboClientAssign::find()
                 ->leftJoin('laboratoires', 'laboratoires.id = id_labo')
+                ->leftJoin('client', 'client.id = id_client')
                 ->andFilterWhere(['id_labo'=>$idLabo])
                 ->andFilterWhere(['assign' => 1])
+                ->andFilterWhere(['is_analyzable'=>1])
                 ->orderBy('laboratoires.raison_sociale, id_client ASC')
                 ->all();
 
@@ -406,6 +468,22 @@ class SiteController extends Controller
                     $data[''.$item->id.''] = $columns;
                     $data[''.$item->id.'']['id_labo'] = $item->id_labo;
                     $data[''.$item->id.'']['id_client'] = $item->id_client;
+                    $data[''.$item->id.'']['id_parent'] = '';
+                    $clientChild = Client::find()->andFilterWhere(['id'=>$item->id_client])->one();
+                    if(!is_null($clientChild)){
+                        if(!is_null($clientChild->id_parent)){
+                            $clientParent = Client::find()->andFilterWhere(['id'=>$clientChild->id_parent])->one();
+                            if(!is_null($clientParent)){
+                                $data[''.$item->id.'']['id_parent'] = $clientParent->id;
+                            }
+                        }
+                        else{
+                            $data[''.$item->id.'']['id_parent'] = $item->id_client;
+                        }
+                    }
+                    else{
+                        $data[''.$item->id.'']['id_parent'] = '';
+                    }
                 }
             }
 
@@ -420,6 +498,35 @@ class SiteController extends Controller
             ]);
 
             $entete = [
+                //'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
+                'filter'=>'',
+                'filterWidgetOptions'=>[
+                    'pluginOptions'=>['allowClear'=>true],
+                ],
+                'filterInputOptions'=>['placeholder'=>'Any supplier'],
+                'group'=>true,  // enable grouping,
+                'groupedRow'=>true, // move grouped column to a single grouped row
+                'groupOddCssClass'=>'kv-grouped-row2',  // configure odd group cell css class
+                'groupEvenCssClass'=>'kv-grouped-row2', // configure even group cell css class
+                'value' => function($model){
+                    $client = Client::find()->andFilterWhere(['id'=>$model['id_parent']])->one();
+                    if(!is_null($client))
+                        if($client->is_analyzable == 0)
+                            return $client->name;
+                        else{
+                            $clientUnique = Client::find()->andFilterWhere(['id'=>$model['id_client']])->one();
+                            if(!is_null($clientUnique))
+                                return $clientUnique->name;
+                        }
+
+                    else
+                        return '';
+                }
+            ];
+
+            array_push($gridColumn,$entete);
+
+            $entete2 = [
                 'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                 'filter' => 'Client',
                 'value' => function($model){
@@ -431,7 +538,7 @@ class SiteController extends Controller
                 }
             ];
 
-            array_push($gridColumn,$entete);
+            array_push($gridColumn,$entete2);
 
             $defaultColumns = [
                 [
@@ -495,7 +602,7 @@ class SiteController extends Controller
                     'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #ffc789!important;','data-qte'=>'66'],
                     'label'=>'Alertes',
                     'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                    'filter' => 'Date',
+                    'filter' => 'Etat',
                     'format'=>'raw',
                     'hAlign'=>'center',
                     'vAlign'=>'middle',
@@ -550,14 +657,25 @@ class SiteController extends Controller
                     'value' => function($model){
                         $idLabo = $model['id_labo'];
                         $idClient = $model['id_client'];
-                        $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->andFilterWhere(['active'=>1])->all();
+                        $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_etablissement'=>$idClient])->andFilterWhere(['active'=>1])->one();
                         if(is_null($aAlerte))
                             return '';
                         else{
-                            if(count($aAlerte) == 0)
-                                return '';
-                            else
-                                return '<i class="fa fa-check text-green"></i>';
+                            if($aAlerte->vue == 1)
+                                return '<strong><i class="fas fa-check-square fa-2x text-green"></i></strong>';
+                            else{
+                                switch($aAlerte->type){
+                                    case DocumentAlerte::TYPE_NODOC :
+                                        return '<i class="fas fa-sync fa-2x text-red fa-spin"></i>';
+                                        break;
+                                    case DocumentAlerte::TYPE_PERIODE_MISSING :
+                                        return '<i class="fas fa-sync fa-2x text-orange fa-spin"></i>';
+                                        break;
+                                    case DocumentAlerte::TYPE_SENDMAIL :
+                                        return '<i class="fas fa-envelope-square fa-2x text-orange"></i>';
+                                        break;
+                                }
+                            }
                         }
                     },
                     'contentOptions' => function ($model, $key, $index, $column) {
@@ -769,4 +887,5 @@ class SiteController extends Controller
         //return $this->render('index', ['user' => $user]);
         return $this->render('../system/error'.Yii::$app->response->getStatusCode());
     }
+
 }

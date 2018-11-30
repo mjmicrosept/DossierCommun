@@ -13,7 +13,11 @@ use yii\helpers\Html;
 
 $this->title = 'Microsept';
 $web = Yii::getAlias('@web');
-
+$alerteLink = '';
+if(isset($_GET['alerte']))
+    if(!is_null($_GET['alerte']))
+        if($_GET['alerte'] != '')
+            $alerteLink = $_GET['alerte'];
 
 ?>
 <img src="../../../images/login04.jpg" id="wallpaper" />
@@ -50,6 +54,8 @@ $web = Yii::getAlias('@web');
                     Yii::t('microsept','ToLogin'),
                     ['class' => 'btn btn-lg btn-primary btn-block']
                 ) ?>
+
+                <input type="hidden" id="alerte-link" name="alerte-link" value="<?= $alerteLink ?>" />
 
 <!--                <div class="row registration-block">-->
 <!--                    <div class="col-sm-offset-5 col-sm-7 text-right">-->

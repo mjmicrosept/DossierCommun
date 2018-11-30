@@ -14,6 +14,7 @@ use app\models\DocumentPushed;
 use kartik\builder\Form;
 use kartik\builder\FormAsset;
 use app\assets\views\KartikCommonAsset;
+use app\assets\components\Summernote\SummerNoteAsset;
 use yii\helpers\Url;
 use app\models\AppCommon;
 use yii\web\View;
@@ -24,16 +25,21 @@ use app\models\Client;
 FormAsset::register($this,View::POS_HEAD);
 KartikCommonAsset::register($this,View::POS_HEAD);
 SweetAlertAsset::register($this,View::POS_HEAD);
+SummerNoteAsset::register($this,View::POS_HEAD);
 
 $baseUrl = Yii::$app->request->baseUrl;
 $urlGeneralNoDocument = Url::to(['/alerte/general-no-document']);
 $urlPeriodeMissing = Url::to(['/alerte/periode-missing']);
+$urlSendMailLabo = Url::to(['/alerte/send-mail-labo']);
+$urlDeleteAlerte = Url::to(['/alerte/deactivate-alerte']);
 
 
 $this->registerJS(<<<JS
     var url = {
         generalNoDocument:'{$urlGeneralNoDocument}',
-        periodeMissing:'{$urlPeriodeMissing}'
+        periodeMissing:'{$urlPeriodeMissing}',
+        sendMailLabo:'{$urlSendMailLabo}',
+        deleteAlerte:'{$urlDeleteAlerte}'
     };
 
     var idClient = '{$idClient}';
@@ -490,6 +496,11 @@ $( document ).ready(function() {
         trigger:'hover'
     });
     
+    /*$('#summernote').summernote();
+    $('.test').click(function(){
+       console.log($('#summernote').summernote('code')); 
+    });*/
+    
     $('.btn-actions > button').html('Actions <span class="caret"></span>');
     $('th.skip-export').each(function(){
         if(!$(this).hasClass('analyse-expanded'))
@@ -531,49 +542,64 @@ $( document ).ready(function() {
     /*********************************/
     $('.periode-alerte').click(function(){
         var idLabo = $(this).data('labo');
+        var periodeMissing = $('#kvformadmin-monthalert').val();
+        var idEtablissement = $(this).data('etablissement');
         swal({
-            html:
-            '<h3>Nombre de mois sans documents</h3>'+
-            '<select id="document-list" class="swal2-input"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option></select>' +
-            '<h3>Envoyer à l\'administrateur</h3>'+
-            '<select id="mail-list" class="swal2-input"><option value="1">Oui</option><option value="0" selected>Non</option></select>',
-            preConfirm: function() {
-                return new Promise(function(resolve) {
-                    if (true) {
-                        resolve([
-                            document.getElementById('document-list').value,
-                            document.getElementById('mail-list').value,
-                        ]);
-                    }
-                });
-            }
+            title :'Alerte',
+            type : 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Envoyer',
+            cancelButtonText: 'Annuler',
+            html:'Voulez-vous envoyer l\'alerte <br/><strong>"pas de documents pendant une période de '+ periodeMissing +' mois"</strong><br/> au laboratoire ?'
         }).then(function(result) {
             if (result){
                 $('.loader').show();
                 var data = JSON.stringify({
                     idClient : idClient,
                     idLabo : idLabo,
+                    idEtablissement:idEtablissement,
                     emetteur : 2,
-                    vecteur : result[1],
-                    periodeMissing : result[0]
+                    periodeMissing : periodeMissing
                 });
                 $.post(url.periodeMissing, {data:data}, function(response) {
                     if(response.error != 1){
                         $('.loader').hide();
-                        if(response.errorMail != 1){
+                        if(response.errorMail == 0){
                             //On check la colone
-                            $('.idlabo-' + idLabo + '-check').html('<i class="fa fa-check text-green"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange fa-spin"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
+                            $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
                             //SweetAlert (alerte confirmée)
                             swal(
                               'Confirmation',
-                              'Votre alerte (pas de documents sur la période de ' + result[0] + ' mois, pour le laboratoire ' + response.labo + ' a bien été émise.',
+                              'Votre alerte (pas de documents présents pour l\'établissement ' + response.etablissement + ' du laboratoire ' + response.labo + ' pendant une période de ' + response.periode + ' mois, a bien été enregistrée.',
                               'success'
+                            )
+                        }
+                        else if(response.errorMail == 1){
+                            swal(
+                              'Erreur',
+                              'Vous n\'avez pas d\'adresse email associée à votre compte. Veuillez en renseigner une.',
+                              'warning'
+                            )
+                        }
+                        else if(response.errorMail == 3){
+                            //On check la colone
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange fa-spin"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
+                            $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            swal(
+                              'Confirmation',
+                              'Votre alerte a bien été enregistrée cependant le laboratoire ne possède pas d\'adresse électronique. Vous pouvez les contacter directement au ' + response.laboTel + '.',
+                              'info'
                             )
                         }
                         else{
                             swal(
                               'Erreur',
-                              'L\'alerte est remontée mais l\'e-mail n\'a pas pu être envoyé.',
+                              'Erreur lors de l\'envoi de l\'email. Veuillez essayer ultérieurement.',
                               'warning'
                             )
                         }
@@ -583,7 +609,7 @@ $( document ).ready(function() {
                         //SweetAlert (une erreur est survenue)
                         swal(
                           'Erreur',
-                          'Une erreur est survenue vueillez contacter l\'administrateur',
+                          'Une erreur est survenue veuillez contacter l\'administrateur',
                           'error'
                         )
                     }
@@ -594,45 +620,62 @@ $( document ).ready(function() {
     
     $('.nodoc-alerte').click(function(){
         var idLabo = $(this).data('labo');
+        var idEtablissement = $(this).data('etablissement');
         swal({
-            html:
-            '<h3>Envoyer à l\'administrateur</h3>'+
-            '<select id="mail-list" class="swal2-input"><option value="1">Oui</option><option value="2" selected>Non</option></select>',
-            preConfirm: function() {
-                return new Promise(function(resolve) {
-                    if (true) {
-                        resolve([
-                            document.getElementById('mail-list').value,
-                        ]);
-                    }
-                });
-            }
+            title :'Alerte',
+            type : 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Envoyer',
+            cancelButtonText: 'Annuler',
+            html:'Voulez-vous envoyer l\'alerte <br/><strong>"pas de documents"</strong><br/> au laboratoire ?'
         }).then(function(result) {
             if (result){
                 $('.loader').show();
                 var data = JSON.stringify({
                     idClient : idClient,
                     idLabo : idLabo,
+                    idEtablissement:idEtablissement,
                     emetteur : 2,
-                    vecteur : result[0]
                 });
                 $.post(url.generalNoDocument, {data:data}, function(response) {
                     if(response.error != 1){
                         $('.loader').hide();
-                        if(response.errorMail != 1){
+                        if(response.errorMail == 0){
                             //On check la colone
-                            $('.idlabo-' + idLabo + '-check').html('<i class="fa fa-check text-green"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red fa-spin"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
+                            $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
                             //SweetAlert (alerte confirmée)
                             swal(
                               'Confirmation',
-                              'Votre alerte (pas de documents présents pour le laboratoire ' + response.labo + ' a bien été émise.',
+                              'Votre alerte (pas de documents présents pour l\'établissement ' + response.etablissement + ' du laboratoire ' + response.labo + ' a bien été enregistrée.',
                               'success'
+                            )
+                        }
+                        else if(response.errorMail == 1){
+                            swal(
+                              'Erreur',
+                              'Vous n\'avez pas d\'adresse email associée à votre compte. Veuillez en renseigner une.',
+                              'warning'
+                            )
+                        }
+                        else if(response.errorMail == 3){
+                            //On check la colone
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red fa-spin"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
+                            $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            swal(
+                              'Confirmation',
+                              'Votre alerte a bien été enregistrée cependant le laboratoire ne possède pas d\'adresse électronique. Vous pouvez les contacter directement au ' + response.laboTel + '.',
+                              'info'
                             )
                         }
                         else{
                             swal(
                               'Erreur',
-                              'L\'alerte est remontée mais l\'e-mail n\'a pas pu être envoyé.',
+                              'Erreur lors de l\'envoi de l\'email. Veuillez essayer ultérieurement.',
                               'warning'
                             )
                         }
@@ -642,7 +685,7 @@ $( document ).ready(function() {
                         //SweetAlert (une erreur est survenue)
                         swal(
                           'Erreur',
-                          'Une erreur est survenue vueillez contacter l\'administrateur',
+                          'Une erreur est survenue veuillez contacter l\'administrateur',
                           'error'
                         )
                     }
@@ -652,11 +695,146 @@ $( document ).ready(function() {
     });
     
     $('.mailadmin-alerte').click(function(){
-        swal(
-          'TODO',
-          'Reste à faire',
-          'info'
-        )
+        var idLabo = $(this).data('labo');
+        var idEtablissement = $(this).data('etablissement');
+        swal({
+            title :'Envoyer un message au laboratoire',
+            showCancelButton: true,
+            confirmButtonText: 'Envoyer',
+            cancelButtonText: 'Annuler',
+            width: 800,
+            allowEnterKey:false,
+            allowOutsideClick:false,
+            allowEscapeKey:false,
+            html:
+            '<div id="summernote"></div>',
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    if (true) {
+                        resolve([
+                            $('#summernote').summernote('code')
+                        ]);
+                    }
+                });
+            }
+        }).then(function(result) {
+            if(result){
+                $('.loader').show();
+                var data = JSON.stringify({
+                    idClient : idClient,
+                    idLabo : idLabo,
+                    idEtablissement:idEtablissement,
+                    emetteur : 2,
+                    message : result[0]
+                });
+                $.post(url.sendMailLabo, {data:data}, function(response) {
+                    if(response.error != 1){
+                        $('.loader').hide();
+                        if(response.errorMail == 0){
+                            //On check la colone
+                            console.log(idEtablissement);
+                            console.log(response.idalerte);
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-envelope-square fa-2x text-orange"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
+                            $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            
+                            //SweetAlert (alerte confirmée)
+                            swal(
+                              'Confirmation',
+                              'Votre message au laboratoire ' + response.labo + ' concernant l\'établissement ' + response.etablissement + ' a bien été envoyé.',
+                              'success'
+                            )
+                        }
+                        else if(response.errorMail == 1){
+                            swal(
+                              'Erreur',
+                              'Vous n\'avez pas d\'adresse email associée à votre compte. Veuillez en renseigner une.',
+                              'warning'
+                            )
+                        }
+                        else if(response.errorMail == 3){
+                            //On check la colone
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-envelope-square fa-2x text-red"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
+                            $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            swal(
+                              'Confirmation',
+                              'Le laboratoire ne possède pas d\'adresse électronique. Vous pouvez les contacter directement au ' + response.laboTel + '.',
+                              'info'
+                            )
+                        }
+                        else{
+                            swal(
+                              'Erreur',
+                              'Erreur lors de l\'envoi de l\'email. Veuillez essayer ultérieurement.',
+                              'warning'
+                            )
+                        }
+                    }
+                    else{
+                        $('.loader').hide();
+                        //SweetAlert (une erreur est survenue)
+                        swal(
+                          'Erreur',
+                          'Une erreur est survenue veuillez contacter l\'administrateur',
+                          'error'
+                        )
+                    }
+                });
+            }
+        });
+        $('#summernote').summernote({height: 200,focus: true});
+        $('.note-editable').css({'text-align':'left'});
+    });
+    
+    $('.deletealerte-alerte').click(function(){
+        var idLabo = $(this).data('labo');
+        var idEtablissement = $(this).data('etablissement');
+        var idAlerte = $(this).data('idalerte');
+        swal({
+            title :'Alerte',
+            type : 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Supprimer',
+            cancelButtonText: 'Annuler',
+            html:'Voulez-vous supprimer cette alerte ?'
+        }).then(function(result) {
+            if (result){
+                $('.loader').show();
+                var data = JSON.stringify({
+                    idClient : idClient,
+                    idLabo : idLabo,
+                    idEtablissement:idEtablissement,
+                    emetteur : 2,
+                    idAlerte : idAlerte
+                });
+                $.post(url.deleteAlerte, {data:data}, function(response) {
+                    if(response.error != 1){
+                        $('.loader').hide();
+                        $('.idlabo-' + idEtablissement + '-check').html('');
+                        $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', '');
+                        $('.lialerte-' + idEtablissement).css({'pointer-events':'none'});
+                        $('.deletealerte-' + idEtablissement).attr('data-idalerte', '');
+                        swal(
+                          'Confirmation',
+                          'L\'alerte a bien été supprimée.',
+                          'success'
+                        )
+                    }
+                    else{
+                        $('.loader').hide();
+                        //SweetAlert (une erreur est survenue)
+                        swal(
+                          'Erreur',
+                          'Une erreur est survenue veuillez contacter l\'administrateur',
+                          'error'
+                        )
+                    }
+                });
+            }
+        })
     });
     
     $('.kv-expand-row').click(function(){

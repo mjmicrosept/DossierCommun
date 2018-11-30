@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9c74e91d078d44011cfdd28e8ab68095",
+    "content-hash": "89c66825b60833848b86ad857143f168",
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
@@ -99,32 +99,6 @@
                 "web"
             ],
             "time": "2016-07-25T15:51:55+00:00"
-        },
-        {
-            "name": "bower-asset/es6-promise-polyfill",
-            "version": "v1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/lahmatiy/es6-promise-polyfill.git",
-                "reference": "c363d8342336595ec440eb33a4f931fa9b370fb1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/lahmatiy/es6-promise-polyfill/zipball/c363d8342336595ec440eb33a4f931fa9b370fb1",
-                "reference": "c363d8342336595ec440eb33a4f931fa9b370fb1",
-                "shasum": ""
-            },
-            "type": "bower-asset-library",
-            "extra": {
-                "bower-asset-main": "promise.js",
-                "bower-asset-ignore": [
-                    ".*",
-                    "**/.*",
-                    "node_modules",
-                    "test"
-                ]
-            },
-            "time": "2017-01-13T22:18:14+00:00"
         },
         {
             "name": "bower-asset/fancytree",
@@ -362,43 +336,48 @@
         },
         {
             "name": "bower-asset/sweetalert2",
-            "version": "v2.2.14",
+            "version": "v6.11.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sweetalert2/sweetalert2.git",
-                "reference": "1aac6d7fe6f5ffb6bfa1e57a7e1ba85872458903"
+                "reference": "a72affd8f0fb3d4fb89c75d1973c50ef961941cc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sweetalert2/sweetalert2/zipball/1aac6d7fe6f5ffb6bfa1e57a7e1ba85872458903",
-                "reference": "1aac6d7fe6f5ffb6bfa1e57a7e1ba85872458903",
+                "url": "https://api.github.com/repos/sweetalert2/sweetalert2/zipball/a72affd8f0fb3d4fb89c75d1973c50ef961941cc",
+                "reference": "a72affd8f0fb3d4fb89c75d1973c50ef961941cc",
                 "shasum": ""
-            },
-            "require": {
-                "bower-asset/es6-promise-polyfill": "*"
             },
             "type": "bower-asset-library",
             "extra": {
                 "bower-asset-main": [
-                    "src/sweetalert2.js",
+                    "dist/sweetalert2.js",
                     "src/sweetalert2.scss",
                     "dist/sweetalert2.css"
                 ],
                 "bower-asset-ignore": [
-                    "example",
+                    "assets",
+                    "config",
+                    "test",
+                    ".babelrc",
+                    ".editorcofig",
+                    ".gitignore",
+                    ".sass-lint.yml",
+                    ".travis.yml",
+                    "contributing.md",
                     "gulpfile.js",
-                    "sweetalert.gif"
+                    "package.json"
                 ]
             },
             "license": [
                 "MIT"
             ],
-            "description": "A replacement for JavaScript's popup boxes, supported fork of sweetalert",
+            "description": "A beautiful, responsive, customizable and accessible (WAI-ARIA) replacement for JavaScript's popup boxes, supported fork of sweetalert",
             "keywords": [
                 "alert",
                 "modal"
             ],
-            "time": "2016-05-14T15:02:44+00:00"
+            "time": "2017-11-08T17:14:48+00:00"
         },
         {
             "name": "bower-asset/yii2-pjax",
@@ -1193,12 +1172,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/kartik-v/yii2-builder.git",
-                "reference": "c156026efbea4495eafb91ee93ff5c4563070027"
+                "reference": "e3cebbf2a46ae01f8ce56250416a426121003b76"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kartik-v/yii2-builder/zipball/c156026efbea4495eafb91ee93ff5c4563070027",
-                "reference": "c156026efbea4495eafb91ee93ff5c4563070027",
+                "url": "https://api.github.com/repos/kartik-v/yii2-builder/zipball/e3cebbf2a46ae01f8ce56250416a426121003b76",
+                "reference": "e3cebbf2a46ae01f8ce56250416a426121003b76",
                 "shasum": ""
             },
             "require": {
@@ -1237,7 +1216,7 @@
                 "widget",
                 "yii2"
             ],
-            "time": "2018-11-05T10:56:22+00:00"
+            "time": "2018-11-26T05:35:41+00:00"
         },
         {
             "name": "kartik-v/yii2-date-range",
@@ -1299,12 +1278,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/kartik-v/yii2-detail-view.git",
-                "reference": "1c05764c6d78edef8e0d7f09d7a111da6cbcc9e7"
+                "reference": "13dab1c4470445de10e5dfd3268028b6b303e171"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kartik-v/yii2-detail-view/zipball/1c05764c6d78edef8e0d7f09d7a111da6cbcc9e7",
-                "reference": "1c05764c6d78edef8e0d7f09d7a111da6cbcc9e7",
+                "url": "https://api.github.com/repos/kartik-v/yii2-detail-view/zipball/13dab1c4470445de10e5dfd3268028b6b303e171",
+                "reference": "13dab1c4470445de10e5dfd3268028b6b303e171",
                 "shasum": ""
             },
             "require": {
@@ -1344,7 +1323,7 @@
                 "widget",
                 "yii2"
             ],
-            "time": "2018-11-05T10:58:38+00:00"
+            "time": "2018-11-21T17:30:58+00:00"
         },
         {
             "name": "kartik-v/yii2-dialog",
@@ -1811,17 +1790,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/kartik-v/yii2-tree-manager.git",
-                "reference": "cb1bfc5ed6bca39d0d2ae8fe2cdc9ef30aa83c8f"
+                "reference": "54c1c56b6d0239a5a6c647f0c0c7090de85db7fd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kartik-v/yii2-tree-manager/zipball/cb1bfc5ed6bca39d0d2ae8fe2cdc9ef30aa83c8f",
-                "reference": "cb1bfc5ed6bca39d0d2ae8fe2cdc9ef30aa83c8f",
+                "url": "https://api.github.com/repos/kartik-v/yii2-tree-manager/zipball/54c1c56b6d0239a5a6c647f0c0c7090de85db7fd",
+                "reference": "54c1c56b6d0239a5a6c647f0c0c7090de85db7fd",
                 "shasum": ""
             },
             "require": {
-                "creocoder/yii2-nested-sets": "~0.9",
-                "kartik-v/yii2-dialog": "~1.0",
+                "creocoder/yii2-nested-sets": ">=0.9",
+                "kartik-v/yii2-dialog": ">=1.0",
                 "kartik-v/yii2-widget-activeform": ">=1.5.7"
             },
             "type": "yii2-extension",
@@ -1860,7 +1839,7 @@
                 "tree",
                 "treeview"
             ],
-            "time": "2018-11-20T17:49:18+00:00"
+            "time": "2018-11-29T08:06:49+00:00"
         },
         {
             "name": "kartik-v/yii2-widget-activeform",
@@ -2453,16 +2432,16 @@
         },
         {
             "name": "psr/log",
-            "version": "1.0.2",
+            "version": "1.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-fig/log.git",
-                "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d"
+                "reference": "6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-fig/log/zipball/4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
-                "reference": "4ebe3a8bf773a19edfe0a84b6585ba3d401b724d",
+                "url": "https://api.github.com/repos/php-fig/log/zipball/6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd",
+                "reference": "6c001f1daafa3a3ac1d8ff69ee4db8e799a654dd",
                 "shasum": ""
             },
             "require": {
@@ -2496,7 +2475,7 @@
                 "psr",
                 "psr-3"
             ],
-            "time": "2016-10-10T12:19:37+00:00"
+            "time": "2018-11-20T15:27:04+00:00"
         },
         {
             "name": "rmrevin/yii2-fontawesome",
