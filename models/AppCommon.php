@@ -222,7 +222,9 @@ class AppCommon
                         if (!is_null($parent) && $index == 0)
                             $result .= $parent;
 
-                        $result .= '<a href="' . Yii::$app->params["urlClients"] . $dir . '/' . $file . '" target="_blank" style="margin-left:20px;"><i class="fa fa-eye" style="margin-right:10px;"></i></a>';
+                        $result .= '<input type="checkbox" class="btn-chk-list-document" name="documentList[]" value="'.$dir.'/'.$file.'" style="margin-right:5px;" data-idlabo="'.$idLabo.'" data-idclient="'.$idClient.'" data-year="'.$year.'" data-month="'.$month.'">';
+                        $result .= '<i class="fas fa-trash-alt" style="cursor:pointer;color:#3c8dbc;"></i>';
+                        $result .= '<a href="' . Yii::$app->params["urlClients"] . $dir . '/' . $file . '" target="_blank" style="margin-left:10px;"><i class="fa fa-eye" style="margin-right:10px;"></i></a>';
                         $result .= '<label>';
                         $result .= $file;
                         $result .= '</label>';

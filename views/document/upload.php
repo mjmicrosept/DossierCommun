@@ -33,6 +33,7 @@ $urlYearDocumentPushed = Url::to(['/document/year-document-pushed']);
 $urlMonthDocumentPushed = Url::to(['/document/month-document-pushed']);
 $urlClientDataChange = Url::to(['/document/list-client-data-change']);
 $urlLoadFileDetail = Url::to(['document/load-uploaded-file-detail']);
+$urlDeleteDocuments = Url::to(['document/delete-document']);
 
 $isAdmin = 0;
 if($admin)
@@ -48,6 +49,7 @@ $this->registerJS(<<<JS
         monthDocumentPushed:'{$urlMonthDocumentPushed}',
         clientDataChange:'{$urlClientDataChange}',
         loadFileDetail:'{$urlLoadFileDetail}',
+        deleteDocuments:'{$urlDeleteDocuments}',
     };
     
     var admin = '{$isAdmin}';
@@ -264,8 +266,17 @@ JS
                         <br/>
                     </div>
                     <div class="col-sm-6">
-                        <div class="box-body box-files">
+                        <div class="box-body">
+                            <div class="row box-supp" style="margin-top:-10px;margin-bottom:10px;display:none;">
+                                <div style="float:right;">
+                                    <button class="btn btn-primary" id="supp-selection">Supprimer la sélection</button>
+                                    <button class="btn btn-primary" id="supp-all">Tout supprimer</button>
+                                </div>
+                            </div>
 
+                            <div class="box-files row">
+
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -437,15 +448,18 @@ $this->registerJS(<<<JS
             $.post(url.loadFileDetail, {data:data}, function(response) {
                 if(response.error == false){
                     if(response.result != ''){
+                        $('.box-supp').show();
                         $('.box-files').html(response.result);
                     }
                     else{
+                        $('.box-supp').hide();
                         $('.box-files').html('Aucun fichier présent.');
                     }
                 }
             })
         }
         else{
+            $('.box-supp').hide();
             $('.box-files').html('Aucun fichier présent.');
         }
     }
@@ -551,6 +565,7 @@ $this->registerJS(<<<JS
             $('.fileinput-upload').prop('disabled',true);
             $('.fileinput-upload').addClass('disabled');
             changeWidgetMonthValue('&nbsp;','');
+            $('.box-supp').hide();
             $('.box-files').html('');
         }
     });
@@ -602,6 +617,117 @@ $this->registerJS(<<<JS
     
         loadFilesDetail();
     });
+    /*******************************************************/
+    
+    /*******************************************************/
+    // Boutons de suppression des fichiers
+    /*******************************************************/ 
+    function suppFiles(all){
+        var question = '<p>Voulez vous supprimer les fichiers sélectionnés ?</p>';
+        if(all)
+            question = '<p>Voulez vous supprimer tous fichiers ?</p>';
+        
+        var aDocuments = [];
+        $('.btn-chk-list-document').each(function(){
+            if(all){
+                aDocuments.push($(this).val());
+            }
+            else{
+                if($(this).prop('checked') == true)
+                    aDocuments.push($(this).val());
+            }
+        });
+        if(aDocuments.length == 0){
+            swal(
+              'Suppression',
+              'Aucun document n\'est sélectionné.',
+              'error'
+            )
+        }
+        else{
+            swal({
+                title :'Suppression',
+                showCancelButton: true,
+                confirmButtonText: 'Oui',
+                cancelButtonText: 'Non',
+                width: 800,
+                allowEnterKey:false,
+                allowOutsideClick:false,
+                allowEscapeKey:false,
+                type:'question',
+                html:
+                question + 
+               '<h3>Raison de la suppression</h3>' + 
+               '<textarea id="reason" class="form-control"></textarea>',
+               preConfirm: function() {
+                    return new Promise(function(resolve) {
+                        if(document.getElementById('reason').value == ''){
+                            throw new Error(
+                                'Vous devez renseigner une raison pour la suppression.'
+                            )
+                        }
+                        else
+                        {
+                           swal.resetValidationError();
+                           resolve([
+                                document.getElementById('reason').value,
+                            ]);
+                        }
+                    });
+                }
+            }).then(function(result) {
+                if(result){
+                    $('.loader').show();
+                    var data = JSON.stringify({
+                        idClient : $('#kvform-client').val(),
+                        idEtablissement : $('#child-id').val(),
+                        idLabo:$('#hfIdLabo').val(),
+                        year:$('#kvform-year').val(),
+                        month:$('#kvform-month').val(),
+                        listDoc:aDocuments,
+                        reason:result[0]
+                    });
+                    $.post(url.deleteDocuments, {data:data}, function(response) {
+                        if(response.error == false){
+                            if(admin == 1)
+                                changeWidgetLaboValue($('#kvformadmin-labo').find('option:selected').text(),$('#hfIdLabo').val());
+                            
+                            changeWidgetClientValue($('#kvform-client').find('option:selected').text(),$('#kvform-client').val());
+                            changeWidgetChildValue($('#child-id').find('option:selected').text(),$('#child-id').val());
+                            changeWidgetYearValue($('#kvform-year').find('option:selected').text(),$('#kvform-year').val());
+                            changeWidgetMonthValue($('#kvform-month').find('option:selected').text(),$('#kvform-month').val());
+                        
+                            loadFilesDetail();
+                            $('.loader').hide();
+                            
+                            swal(
+                              'Suppression réussie',
+                              'La suppression s\'est effectuée avec succès.',
+                              'success'
+                            )
+                        }
+                        else{
+                            swal(
+                              'Erreur',
+                              'Une erreur est survenue lors de la suppression, veuillez contacter un administrateur.',
+                              'error'
+                            )
+                        }
+                    })
+                }
+            });
+        }
+    };
+    
+    $('#supp-selection').click(function(){
+        suppFiles(false);
+    });
+    
+    $('#supp-all').click(function(){
+        suppFiles(true);
+    });
+    
+    
     /*******************************************************/
 
     

@@ -14,6 +14,7 @@ use app\models\Labo;
 use app\models\LaboClientAssign;
 use app\models\DocumentPushed;
 use app\models\PortailUsers;
+use app\models\LogLaboDocumentsDelete;
 use Yii;
 use yii\filters\VerbFilter;
 use app\models\AppCommon;
@@ -250,6 +251,7 @@ class DocumentController extends Controller
                                         ->one();
                                     if (is_null($logDoc)) {
                                         $logDoc = new DocumentPushed();
+                                        $logDoc->id_user = User::getCurrentUser()->id;
                                         $logDoc->id_labo = $idLabo;
                                         $logDoc->id_client = $id_client;
                                         $logDoc->year = intval($year);
@@ -603,5 +605,110 @@ class DocumentController extends Controller
         }
         //ob_get_clean();
         return ['errors'=>$errors];
+    }
+
+    public function actionDeleteDocument(){
+        $errors = false;
+        $nodoc = 0;
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = intval($_data['idClient']);
+        $idEtablissement = intval($_data['idEtablissement']);
+        $idLabo = intval($_data['idLabo']);
+        $year = intval($_data['year']);
+        $month = intval($_data['month']);
+        $listDoc = $_data['listDoc'];
+        $reason = $_data['reason'];
+
+        foreach ($listDoc as $doc) {
+            $aName = explode('/',$doc);
+            $pathLabo = '';
+            $pathMonth = '';
+            $pathYear = '';
+            $index = 0;
+            while($index < count($aName) -1){
+                if($pathLabo == '')
+                    $pathLabo.= $aName[$index];
+                else{
+                    if($index < count($aName) -1)
+                        $pathLabo .= '/'.$aName[$index];
+                }
+
+                if($pathMonth == '')
+                    $pathMonth.= $aName[$index];
+                else{
+                    if($index < count($aName) -2)
+                        $pathMonth .= '/'.$aName[$index];
+                }
+
+                if($pathYear == '')
+                    $pathYear.= $aName[$index];
+                else{
+                    if($index < count($aName) -3)
+                        $pathYear .= '/'.$aName[$index];
+                }
+                $index++;
+            }
+
+            $fileName = $aName[count($aName) -1];
+
+            //On enregistre les logs
+            $log = new LogLaboDocumentsDelete();
+            $log->id_user = User::getCurrentUser()->id;
+            $log->id_labo = $idLabo;
+            $log->id_client = $idClient;
+            $log->id_etablissement = $idEtablissement;
+            $log->year = $year;
+            $log->month = $month;
+            $log->raison = $reason;
+            $log->filename = $fileName;
+            if(!$log->save())
+                 $errors = true;
+
+            //On décrémente le nombre de fichiers uploadés sur le serveur
+            if(!$errors){
+                $docPushed = DocumentPushed::find()
+                    ->andFilterWhere(['id_labo'=>$idLabo])
+                    ->andFilterWhere(['id_client'=>$idEtablissement])
+                    ->andFilterWhere(['year'=>$year])
+                    ->andFilterWhere(['month'=>$month])
+                    ->one();
+                if(!is_null($docPushed)){
+                    $docPushed->nb_doc -= 1;
+                    if($docPushed->nb_doc != 0){
+                        if(!$docPushed->save())
+                            $errors = true;
+                    }
+                    else{
+                        if(!$docPushed->delete())
+                            $errors = true;
+                        else
+                            $nodoc = 1;
+                    }
+                }
+            }
+
+            //On supprime les fichiers sur le serveur
+            if(!$errors){
+                unlink(Yii::$app->params['dossierClients'].$doc);
+
+                //A la toute fin on vérifie que des fichiers existent dans les dossier (sinon suppression)
+                //Test sur le dossier Labo
+                if(!\glob(Yii::$app->params['dossierClients'].$pathLabo.'/*'))
+                    rmdir(Yii::$app->params['dossierClients'].$pathLabo);
+
+                //Test sur le dossier mois
+                if(!\glob(Yii::$app->params['dossierClients'].$pathMonth.'/*'))
+                    rmdir(Yii::$app->params['dossierClients'].$pathMonth);
+
+                //Test sur le dossier année
+                if(!\glob(Yii::$app->params['dossierClients'].$pathYear.'/*'))
+                    rmdir(Yii::$app->params['dossierClients'].$pathYear);
+            }
+        }
+
+
+        return ['error'=>$errors,'nodoc'=>$nodoc];
     }
 }

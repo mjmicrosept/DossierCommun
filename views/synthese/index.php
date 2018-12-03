@@ -243,7 +243,7 @@ $this->registerJS(<<<JS
                 preConfirm: function() {
                     return new Promise(function(resolve) {
                         if(document.getElementById('new-model').value == '' && document.getElementById('model-list').value == ''){
-                            swal.showValidationError(
+                            throw new Error(
                                 'Vous devez renseigner un modèle existant ou en créer un nouveau.'
                             )
                         }
@@ -328,7 +328,7 @@ $this->registerJS(<<<JS
                     preConfirm: function() {
                         return new Promise(function(resolve) {
                             if(document.getElementById('new-model').value == '' && document.getElementById('model-list').value == ''){
-                                swal.showValidationError(
+                                throw new Error(
                                     'Vous devez renseigner un modèle existant ou en créer un nouveau.'
                                 )
                             }
@@ -404,7 +404,7 @@ $this->registerJS(<<<JS
                 preConfirm: function() {
                     return new Promise(function(resolve) {
                         if(document.getElementById('model-list').value == ''){
-                            swal.showValidationError(
+                            throw new Error(
                                 'Vous devez choisir un modèle existant.'
                             )
                         }
@@ -499,7 +499,7 @@ $this->registerJS(<<<JS
                 preConfirm: function() {
                     return new Promise(function(resolve) {
                         if(document.getElementById('model-list').value == ''){
-                            swal.showValidationError(
+                            throw new Error(
                                 'Vous devez choisir un modèle existant.'
                             )
                         }
@@ -717,7 +717,7 @@ $this->registerJS(<<<JS
             preConfirm: function() {
                 return new Promise(function(resolve) {
                     if(document.getElementById('new-model').value == '' && document.getElementById('model-list').value == ''){
-                        swal.showValidationError(
+                        throw new Error(
                             'Vous devez renseigner un modèle existant ou en créer un nouveau.'
                         )
                     }
@@ -792,7 +792,7 @@ $this->registerJS(<<<JS
             preConfirm: function() {
                 return new Promise(function(resolve) {
                     if(document.getElementById('model-list').value == ''){
-                        swal.showValidationError(
+                        throw new Error(
                             'Vous devez choisir un modèle existant.'
                         )
                     }

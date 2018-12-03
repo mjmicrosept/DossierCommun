@@ -9,6 +9,7 @@ use app\models\Labo;
  * This is the model class for table "document_pushed".
  *
  * @property int $id
+ * @property int $id_user
  * @property int $id_labo
  * @property int $id_client
  * @property int $year
@@ -36,8 +37,8 @@ class DocumentPushed extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id_labo', 'id_client', 'year', 'month', 'nb_doc'], 'required'],
-            [['id_labo', 'id_client', 'year', 'month', 'nb_doc'], 'integer'],
+            [['id_user','id_labo', 'id_client', 'year', 'month', 'nb_doc'], 'required'],
+            [['id_user','id_labo', 'id_client', 'year', 'month', 'nb_doc'], 'integer'],
             [['last_push'], 'safe'],
         ];
     }
@@ -49,6 +50,7 @@ class DocumentPushed extends \yii\db\ActiveRecord
     {
         return [
             'id' => 'ID',
+            'id_user' => 'Id User',
             'id_labo' => 'Id Labo',
             'id_client' => 'Id Client',
             'year' => 'Year',
