@@ -607,6 +607,12 @@ class DocumentController extends Controller
         return ['errors'=>$errors];
     }
 
+    /**
+     * Suppression des documents suivi du log de suppression
+     * @return array
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
+     */
     public function actionDeleteDocument(){
         $errors = false;
         $nodoc = 0;

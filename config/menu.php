@@ -103,6 +103,7 @@ return [
             //['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
             ['label' => '<span class="fas fa-cloud-upload-alt"></span> Envoi des documents', 'url' => ['/document/upload']],
             ['label' => '<span class="fa fa-tag"></span> Résultats d\'analyses', 'url' => ['/document/result-analyse-index']],
+            ['label' => '<span class="fas fa-book"></span> Logs', 'url' => ['/log-labo-documents-delete/index']],
         ],
 //        'visible' => Yii::$app->user->isSuperAdmin
     ],

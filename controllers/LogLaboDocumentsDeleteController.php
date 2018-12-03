@@ -38,7 +38,7 @@ class LogLaboDocumentsDeleteController extends Controller
         $searchModel = new LogLaboDocumentsDeleteSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        return $this->render('index', [
+        return $this->render('../log/document-delete/index', [
             'searchModel' => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
