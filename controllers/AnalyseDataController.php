@@ -184,6 +184,8 @@ class AnalyseDataController extends Controller
                 if(!is_null($idLabo)) {
                     //Chemin vers le dossier labo
                     $pathLaboFolder = Yii::$app->params['laboratoire']['path']['dossierLabo'].$folderLabo.'/';
+                    if(!is_dir($pathLaboFolder))
+                        mkdir($pathLaboFolder);
 
                     $pathLaboEtablissementFolder = $pathLaboFolder.'/'.$idInterne;
                     if(!is_dir($pathLaboEtablissementFolder))
