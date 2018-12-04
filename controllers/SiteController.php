@@ -393,7 +393,7 @@ class SiteController extends Controller
                                     $idClient = $model['id_client'];
                                     $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_etablissement'=>$idClient])->andFilterWhere(['active'=>1])->one();
                                     if(is_null($aAlerte))
-                                        return '<li class="li-alerte"><span class="periode-alerte span-alerte" data-etablissement="' . $model['id_client'] . '" data-labo="' . $model['id_labo'] . '" title="Période sans documents"><span class="glyphicon glyphicon-time" style="margin-right:10px;"></span> Période sans documents</span></li>';
+                                        return '<li class="li-alerte liperiode-'.$model['id_client'].'"><span class="periode-alerte span-alerte" data-etablissement="' . $model['id_client'] . '" data-labo="' . $model['id_labo'] . '" title="Période sans documents"><span class="glyphicon glyphicon-time" style="margin-right:10px;"></span> Période sans documents</span></li>';
                                     else
                                         return '';
                                 }
@@ -405,7 +405,7 @@ class SiteController extends Controller
                                     $idClient = $model['id_client'];
                                     $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_etablissement' => $idClient])->andFilterWhere(['active' => 1])->one();
                                     if (is_null($aAlerte))
-                                        return '<li class="li-alerte"><span class="nodoc-alerte span-alerte" data-etablissement="' . $model['id_client'] . '" data-labo="' . $model['id_labo'] . '" title="Pas de documents pour ce laboratoire"><span class="glyphicon glyphicon-level-up" style="margin-right:10px;"></span> Pas de documents</span></li>';
+                                        return '<li class="li-alerte linodoc-'.$model['id_client'].'"><span class="nodoc-alerte span-alerte" data-etablissement="' . $model['id_client'] . '" data-labo="' . $model['id_labo'] . '" title="Pas de documents pour ce laboratoire"><span class="glyphicon glyphicon-level-up" style="margin-right:10px;"></span> Pas de documents</span></li>';
                                     else
                                         return '';
                                 }
@@ -417,7 +417,7 @@ class SiteController extends Controller
                                 $idClient = $model['id_client'];
                                 $aAlerte = DocumentAlerte::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_etablissement'=>$idClient])->andFilterWhere(['active'=>1])->one();
                                 if(is_null($aAlerte))
-                                    return '<li class="li-alerte"><span class="mailadmin-alerte span-alerte" data-etablissement="'.$model['id_client'].'" data-labo="'.$model['id_labo'].'" title="Envoyer un mail au laboratoire"><span class="glyphicon glyphicon-envelope" style="margin-right:10px;"></span> Envoyer un mail</span></li>';
+                                    return '<li class="li-alerte limailadmin-'.$model['id_client'].'"><span class="mailadmin-alerte span-alerte" data-etablissement="'.$model['id_client'].'" data-labo="'.$model['id_labo'].'" title="Envoyer un mail au laboratoire"><span class="glyphicon glyphicon-envelope" style="margin-right:10px;"></span> Envoyer un mail</span></li>';
                                 else
                                     return '';
                             },

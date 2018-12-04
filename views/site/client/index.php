@@ -560,11 +560,15 @@ $( document ).ready(function() {
                     if(response.error != 1){
                         $('.loader').hide();
                         if(response.errorMail == 0){
-                            //On check la colone
+                            //On active l'action suppression
                             $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange fa-spin"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadmin-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodoc-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiode-' + idEtablissement).css({'pointer-events':'none'});
                             //SweetAlert (alerte confirmée)
                             swal(
                               'Confirmation',
@@ -580,11 +584,15 @@ $( document ).ready(function() {
                             )
                         }
                         else if(response.errorMail == 3){
-                            //On check la colone
+                            //On active l'action suppression
                             $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange fa-spin"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadmin-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodoc-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiode-' + idEtablissement).css({'pointer-events':'none'});
                             swal(
                               'Confirmation',
                               'Votre alerte a bien été enregistrée cependant le laboratoire ne possède pas d\'adresse électronique. Vous pouvez les contacter directement au ' + response.laboTel + '.',
@@ -636,11 +644,15 @@ $( document ).ready(function() {
                     if(response.error != 1){
                         $('.loader').hide();
                         if(response.errorMail == 0){
-                            //On check la colone
+                            //On active l'action suppression
                             $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red fa-spin"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadmin-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodoc-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiode-' + idEtablissement).css({'pointer-events':'none'});
                             //SweetAlert (alerte confirmée)
                             swal(
                               'Confirmation',
@@ -656,11 +668,15 @@ $( document ).ready(function() {
                             )
                         }
                         else if(response.errorMail == 3){
-                            //On check la colone
+                            //On active l'action suppression
                             $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red fa-spin"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadmin-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodoc-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiode-' + idEtablissement).css({'pointer-events':'none'});
                             swal(
                               'Confirmation',
                               'Votre alerte a bien été enregistrée cependant le laboratoire ne possède pas d\'adresse électronique. Vous pouvez les contacter directement au ' + response.laboTel + '.',
@@ -726,11 +742,15 @@ $( document ).ready(function() {
                     if(response.error != 1){
                         $('.loader').hide();
                         if(response.errorMail == 0){
-                            //On check la colone
+                            //On active l'action suppression
                             $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-envelope-square fa-2x text-orange"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadmin-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodoc-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiode-' + idEtablissement).css({'pointer-events':'none'});
                             
                             //SweetAlert (alerte confirmée)
                             swal(
@@ -747,11 +767,15 @@ $( document ).ready(function() {
                             )
                         }
                         else if(response.errorMail == 3){
-                            //On check la colone
+                            //On active l'action suppression
                             $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-envelope-square fa-2x text-red"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadmin-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodoc-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiode-' + idEtablissement).css({'pointer-events':'none'});
                             swal(
                               'Confirmation',
                               'Le laboratoire ne possède pas d\'adresse électronique. Vous pouvez les contacter directement au ' + response.laboTel + '.',
@@ -810,6 +834,10 @@ $( document ).ready(function() {
                         $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', '');
                         $('.lialerte-' + idEtablissement).css({'pointer-events':'none'});
                         $('.deletealerte-' + idEtablissement).attr('data-idalerte', '');
+                        //On reactive les autres actions
+                        $('.limailadmin-' + idEtablissement).css({'pointer-events':'auto'});
+                        $('.linodoc-' + idEtablissement).css({'pointer-events':'auto'});
+                        $('.liperiode-' + idEtablissement).css({'pointer-events':'auto'});
                         swal(
                           'Confirmation',
                           'L\'alerte a bien été supprimée.',
