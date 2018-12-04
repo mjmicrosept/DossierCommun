@@ -77,7 +77,6 @@ class MappageIdClientController extends Controller
         $listLabo = Labo::getAsListActive();
 
         if ($model->load(Yii::$app->request->post())){
-            Yii::trace(Yii::$app->request->post());
             if(isset(Yii::$app->request->post()['laboratoire'])){
                 $model->id_labo = intval(Yii::$app->request->post()['laboratoire']);
             }
@@ -113,7 +112,6 @@ class MappageIdClientController extends Controller
 
 
         if ($model->load(Yii::$app->request->post())){
-            Yii::trace(Yii::$app->request->post());
             if(isset(Yii::$app->request->post()['laboratoire'])){
                 $model->id_labo = intval(Yii::$app->request->post()['laboratoire']);
             }

@@ -226,7 +226,6 @@ JS
 
 $this->registerJs(<<<JS
     //var rootNode = $('#fancyree_clientTree').fancytree("getRootNode");
-    //console.log(rootNode);
     $('#kvformadmin-client').change(function(){
         var rootNode = $('#fancyree_clientTree').fancytree("getRootNode");
         if($(this).val() == ''){
@@ -315,7 +314,6 @@ $this->registerJs(<<<JS
     function clickNode(dataNode){
         if($('#hfClientId').val() != 0){
             $('.loader').show();
-            console.log(dataNode);
             var data = JSON.stringify({
                 path : dataNode.node.key,
             });

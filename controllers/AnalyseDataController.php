@@ -164,7 +164,6 @@ class AnalyseDataController extends Controller
         $idEtablissement = null;
         $idInterne = null;
 
-        Yii::trace($_POST);
         if(isset($_POST['idLabo']))
             $idLabo = $_POST['idLabo'];
         if(isset($_POST['idClient']))

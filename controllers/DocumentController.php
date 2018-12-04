@@ -111,7 +111,6 @@ class DocumentController extends Controller
         $_data = $_POST['depdrop_params'];
         $clientIdParent = $_data[0];
         $clientIdLabo = null;
-        Yii::trace($_data);
         if(count($_data) > 1)
             $clientIdLabo = $_data[1];
         $listClient = null;
@@ -190,7 +189,6 @@ class DocumentController extends Controller
         $idClient = null;
         $year = null;
         $month = null;
-        Yii::trace($_POST);
         if(isset($_POST['idLabo']))
             $idLabo = $_POST['idLabo'];
         if(isset($_POST['idClient']))
@@ -221,7 +219,6 @@ class DocumentController extends Controller
                     if (!is_null($year) && !is_null($month)) {
                         //Chemin vers l'année
                         $pathClientYearFolder = $pathClientFolder.'/'.$year;
-                        Yii::trace($pathClientYearFolder);
                         if(!is_dir($pathClientYearFolder))
                             mkdir($pathClientYearFolder);
                         //Chemin vers le mois
@@ -502,8 +499,6 @@ class DocumentController extends Controller
         $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
         $folderClient = $client->getFolderPath();
         $tree = AppCommon::dataFancytreeClientActif(0,Yii::$app->params['dossierClients'].$folderClient,$folderClient,true);
-        Yii::trace('julien');
-        Yii::trace($tree['node']);
         if(count($tree['node']) != 0) {
             $result = [[
                 'title' => 'Années',
@@ -561,8 +556,6 @@ class DocumentController extends Controller
 
         $_data = Json::decode($_POST['data']);
         $documentList = $_data['documentList'];
-        //Yii::trace('delphine');
-        //Yii::trace($documentList);
 
         for($i = 0;$i < count($documentList);$i++) {
             $aName = explode("/",$documentList[$i]);
@@ -582,13 +575,7 @@ class DocumentController extends Controller
             }
 
             $file = Yii::$app->params["dossierClients"].$documentList[$i];
-            Yii::trace($file);
             if(file_exists($file)){
-                /*Yii::trace($file);
-                Yii::trace($type);
-                //\Yii::$app->response->sendFile($file);
-                header($type);
-                readfile($file);*/
                 header('Content-Description: File Transfer');
                 header('Content-Type: application/pdf');
                 header('Content-Disposition: attachment; filename='.basename($file));

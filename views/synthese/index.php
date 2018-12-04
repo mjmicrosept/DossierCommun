@@ -559,7 +559,6 @@ $this->registerJS(<<<JS
         var listEtablissement = null;
         var listLabo = null;
         if('{$idclient}' == 0){
-            console.log($('#kvform-etablissement').val());
             listEtablissement = $('#kvform-etablissement').val();
             listLabo = $('#child-id').val();
         }
@@ -578,17 +577,6 @@ $this->registerJS(<<<JS
         });
         var listConditionnement = $('#kvform-conditionnement').val();
         var listLieuPrelevement = $('#kvform-lieu_prelevement').val();
-        
-        console.log(listEtablissement);
-        //console.log(listLabo);
-        console.log(listService);
-        //console.log(listConclusion);
-        //console.log(listInterpretation);
-        //console.log(dateDebut);
-        //console.log(dateFin);
-        //console.log(aKeyWord);
-        //console.log(listConditionnement);
-        //console.log(listLieuPrelevement);
         
         /*var listGerm = [];
         

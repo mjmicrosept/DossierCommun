@@ -177,12 +177,10 @@ class AppCommon
         $result = '';
         $folder = opendir (Yii::$app->params['dossierClients'].$dir);
 
-        Yii::trace($dir);
         $index = 0;
         while ($file = readdir ($folder)) {
             if ($file != "." && $file != "..") {
                 $pathfile = Yii::$app->params['dossierClients'].$dir.'/'.$file;
-                Yii::trace($pathfile);
                 if(filetype($pathfile) == 'file'){
                     if(!is_null($parent) && $index == 0)
                         $result .= $parent;

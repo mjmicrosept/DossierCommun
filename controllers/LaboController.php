@@ -80,7 +80,6 @@ class LaboController extends Controller
             $model->cofrac = 1;
             $model->active = 1;
             try {
-                //Yii::trace(Yii::$app->request->post());
                 if(!isset(Yii::$app->request->post()['Labo']['cofrac']))
                     $model->cofrac = 0;
                 if(!isset(Yii::$app->request->post()['Labo']['active']))
@@ -130,7 +129,6 @@ class LaboController extends Controller
             $model->cofrac = 1;
             $model->active = 1;
             try {
-                //Yii::trace(Yii::$app->request->post());
                 if(!isset(Yii::$app->request->post()['Labo']['cofrac']))
                     $model->cofrac = 0;
                 if(!isset(Yii::$app->request->post()['Labo']['active']))

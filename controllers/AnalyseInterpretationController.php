@@ -89,7 +89,6 @@ class AnalyseInterpretationController extends Controller
                 if($isValid)
                     $isValid = $model->save();
 
-                Yii::trace($isValid);
             }
             catch(Exception $e){
                 Yii::trace($model->errors);

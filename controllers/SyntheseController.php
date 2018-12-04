@@ -872,7 +872,6 @@ class SyntheseController extends Controller
         $keyWordList = $_data['keyWordList'];
         $modelExist = $_data['modelExist'];
         $modelNew = $_data['modelNew'];
-        Yii::trace($_data);
 
         $modelName = '';
         //Modèle existant
@@ -956,7 +955,6 @@ class SyntheseController extends Controller
         $lieuPrelevement = $_data['lieuPrelevement'];
         $modelExist = $_data['modelExist'];
         $modelNew = $_data['modelNew'];
-        Yii::trace($_data);
 
         $modelName = '';
         //Modèle existant
@@ -1059,8 +1057,6 @@ class SyntheseController extends Controller
         $model = FilterModel::find()->andFilterWhere(['id'=>$modelExist])->one();
         $modelName = $model->libelle;
 
-        Yii::trace($lieuPrelevementList);
-        Yii::trace($conditionnementList);
 
         return ['errors'=>$errors,'lieuPrelevementList'=>$lieuPrelevementList,'conditionnementList'=>$conditionnementList,'modelName'=>$modelName];
     }
@@ -1156,7 +1152,6 @@ class SyntheseController extends Controller
      */
     public function actionGetSyntheseResult(){
         $_data = Json::decode($_POST['data']);
-        Yii::trace($_data);//die();
 
         if(isset($_data['listEtablissement']))
             if($_data['listEtablissement'] != '')
@@ -1170,7 +1165,6 @@ class SyntheseController extends Controller
         if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperAdmin){
             $listEtablissement = PortailUsers::getIdClientUserGroup(User::getCurrentUser()->id);
         }
-        Yii::trace($listEtablissement);
 
         if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !Yii::$app->user->isSuperAdmin)
             if($_data['listLabo'] != '')
@@ -1275,7 +1269,6 @@ class SyntheseController extends Controller
             }
         }
 
-        //Yii::trace($aGlobalData);
 
         $dataProvider = new ArrayDataProvider([
             'key'=>function($row) {

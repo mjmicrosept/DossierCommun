@@ -273,7 +273,6 @@ class User extends \webvimark\modules\UserManagement\models\User
     public function createUserWithPermission($request_post){
         $transaction = self::getDb()->beginTransaction();
         $error = false;
-        Yii::trace($request_post);
         try{
             if(!$this->save())
                 $error = true;
@@ -487,7 +486,6 @@ class User extends \webvimark\modules\UserManagement\models\User
                         if (!User::assignRole($this->id, User::TYPE_CLIENT_USER_GROUP))
                             $error = true;
                         else {
-                            Yii::trace($request_post);
                             //Si avant son rôle était admin du portail il faut lui créer une entrée dans la table portail_users sinon la mettre à jour
                             /*if ($old_role == User::TYPE_PORTAIL_ADMIN) {
                                 PortailUsers::createNewEntry($this->id, null, intval($request_post['etablissement']));

@@ -496,11 +496,6 @@ $( document ).ready(function() {
         trigger:'hover'
     });
     
-    /*$('#summernote').summernote();
-    $('.test').click(function(){
-       console.log($('#summernote').summernote('code')); 
-    });*/
-    
     $('.btn-actions > button').html('Actions <span class="caret"></span>');
     $('th.skip-export').each(function(){
         if(!$(this).hasClass('analyse-expanded'))
@@ -732,8 +727,6 @@ $( document ).ready(function() {
                         $('.loader').hide();
                         if(response.errorMail == 0){
                             //On check la colone
-                            console.log(idEtablissement);
-                            console.log(response.idalerte);
                             $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-envelope-square fa-2x text-orange"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
