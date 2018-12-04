@@ -123,7 +123,7 @@ class DocumentAlerte extends \yii\db\ActiveRecord
                     $bodyText = '';
                     $bodyText .= 'Une alerte a été levée par l\'établissement <strong>' . $etablissementName . '</strong> du groupe <strong>' . $clientName . '</strong> pour la raison suivante : <br/> - Pas de documents présents sur la plateforme.<br/><br/>';
                     $bodyText .= 'Vous pouvez passer le statut de cette alerte à <strong>"traitée"</strong> en cliquant sur le lien suivant : <br>';
-                    $bodyText .= '<a href"http://dossiercommun.test.local/index.php/alerte/change-statut?alerte='.md5($idAlerte).'">http://dossiercommun.test.local/index.php/alerte/change-statut?alerte='.md5($idAlerte).'</a>';
+                    $bodyText .= 'http://dossiercommun.test.local/index.php/alerte/change-statut?alerte='.md5($idAlerte);
                 } else {
                     //Dans le cas d'une entreprise seule
                     $bodyText = '';
@@ -192,7 +192,7 @@ class DocumentAlerte extends \yii\db\ActiveRecord
                     $bodyText = '';
                     $bodyText .= 'Une alerte a été levée par l\'établissement <strong>' . $etablissementName . '</strong> du groupe <strong>' . $clientName . '</strong> pour la raison suivante : <br/> - Pas de documents présents pendant une période de '.$periode.' mois.<br/><br/>';
                     $bodyText .= 'Vous pouvez passer le statut de cette alerte à <strong>"traitée"</strong> en cliquant sur le lien suivant : <br>';
-                    $bodyText .= '<a href"http://dossiercommun.test.local/index.php/alerte/change-statut?alerte='.md5($idAlerte).'">http://dossiercommun.test.local/index.php/alerte/change-statut?alerte='.md5($idAlerte).'</a>';
+                    $bodyText .= 'http://dossiercommun.test.local/index.php/alerte/change-statut?alerte='.md5($idAlerte);
                 } else {
                     //Dans le cas d'une entreprise seule
                     $bodyText = '';
