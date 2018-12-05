@@ -561,7 +561,7 @@ $( document ).ready(function() {
                         $('.loader').hide();
                         if(response.errorMail == 0){
                             //On active l'action suppression
-                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange fa-spin"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
@@ -585,7 +585,7 @@ $( document ).ready(function() {
                         }
                         else if(response.errorMail == 3){
                             //On active l'action suppression
-                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange fa-spin"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
@@ -645,7 +645,7 @@ $( document ).ready(function() {
                         $('.loader').hide();
                         if(response.errorMail == 0){
                             //On active l'action suppression
-                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red fa-spin"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
@@ -669,7 +669,7 @@ $( document ).ready(function() {
                         }
                         else if(response.errorMail == 3){
                             //On active l'action suppression
-                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red fa-spin"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);

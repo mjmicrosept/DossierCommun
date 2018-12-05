@@ -431,17 +431,6 @@ else
                         }*/
                     },
                 ],
-                [
-                    'class' => 'kartik\grid\ActionColumn',
-                    'dropdown' => true,
-                    'dropdownOptions' => ['class' => 'float-left btn-actions'],
-                    'dropdownMenu' => ['style'=>'left:-80px !important'],
-                    'urlCreator' => function($action, $model, $key, $index) { return '#'; },
-                    'viewOptions' => ['title' => 'This will launch the book details page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
-                    'updateOptions' => ['title' => 'This will launch the book update page. Disabled for this demo!', 'data-toggle' => 'tooltip'],
-                    'deleteOptions' => ['title' => 'This will launch the book delete action. Disabled for this demo!', 'data-toggle' => 'tooltip'],
-                    'headerOptions' => ['class' => 'kartik-sheet-style'],
-                ],
             ],
         ]); ?>
 

@@ -342,10 +342,10 @@ class SiteController extends Controller
                                     if($aAlerte->vue == 0){
                                         switch($aAlerte->type){
                                             case DocumentAlerte::TYPE_NODOC :
-                                                return '<i class="fas fa-sync fa-2x text-red fa-spin"></i>';
+                                                return '<i class="fas fa-sync fa-2x text-red"></i>';
                                                 break;
                                             case DocumentAlerte::TYPE_PERIODE_MISSING :
-                                                return '<i class="fas fa-sync fa-2x text-orange fa-spin"></i>';
+                                                return '<i class="fas fa-sync fa-2x text-orange"></i>';
                                                 break;
                                             case DocumentAlerte::TYPE_SENDMAIL :
                                                 return '<i class="fas fa-envelope-square fa-2x text-orange"></i>';
@@ -666,10 +666,10 @@ class SiteController extends Controller
                             else{
                                 switch($aAlerte->type){
                                     case DocumentAlerte::TYPE_NODOC :
-                                        return '<i class="fas fa-sync fa-2x text-red fa-spin"></i>';
+                                        return '<i class="fas fa-sync fa-2x text-red"></i>';
                                         break;
                                     case DocumentAlerte::TYPE_PERIODE_MISSING :
-                                        return '<i class="fas fa-sync fa-2x text-orange fa-spin"></i>';
+                                        return '<i class="fas fa-sync fa-2x text-orange"></i>';
                                         break;
                                     case DocumentAlerte::TYPE_SENDMAIL :
                                         return '<i class="fas fa-envelope-square fa-2x text-orange"></i>';
