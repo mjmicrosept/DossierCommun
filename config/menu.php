@@ -122,6 +122,7 @@ return [
                 'visible' => !User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) && !User::getCurrentUser()->hasRole([User::TYPE_LABO_USER]) ? true : Yii::$app->user->isSuperAdmin  ? true : false
             ],
             ['label' => '<span class="fas fa-cloud-upload-alt"></span> Envoi des données', 'url' => ['/analyse-data/upload']],
+            ['label' => '<span class="fas fa-chart-pie"></span> Statistiques', 'url' => ['/analyse-data/statistique'],'visible'=>Yii::$app->user->isSuperAdmin ? true : false],
         ],
     ],
 ];

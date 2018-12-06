@@ -219,4 +219,9 @@ class AnalyseDataController extends Controller
         //On récupère le nom du dossier client
         return ['error'=>$error, 'errorkeys'=>$errorkey];
     }
+
+    public function actionStatistique(){
+        return $this->render('../synthese/statistiques', [
+        ]);
+    }
 }

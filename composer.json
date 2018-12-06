@@ -44,7 +44,8 @@
         "wbraganca/yii2-fancytree-widget": "*",
         "devleaks/yii2-introjs": "*",
         "kartik-v/yii2-widget-depdrop": "dev-master",
-        "yii2mod/yii2-ftp": "^1.0"
+        "yii2mod/yii2-ftp": "^1.0",
+        "bower-asset/chartjs": "^2.7.3"
     },
     "require-dev": {
         "yiisoft/yii2-codeception": "*",
