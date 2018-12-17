@@ -20,7 +20,7 @@ if(isset($_GET['alerte']))
             $alerteLink = $_GET['alerte'];
 
 ?>
-<img src="../../../images/login04.jpg" id="wallpaper" />
+    <img src="../../../images/login07.jpg" id="wallpaper" style="width:100%;height:auto;" />
     <div id="wrapper">
         <div class="container">
             <div class="card card-container">
