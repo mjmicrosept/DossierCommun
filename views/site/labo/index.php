@@ -295,38 +295,6 @@ CSS
                 'panel' => [
                     'type' => \kartik\grid\GridView::TYPE_PRIMARY,
                     'heading' => '<i class="fa fa-dashboard"></i>  Tableau de bord',
-                    //'before'=>Html::a('<i class="glyphicon glyphicon-plus"></i> Create Country', ['create'], ['class' => 'btn btn-success', 'style'=>'float:right;margin-right:20px;']),
-                    'before' => '<div style="text-align:center;float:right;margin-right:20px;margin-top:5px;"><span class="glyphicon glyphicon-info-sign obs_tooltip" style="color:rgb(0, 192, 239);top:5px;" title="Info" data-content="Nombre de mois sans envois permettant de visualiser une alerte (par défaut 1)" ></span></div>'.Form::widget([
-                            'formName'=>'kvformadmin',
-
-                            // default grid columns
-                            'columns'=>1,
-                            'compactGrid'=>true,
-
-                            // set global attribute defaults
-                            'attributeDefaults'=>[
-                                'type'=>Form::INPUT_TEXT,
-                                'labelOptions'=>['style'=>'float:right;margin-right:30px;width:200px;'],
-                                'inputContainer'=>['style'=>'float:right;margin-right:10px;width:190px;', 'class'=>'filter-month'],
-                                'container'=>['class'=>'form-group'],
-                            ],
-                            'attributes'=>[
-                                'monthAlert'=>[
-                                    'filterType' => \kartik\grid\GridView::FILTER_SELECT2,
-                                    'type'=>Form::INPUT_WIDGET,
-                                    'widgetClass'=>'\kartik\select2\Select2',
-                                    'options'=>[
-                                        'data'=>AppCommon::$aMonthAlert,
-                                        'options' => [
-                                            'placeholder' => 'Nb mois sans envoi','dropdownCssClass' =>'dropdown-vente-livr'
-                                        ],
-                                    ],
-                                    //'name' => 'filter-monthAlert',
-                                    'value' => 1,
-                                    //'label'=>'Année',
-                                ],
-                            ]
-                        ])
                 ],
                 'toolbar'=>['{export}'],
                 'exportConfig' => [
