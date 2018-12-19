@@ -95,7 +95,7 @@ JS
 
 <div class="row">
     <div class="col-sm-12">
-        <div class="panel panel-primary">
+        <div class="panel panel-primary panel-results" style="display:none;">
             <div class="panel-heading">
                 <strong>
                     <span class="fas fa-th"></span> <?= Yii::t('microsept', 'Results_Analyses') ?>
@@ -628,6 +628,7 @@ $this->registerJS(<<<JS
                 listLieuPrelevement : listLieuPrelevement,
             });
             $.post(url.getSyntheseResult, {data:data}, function(response) {
+                $('.panel-results').show();
                 $('#synthese-grid').html(response);
                 $('.loader').hide();
             });
