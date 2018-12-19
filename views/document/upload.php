@@ -243,15 +243,15 @@ JS
                         <fieldset>
                             <div class="box box-widget widget-user-2">
                                 <!-- Add the bg color to the header using any of the bg-* classes -->
-                                <div class="widget-user-header bg-aqua-active">
+                                <div class="widget-user-header widget-labo" style="display:none;background-color:#c8ced3;border: 1px solid #acb5bd;border-bottom:none;">
                                     <div class="widget-user-image">
-                                        <img class="img-circle" src="../../images/logorfl_min.png" alt="Labo Avatar" style="margin-right:10px;">
+                                        <img class="img-circle" src="../../images/logo_pcram.png" alt="Labo Avatar" style="margin-right:10px;">
                                     </div>
                                     <!-- /.widget-user-image -->
                                     <h3 class="widget-labo-raison-sociale"><?= is_null($labo) ? '&nbsp' : $labo->raison_sociale ?></h3>
                                     <h5 class="widget-client-name">&nbsp</h5>
                                 </div>
-                                <div class="box-footer no-padding">
+                                <div class="box-footer no-padding box-container" style="border: 1px solid #acb5bd;display:none;">
                                     <ul class="nav nav-stacked">
                                         <li class="nav-total-labo" style="display:none;"><a href="#">Total de <span class="span-total-labo"></span><span class="pull-right badge badge-total-labo bg-blue">31</span></a></li>
                                         <li class="nav-total-client" style="display:none;"><a href="#">Total de  <span class="span-total-client"></span><span class="pull-right badge badge-total-client bg-blue">31</span></a></li>
@@ -310,11 +310,15 @@ $this->registerJS(<<<JS
                             $('.badge-total-labo').removeClass('bg-yellow').addClass('bg-blue');
                     }
                     $('.nav-total-labo').show();
+                    $('.widget-labo').show();
+                    $('.box-container').show();
                 }
             })
         }
         else{
             $('.nav-total-labo').hide();
+            $('.widget-labo').hide();
+            $('.box-container').hide();
         }
     }
     
@@ -338,11 +342,19 @@ $this->registerJS(<<<JS
                             $('.badge-total-client').removeClass('bg-yellow').addClass('bg-blue');
                     }
                     $('.nav-total-client').show();
+                    if(admin != 1){
+                        $('.widget-labo').show();
+                        $('.box-container').show();
+                    }
                 }
             })
         }
         else{
             $('.nav-total-client').hide();
+            if(admin != 1){
+                $('.widget-labo').hide();
+                $('.box-container').hide();
+            }
         }
     }
     
