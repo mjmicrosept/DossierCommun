@@ -72,8 +72,6 @@ $this->params['breadcrumbs'][] = $this->title;
 						],
 					]).'</div></div>',
 				'columns' => [
-					['class' => 'yii\grid\SerialColumn', 'options'=>['style'=>'width:10px'] ],
-
 					[
 						'class'=>'webvimark\components\StatusColumn',
 						'attribute'=>'superadmin',
@@ -122,7 +120,7 @@ $this->params['breadcrumbs'][] = $this->title;
 									['class'=>'btn btn-sm btn-primary', 'data-pjax'=>0]);
 							},
 						'format'=>'raw',
-						'visible'=>User::canRoute('/user-management/user-permission/set'),
+						'visible'=>Yii::$app->user->isSuperAdmin,
 						'options'=>[
 							'width'=>'10px',
 						],
