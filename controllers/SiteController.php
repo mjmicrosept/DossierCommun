@@ -269,9 +269,6 @@ class SiteController extends Controller
                             else
                                 return ' - ';
                         },
-                        'contentOptions' => function ($model, $key, $index, $column) {
-                            return '';
-                        },
                     ],
                     [
                         'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #ffc789!important;','data-qte'=>'66'],
@@ -593,9 +590,6 @@ class SiteController extends Controller
                         }
                         else
                             return ' - ';
-                    },
-                    'contentOptions' => function ($model, $key, $index, $column) {
-                        return '';
                     },
                 ],
                 [

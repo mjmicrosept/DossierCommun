@@ -184,7 +184,7 @@ else
     </div>
     <div class="box-body" style="">
 
-        <?= \kartik\grid\GridView::widget([
+        <?= GridView::widget([
             'dataProvider' => $dataProvider,
             'filterModel' => $searchModel,
             'filterRowOptions' => ['class' => 'filters-monthAlert'],
@@ -197,7 +197,7 @@ else
             'bootstrap'=>true,
             'floatHeader'=>false,
             'panel' => [
-                'type' => \kartik\grid\GridView::TYPE_PRIMARY,
+                'type' => GridView::TYPE_PRIMARY,
                 'heading' => '<i class="fa fa-dashboard"></i>  Tableau de bord',
                 //'before'=>Html::a('<i class="glyphicon glyphicon-plus"></i> Create Country', ['create'], ['class' => 'btn btn-success', 'style'=>'float:right;margin-right:20px;']),
                 'before' => '<div style="text-align:center;float:right;margin-right:20px;margin-top:5px;"><span class="glyphicon glyphicon-info-sign obs_tooltip" style="color:rgb(0, 192, 239);top:5px;" title="Info" data-content="Nombre de mois sans envois permettant de visualiser une alerte (par défaut 1)" ></span></div>'.Form::widget([
@@ -216,7 +216,7 @@ else
                     ],
                     'attributes'=>[
                         'monthAlert'=>[
-                            'filterType' => \kartik\grid\GridView::FILTER_SELECT2,
+                            'filterType' => GridView::FILTER_SELECT2,
                             'type'=>Form::INPUT_WIDGET,
                             'widgetClass'=>'\kartik\select2\Select2',
                             'options'=>[
@@ -234,15 +234,15 @@ else
             ],
             'toolbar'=>['{export}'],
             'exportConfig' => [
-                \kartik\grid\GridView::CSV => [
+                GridView::CSV => [
                     'icon' => 'fa fa-file-code-o',
                     'filename' => 'Synthese-upload'
                 ],
-                \kartik\grid\GridView::HTML => [
+                GridView::HTML => [
                     'icon' => 'fa fa-file-text',
                     'filename' => 'Synthese-upload'
                 ],
-                \kartik\grid\GridView::PDF => [
+                GridView::PDF => [
                     'icon' => 'fa fa-file-pdf-o',
                     'filename' => 'Synthese-upload'
                 ],
@@ -350,9 +350,9 @@ else
                         else
                             return ' - ';
                     },
-                    'contentOptions' => function ($model, $key, $index, $column) {
+                    /*'contentOptions' => function ($model, $key, $index, $column) {
                         return '';
-                    },
+                    },*/
                 ],
                 [
                     'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #ffc789!important;','data-qte'=>'66'],
@@ -411,24 +411,24 @@ else
                     'width'=>'100px',
                     'format'=>'raw',
                     'value' => function($model){
-                        /*$lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->orderBy('last_push DESC')->one();
-                        if(!is_null($lastPushObj)) {
-                            $lastPush = $lastPushObj->nb_doc;
-                            return $lastPush;
-                        }
-                        else
-                            return ' - ';*/
+                        //$lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->orderBy('last_push DESC')->one();
+                        //if(!is_null($lastPushObj)) {
+                        //    $lastPush = $lastPushObj->nb_doc;
+                        //    return $lastPush;
+                        //}
+                        //else
+                        //    return ' - ';
                         //return '<i class="fa fa-circle text-green"></i>';
                         return '-';
 
                     },
                     'contentOptions' => function ($model, $key, $index, $column) {
-                        /*$lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->orderBy('last_push DESC')->one();
-                        if(is_null($lastPushObj))
-                            return ['style' => 'background-color:#f58987'];
-                        else{
-                            return ['style' => 'background-color:#72d29a'];
-                        }*/
+                        //$lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->orderBy('last_push DESC')->one();
+                        //if(is_null($lastPushObj))
+                        //    return ['style' => 'background-color:#f58987'];
+                        //else{
+                        //    return ['style' => 'background-color:#72d29a'];
+                        //}
                     },
                 ],
             ],
