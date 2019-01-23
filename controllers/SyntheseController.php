@@ -1282,8 +1282,9 @@ class SyntheseController extends Controller
         $gridColumns = [
             [
                 'label' => 'Service',
+                'format' => 'raw',
                 'value' => function($row) {
-                    return AnalyseService::find()->andFilterWhere(['id'=>$row['id_service']])->one()->libelle;
+                    return '<i class="fas fa-stream"></i>&nbsp;&nbsp;' . AnalyseService::find()->andFilterWhere(['id'=>$row['id_service']])->one()->libelle;
                 },
                 'contentOptions' => ['style'=>'font-weight:bold'],
                 'group'=>true,  // enable grouping,
@@ -1293,9 +1294,10 @@ class SyntheseController extends Controller
             ],
             [
                 'label' => 'client',
+                'format' => 'raw',
                 'contentOptions' => ['style'=>'font-weight:bold'],
                 'value' => function($row) {
-                    return Client::find()->andFilterWhere(['id'=>$row['id_client']])->one()->name;
+                    return '<i class="far fa-building"></i>&nbsp;&nbsp;' . Client::find()->andFilterWhere(['id'=>$row['id_client']])->one()->name;
                 },
                 'vAlign'=>'middle',
                 'group'=>true,
@@ -1305,9 +1307,10 @@ class SyntheseController extends Controller
             ],
             [
                 'label' => '',
+                'format' => 'raw',
                 'contentOptions' => ['style'=>'font-weight:bold'],
                 'value' => function($row) {
-                    return Labo::find()->andFilterWhere(['id'=>$row['id_labo']])->one()->raison_sociale;
+                    return '<i class="fas fa-microscope"></i>&nbsp;Laboratoire&nbsp;-&nbsp;' . Labo::find()->andFilterWhere(['id'=>$row['id_labo']])->one()->raison_sociale;
                 },
                 'vAlign'=>'middle',
                 'group'=>true,
