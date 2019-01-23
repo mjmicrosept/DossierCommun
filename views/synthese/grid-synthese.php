@@ -17,28 +17,43 @@ $this->registerCss(<<<CSS
     }
     .kv-grouped-row {
         color: #FFF !important;
-        background-color: #009cc1 !important;
+        background-color: #007d90 !important;
         border: 1px solid #f4f4f4;
     }
     .table-hover .kv-grouped-row:hover{
         color: #FFF !important;
-        background-color: #009cc1 !important;
+        background-color: #007d90 !important;
         border: 1px solid #f4f4f4;
         /*color: #fff !important;
         background-color: #00c0ef !important;*/
     }
     
     .kv-grouped-child-row {
-        color: #000 !important;
-        background-color: #d4e2e5 !important;
+        color: #FFF !important;
+        background-color: #009cc1 !important;
         border: 1px solid #f4f4f4;
-        padding-left:20px;
+        padding-left:30px !important;
     }
     .table-hover .kv-grouped-child-row:hover{
-        color: #000 !important;
-        background-color: #d4e2e5 !important;
+        color: #FFF !important;
+        background-color: #009cc1 !important;
         border: 1px solid #f4f4f4;
-        padding-left:20px;
+        padding-left:30px !important;
+        /*color: #fff !important;
+        background-color: #00c0ef !important;*/
+    }
+    
+    .kv-grouped-labo-row {
+        color: #000 !important;
+        background-color: #8cbeef !important;
+        border: 1px solid #f4f4f4;
+        padding-left:60px !important;
+    }
+    .table-hover .kv-grouped-labo-row:hover{
+        color: #000 !important;
+        background-color: #8cbeef !important;
+        border: 1px solid #f4f4f4;
+        padding-left:60px !important;
         /*color: #fff !important;
         background-color: #00c0ef !important;*/
     }

@@ -1219,7 +1219,7 @@ class SyntheseController extends Controller
             $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_lieu_prelevement',$listLieuPrelevement]);
 
 
-        $aAnalyseData = $aAnalyseData->orderBy('id_service,id_client,date_analyse')->all();
+        $aAnalyseData = $aAnalyseData->orderBy('id_service,id_client,id_labo,date_analyse')->all();
 
         //Ajout des germes dans la requête
         foreach ($aAnalyseData as $analyseData) {
@@ -1292,7 +1292,7 @@ class SyntheseController extends Controller
                 'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
             ],
             [
-                'label' => '',
+                'label' => 'client',
                 'contentOptions' => ['style'=>'font-weight:bold'],
                 'value' => function($row) {
                     return Client::find()->andFilterWhere(['id'=>$row['id_client']])->one()->name;
@@ -1302,6 +1302,18 @@ class SyntheseController extends Controller
                 'groupedRow'=>true,                    // move grouped column to a single grouped row
                 'groupOddCssClass'=>'kv-grouped-child-row',  // configure odd group cell css class
                 'groupEvenCssClass'=>'kv-grouped-child-row', // configure even group cell css class
+            ],
+            [
+                'label' => '',
+                'contentOptions' => ['style'=>'font-weight:bold'],
+                'value' => function($row) {
+                    return Labo::find()->andFilterWhere(['id'=>$row['id_labo']])->one()->raison_sociale;
+                },
+                'vAlign'=>'middle',
+                'group'=>true,
+                'groupedRow'=>true,                    // move grouped column to a single grouped row
+                'groupOddCssClass'=>'kv-grouped-labo-row',  // configure odd group cell css class
+                'groupEvenCssClass'=>'kv-grouped-labo-row', // configure even group cell css class
             ],
             [
                 'label' => 'N° Analyse',
