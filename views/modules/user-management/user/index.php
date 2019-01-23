@@ -11,6 +11,9 @@ use yii\widgets\Pjax;
 use webvimark\extensions\GridBulkActions\GridBulkActions;
 use webvimark\extensions\GridPageSize\GridPageSize;
 use yii\grid\GridView;
+use app\models\PortailUsers;
+use app\models\Client;
+use app\models\Labo;
 
 /**
  * @var yii\web\View $this
@@ -91,11 +94,6 @@ $this->params['breadcrumbs'][] = $this->title;
 						'visible'=>User::hasPermission('viewUserEmail'),
 					],
 					[
-						'class'=>'webvimark\components\StatusColumn',
-						'attribute'=>'email_confirmed',
-						'visible'=>User::hasPermission('viewUserEmail'),
-					],
-					[
 						'attribute'=>'gridRoleSearch',
 						'filter'=>ArrayHelper::map(Role::getAvailableRoles(Yii::$app->user->isSuperAdmin),'name', 'description'),
 						'value'=>function(User $model){
@@ -104,14 +102,49 @@ $this->params['breadcrumbs'][] = $this->title;
 						'format'=>'raw',
 						'visible'=>User::hasPermission('viewUserRoles'),
 					],
-					[
-						'attribute'=>'registration_ip',
-						'value'=>function(User $model){
-								return Html::a($model->registration_ip, "http://ipinfo.io/" . $model->registration_ip, ["target"=>"_blank"]);
-							},
-						'format'=>'raw',
-						'visible'=>User::hasPermission('viewRegistrationIp'),
-					],
+                    [
+                        'label' => 'Client',
+                        'format' => 'raw',
+                        'value' => function (User $model){
+			                $portailUser = PortailUsers::find()->andFilterWhere(['id_user'=>$model->id])->one();
+			                if(!is_null($portailUser)) {
+                                if (!is_null($portailUser->id_client)) {
+                                    $client = Client::find()->andFilterWhere(['id' => $portailUser->id_client])->one();
+                                    if (!is_null($client->id_parent)) {
+                                        $parent = Client::find()->andFilterWhere(['id' => $client->id_parent])->one();
+                                        return $parent->name;
+                                    } else {
+                                        return $client->name;
+                                    }
+                                } else {
+                                    return '-';
+                                }
+                            }
+                            else{
+                                return '-';
+                            }
+                        },
+                        'visible'=>User::hasPermission('viewUserRoles'),
+                    ],
+                    [
+                        'label' => 'Labo',
+                        'format' => 'raw',
+                        'value' => function(User $model){
+                            $portailUser = PortailUsers::find()->andFilterWhere(['id_user'=>$model->id])->one();
+                            if(!is_null($portailUser)) {
+                                if (!is_null($portailUser->id_labo)) {
+                                    $labo = Labo::find()->andFilterWhere(['id'=>$portailUser->id_labo])->one();
+                                    return $labo->raison_sociale;
+                                } else {
+                                    return '-';
+                                }
+                            }
+                            else{
+                                return '-';
+                            }
+                        },
+                        'visible'=>User::hasPermission('viewUserRoles'),
+                    ],
 					[
 						'value'=>function(User $model){
 								return GhostHtml::a(

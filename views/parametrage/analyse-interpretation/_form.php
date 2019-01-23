@@ -24,7 +24,6 @@ if(isset($id)) {
 }
 
 /* @var $this yii\web\View */
-/* @var $model app\models\AnalyseGerme */
 /* @var $form yii\widgets\ActiveForm */
 ?>
 

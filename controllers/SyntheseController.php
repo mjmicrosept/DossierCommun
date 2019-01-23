@@ -15,7 +15,6 @@ use app\models\Client;
 use app\models\Labo;
 use app\models\LaboSearch;
 use app\models\LaboClientAssign;
-use app\models\AnalyseGerme;
 use app\models\AnalyseService;
 use app\models\AnalyseConformite;
 use app\models\AnalyseConditionnement;
@@ -150,58 +149,6 @@ class SyntheseController extends Controller
             'modelList'=>$modelList,
             'idClient'=>User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]) ? $idClient : 0,
         ]);
-    }
-
-    /**
-     * Met en forme pour chaque service le Tab correspondant
-     * @return array
-     */
-    private static function getServiceTabs(){
-        $aTabs = [];
-        $aService = [];
-        $listService = AnalyseService::find()->andFilterWhere(['active'=>1])->orderBy('libelle')->all();
-
-        foreach ($listService as $item) {
-            $service = [
-                'label'=>'<i class="fas fa-project-diagram"></i> '.$item->libelle,
-                'content'=>self::getServiceFilterContent($item->id),
-                'headerOptions' => ['class'=>'disabled service-tabs','id'=>'service-'.$item->id],
-            ];
-            array_push($aService,$service);
-        }
-
-        foreach ($aService as $item) {
-            array_push($aTabs,$item);
-        }
-
-        return $aTabs;
-    }
-
-    /**
-     * Retourne le contenu du filtre des germes pour un service donné
-     * @param $idService
-     * @return string
-     */
-    private static function getServiceFilterContent($idService){
-        $listGermes = AnalyseGerme::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_service'=>$idService])->orderBy('code')->all();
-
-        $result = '';
-        $result .= '<div class="row" style="margin-bottom:30px;">';
-        $result .= '<button class="btn btn-primary btn-save-pref" data-service="'.$idService.'" style="float:right;margin:10px;"><i class="fas fa-filter"></i> Sauvegarder les préférences</button>';
-        $result .= '<button class="btn btn-success btn-load-pref" data-service="'.$idService.'" style="float:right;margin:10px;"><i class="fas fa-filter"></i> Charger les préférences</button>';
-        $result .= '</div>';
-        $result .= '<div class="row">';
-        $result .= '<input type=hidden id="hfServicePref-'.$idService.'" value=""/>';
-        $result .= '<form id="kvform-service-'.$idService.'" class="form-vertical" action="" method="post" role="form">';
-        foreach ($listGermes as $germe) {
-            $result .= '<div class="col-sm-4">';
-            $result .= '<label><input type="checkbox" class="btn-chk-list-germe-'.$idService.'" data-germe="'.$germe->id.'" name="germeList[]" value="'.$germe->id.'"> '.$germe->code.' ('.$germe->libelle.')</label>';
-            $result .= '</div>';
-        }
-        $result .= '</form>';
-        $result .= '</div>';
-
-        return $result;
     }
 
     /**

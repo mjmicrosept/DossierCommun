@@ -66,7 +66,6 @@ return [
             ['label' => '<span class="fas fa-boxes"></span> Conditionnements', 'url' => ['/analyse-conditionnement/index']],
             ['label' => '<span class="fas fa-syringe"></span> Lieux de prélèvements', 'url' => ['/analyse-lieu-prelevement/index']],
             ['label' => '<span class="fas fa-exchange-alt"></span> Liaisons identifiants clients', 'url' => ['/mappage-id-client/index']],
-            //['label' => '<span class="fas fa-vials"></span> Germes', 'url' => ['/analyse-germe/index']],
         ],
         'visible' => Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])
     ],
