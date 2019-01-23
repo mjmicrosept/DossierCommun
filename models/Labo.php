@@ -24,6 +24,20 @@ use yii\helpers\ArrayHelper;
  */
 class Labo extends \yii\db\ActiveRecord
 {
+    const CERALIM = 1;
+    const VIGILAB = 2;
+    const MICROSEPT = 3;
+    const BIOQUAL = 4;
+    const AGROALIMCONSEIL = 5;
+    const QSACONSEIL = 6;
+    const LICAAL = 7;
+    const AGROQUAL = 8;
+    const QUALHYGIENE = 9;
+    const TREGOBIO = 10;
+    const BIOVAL = 11;
+    const AQMC = 12;
+    const AQCF = 13;
+
     /**
      * {@inheritdoc}
      */

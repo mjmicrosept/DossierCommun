@@ -192,7 +192,8 @@ class AnalyseDataController extends Controller
                         mkdir($pathLaboEtablissementFolder);
 
                     for($i = 0; $i < count($_FILES['upload-files']['name']);$i++){
-                        if(end(explode(".", $_FILES['upload-files']['name'][$i])) == 'csv') {
+                        $aFileExtension = explode(".", $_FILES['upload-files']['name'][$i]);
+                        if($aFileExtension[count($aFileExtension) -1] == 'csv') {
                             $destination = Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/';
                             if(!file_exists($destination . $_FILES['upload-files']['name'][$i])) {
                                 @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $_FILES['upload-files']['name'][$i]);

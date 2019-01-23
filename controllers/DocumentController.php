@@ -231,7 +231,8 @@ class DocumentController extends Controller
                             mkdir($pathClientLaboFolder);
 
                         for($i = 0; $i < count($_FILES['upload-files']['name']);$i++){
-                            if(end(explode(".", $_FILES['upload-files']['name'][$i])) == 'pdf') {
+                            $aFileExtension = explode(".", $_FILES['upload-files']['name'][$i]);
+                            if($aFileExtension[count($aFileExtension) - 1] == 'pdf') {
                                 $destination = Yii::$app->params['dossierClients'] . $folderClientName . '/' . $year . '/' . $month . '/L_' . strval($idLabo) . '/';
                                 if(!file_exists($destination . $_FILES['upload-files']['name'][$i])) {
                                     @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $_FILES['upload-files']['name'][$i]);
