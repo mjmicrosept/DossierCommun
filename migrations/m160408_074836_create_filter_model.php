@@ -14,6 +14,7 @@ class m160408_074836_create_filter_model extends Migration
     {
         $this->createTable('filter_model', [
             'id' => $this->primaryKey(),
+            'type' => $this->integer(11)->notNull(),
             'id_user' => $this->integer(11)->notNull(),
             'libelle' => $this->string(80)->notNull(),
         ]);

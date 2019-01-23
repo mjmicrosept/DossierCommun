@@ -26,10 +26,8 @@ $this->title = Yii::t('microsept', 'Synthese analyse');
 $this->params['breadcrumbs'][] = Yii::t('microsept', 'Synthese analyse');
 
 $baseUrl = Yii::$app->request->baseUrl;
-$urlSavePref = Url::to(['/synthese/save-pref-user']);
 $urlSavePrefKeyWord = Url::to(['/synthese/save-pref-key-word']);
 $urlSavePrefPrelevement = Url::to(['/synthese/save-pref-prelevement']);
-$urlLoadPref = Url::to(['/synthese/load-pref-user']);
 $urlLoadPrefKeyWord = Url::to(['/synthese/load-pref-key-word']);
 $urlLoadPrefPrelevement = Url::to(['/synthese/load-pref-prelevement']);
 $urlGetSyntheseResult = Url::to(['/synthese/get-synthese-result']);
@@ -43,8 +41,6 @@ if(isset($idClient))
 
 $this->registerJS(<<<JS
     var url = {
-        //savePref:'{$urlSavePref}',
-        //loadPref:'{$urlLoadPref}',
         savePrefKeyWord:'{$urlSavePrefKeyWord}',
         loadPrefKeyWord:'{$urlLoadPrefKeyWord}',
         savePrefPrelevement:'{$urlSavePrefPrelevement}',
@@ -578,17 +574,6 @@ $this->registerJS(<<<JS
         var listConditionnement = $('#kvform-conditionnement').val();
         var listLieuPrelevement = $('#kvform-lieu_prelevement').val();
         
-        /*var listGerm = [];
-        
-        if(listService.length != 0){
-            for(var i = 0; i < listService.length;i++){
-                $('.btn-chk-list-germe-'+listService[i]).each(function(){
-                    if($(this).prop('checked') == true){
-                        listGerm.push($(this).data('germe')); 
-                    }
-                });
-            }
-        }*/
         
         //Vérification des erreurs de filtres
         /*if(listEtablissement.length == 0)
@@ -650,187 +635,7 @@ $this->registerJS(<<<JS
     $('#kvform-conclusion').change(function(){
         $('#hfIdConclusion').val($(this).val());
     });
-    
-    //ONGLETS DES SERVICES (A METTRE DE COTE)
-    //Changement de valeur dans la liste des services pour accéder aux tabs correspondants
-    /*$('#kvform-service').change(function(){
-        $('.service-tabs').each(function(){
-           if(!$(this).hasClass('disabled'))
-               $(this).addClass('disabled');
-        });
-        
-        $('.service-tabs a').each(function(){
-            $(this).removeAttr('data-toggle');
-        });
-        for(var i = 0;i< $(this).val().length;i++){
-            if($('#service-'+$(this).val()[i]).hasClass('disabled'))
-                $('#service-'+$(this).val()[i]).removeClass('disabled');
-            
-            $('#service-'+$(this).val()[i] + ' a').attr('data-toggle','tab');
-        }
-    });
-    
-    //Click sur le bouton de sauvegarde des préférences
-    $('.btn-save-pref').click(function(){
-        var idService = $(this).data('service');
-        var idsGermes = [];
-        $('.btn-chk-list-germe-'+idService).each(function(){
-            if($(this).prop('checked') == true){
-                idsGermes.push($(this).data('germe')); 
-            }
-        });
-        var selectModel = '<select id="model-list" class="swal2-input">';
-        selectModel += '<option value="" disabled selected>Choisir le modèle</option>';
-        if({$list_model}.length != 0){
-            if({$list_model}[idService] != undefined){
-                if({$list_model}[idService].length != 0){
-                    for(var i = 0;i < {$list_model}[idService].length;i++){
-                        selectModel += '<option value="'+ {$list_model}[idService][i]["id_model"] +'">' + {$list_model}[idService][i]["libelle"] + '</option>';
-                    }
-                }
-            }
-        }
-        selectModel += '</select>';
-        
-        swal({
-            title :'Sauvegarde',
-            type : 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Sauvegarder',
-            cancelButtonText: 'Annuler',
-            html:
-            '<h4>Choix du modèle</h4>'+
-            selectModel +
-            '<h4>Créer un modèle</h4>'+
-            '<input id="new-model" class="swal2-input" />',
-            preConfirm: function() {
-                return new Promise(function(resolve) {
-                    if(document.getElementById('new-model').value == '' && document.getElementById('model-list').value == ''){
-                        throw new Error(
-                            'Vous devez renseigner un modèle existant ou en créer un nouveau.'
-                        )
-                    }
-                    else
-                    {
-                           swal.resetValidationError();
-                           resolve([
-                                document.getElementById('model-list').value,
-                                document.getElementById('new-model').value,
-                            ]);
-                    }
-                });
-            }
-        }).then(function(result) {
-            if (result){
-                $('.loader').show();
-                var data = JSON.stringify({
-                    serviceId : idService,
-                    germList : idsGermes,
-                    modelExist : result[0],
-                    modelNew : result[1]
-                });
-                $.post(url.savePref, {data:data}, function(response) {
-                    if(response.error){
-                        $('.loader').hide();
-                        swal(
-                          'Sauvegarde impossible',
-                          'Une erreur est survenue lors de la sauvegarde, veuillez contacter un administrateur.',
-                          'error'
-                        )
-                    }
-                    else{
-                        $('.loader').hide();
-                        swal(
-                          'Sauvegarde réussie',
-                          'Vos préférences ont bien été enregistrées sous le modèle ' + response.modelName + '.',
-                          'success'
-                        )
-                    }
-                });
-            }
-        })
-    });
-    
-    //Click sur le bouton de chargement des préférences
-    $('.btn-load-pref').click(function(){
-        var idService = $(this).data('service');
-        var idsGermes = [];
-        
-        var selectModel = '<select id="model-list" class="swal2-input">';
-        selectModel += '<option value="" disabled selected>Choisir le modèle</option>';
-        if({$list_model}.length != 0){
-            if({$list_model}[idService] != undefined){
-                if({$list_model}[idService].length != 0){
-                    for(var i = 0;i < {$list_model}[idService].length;i++){
-                        selectModel += '<option value="'+ {$list_model}[idService][i]["id_model"] +'">' + {$list_model}[idService][i]["libelle"] + '</option>';
-                    }
-                }
-            }
-        }
-        selectModel += '</select>';
 
-        swal({
-            title :'Chargement',
-            type : 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Charger',
-            cancelButtonText: 'Annuler',
-            html:
-            '<h4>Choix du modèle</h4>'+
-            selectModel,
-            preConfirm: function() {
-                return new Promise(function(resolve) {
-                    if(document.getElementById('model-list').value == ''){
-                        throw new Error(
-                            'Vous devez choisir un modèle existant.'
-                        )
-                    }
-                    else
-                    {
-                           swal.resetValidationError();
-                           resolve([
-                                document.getElementById('model-list').value,
-                            ]);
-                    }
-                });
-            }
-        }).then(function(result) {
-            if (result){
-                $('.loader').show();
-                var data = JSON.stringify({
-                    serviceId : idService,
-                    germList : idsGermes,
-                    modelExist : result[0],
-                });
-                $.post(url.loadPref, {data:data}, function(response) {
-                    if(response.error){
-                        $('.loader').hide();
-                        swal(
-                          'Chargement impossible',
-                          'Une erreur est survenue lors du chargement, veuillez contacter un administrateur.',
-                          'error'
-                        )
-                    }
-                    else{
-                        $('.loader').hide();
-                        if(response.germList.length != 0){
-                           for(var i = 0; i < response.germList.length; i++){
-                               $('.btn-chk-list-germe-'+idService).each(function(){
-                                   if($(this).data('germe') == response.germList[i])
-                                        $(this).attr('checked',true);
-                                });
-                           }
-                           swal(
-                              'Chargement réussie',
-                              'Vos préférences du modèle ' + response.modelName + ' ont bien été chargées.',
-                              'success'
-                            )
-                       }
-                    }
-                });
-            }
-        })
-    });*/
 JS
 );
 

@@ -79,6 +79,7 @@ class SyntheseController extends Controller
         $aModelKeyWord = FilterModel::find()
             ->leftJoin('filter_pref_keyword','filter_model.id = filter_pref_keyword.id_model')
             ->andFilterWhere(['filter_model.id_user'=>$idUser])
+            ->andFilterWhere(['type'=>FilterModel::TYPE_GERME])
             ->groupBy('id_model')
             ->all();
         //Partie mots clés
@@ -88,13 +89,14 @@ class SyntheseController extends Controller
             array_push($modelList['germe'],['id_model'=>$item->id,'libelle'=>$item->libelle]);
         }
 
-        $aModelKeyWord = FilterModel::find()
+        $aModelPreference = FilterModel::find()
             ->leftJoin('filter_pref_prelevement','filter_model.id = filter_pref_prelevement.id_model')
             ->andFilterWhere(['filter_model.id_user'=>$idUser])
+            ->andFilterWhere(['type'=>FilterModel::TYPE_PRELEVEMENT])
             ->groupBy('id_model')
             ->all();
         //Partie lieux de prélèvements
-        foreach ($aModelKeyWord as $item) {
+        foreach ($aModelPreference as $item) {
             if(!isset($modelList['prelevement']))
                 $modelList['prelevement'] = [];
             array_push($modelList['prelevement'],['id_model'=>$item->id,'libelle'=>$item->libelle]);
@@ -142,12 +144,6 @@ class SyntheseController extends Controller
                 'content'=>self::getGermeFilterContent(),
             ]
         ];
-
-        //ONGLETS DES SERVICES (A METTRE DE COTE)
-        /*$servicesTabs = self::getServiceTabs();
-        foreach ($servicesTabs as $servicesTab) {
-            array_push($tItems,$servicesTab);
-        }*/
 
         return $this->render('index', [
             'items'=>$tItems,
@@ -895,6 +891,7 @@ class SyntheseController extends Controller
         else{
             //On crée le nouveau modèle
             $model = new FilterModel();
+            $model->type = FilterModel::TYPE_GERME;
             $model->id_user = User::getCurrentUser()->id;
             $model->libelle = $modelNew;
             if(!$model->save())
@@ -994,6 +991,7 @@ class SyntheseController extends Controller
         else{
             //On crée le nouveau modèle
             $model = new FilterModel();
+            $model->type = FilterModel::TYPE_PRELEVEMENT;
             $model->id_user = User::getCurrentUser()->id;
             $model->libelle = $modelNew;
             if(!$model->save())
@@ -1061,90 +1059,6 @@ class SyntheseController extends Controller
         return ['errors'=>$errors,'lieuPrelevementList'=>$lieuPrelevementList,'conditionnementList'=>$conditionnementList,'modelName'=>$modelName];
     }
 
-    /**
-     * Fonction d'enregistrement des préférences de filtres sur les germes en fonction du service
-     * @return array
-     */
-    public function actionSavePrefUser(){
-        $errors = false;
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        $_data = Json::decode($_POST['data']);
-        $idService = $_data['serviceId'];
-        $germList = $_data['germList'];
-        $modelExist = $_data['modelExist'];
-        $modelNew = $_data['modelNew'];
-
-        $modelName = '';
-
-        //Modèle existant
-        if($modelNew == ''){
-            //On supprime (ce qui sera plus rapide que de boucler) les préférence de cet utilisateur pour ce service et ce modèle
-            FilterPrefUser::deleteAll(['id_user'=>User::getCurrentUser()->id,'id_service'=>$idService,'id_model'=>$modelExist]);
-
-            //Pour chaque germe on enregistre en préférence
-            for($i = 0; $i < count($germList);$i++){
-                $filter = new FilterPrefUser();
-                $filter->id_user = User::getCurrentUser()->id;
-                $filter->id_service = intval($idService);
-                $filter->id_germe = intval($germList[$i]);
-                $filter->id_model = intval($modelExist);
-
-                if(!$filter->save())
-                    $errors = true;
-            }
-            $model = FilterModel::find()->andFilterWhere(['id'=>$modelExist])->one();
-            $modelName = $model->libelle;
-        }
-        else{
-            //On crée le nouveau modèle
-            $model = new FilterModel();
-            $model->libelle = $modelNew;
-            if(!$model->save())
-                $errors = true;
-            if(!$errors) {
-                //Pour chaque germe on enregistre en préférence
-                for ($i = 0; $i < count($germList); $i++) {
-                    $filter = new FilterPrefUser();
-                    $filter->id_user = User::getCurrentUser()->id;
-                    $filter->id_service = intval($idService);
-                    $filter->id_germe = intval($germList[$i]);
-                    $filter->id_model = intval($model->id);
-
-                    if (!$filter->save())
-                        $errors = true;
-                }
-            }
-            $modelName = $modelNew;
-        }
-
-        return ['errors'=>$errors,'modelName'=>$modelName];
-    }
-
-    /**
-     * Fonction de chargement des préférences de filtres sur les germes en fonction du service
-     * @return array
-     */
-    public function actionLoadPrefUser(){
-        $errors = false;
-        $germList = [];
-        $modelName = '';
-        Yii::$app->response->format = Response::FORMAT_JSON;
-        $_data = Json::decode($_POST['data']);
-        $idService = $_data['serviceId'];
-        $modelExist = $_data['modelExist'];
-
-        //On charge les filtres pour l'utilisateur, le service donné et le modèle donné
-        $prefList = FilterPrefUser::find()->andFilterWhere(['id_user'=>User::getCurrentUser()->id])->andFilterWhere(['id_service'=>$idService])->andFilterWhere(['id_model'=>$modelExist])->all();
-
-        foreach ($prefList as $pref) {
-            array_push($germList,$pref->id_germe);
-        }
-
-        $model = FilterModel::find()->andFilterWhere(['id'=>$modelExist])->one();
-        $modelName = $model->libelle;
-
-        return ['errors'=>$errors,'germList'=>$germList,'modelName'=>$modelName];
-    }
 
     /**
      * Construit de tableau des résultats d'analyses en fonction des filtres
