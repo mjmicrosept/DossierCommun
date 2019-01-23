@@ -1187,6 +1187,7 @@ class SyntheseController extends Controller
             ],
             [
                 'label' => 'Conclusion',
+                'format'=>'raw',
                 'value' => function($row) {
                     if(is_null($row['id_interpretation']))
                         return '-';
@@ -1212,12 +1213,14 @@ class SyntheseController extends Controller
             ],
             [
                 'label' => 'Désignation',
+                'format'=>'raw',
                 'value' => function($row) {
                     return $row['designation'];
                 },
             ],
             [
                 'label' => 'Commentaire',
+                'format'=>'raw',
                 'value' => function($row) {
                     if($row['commentaire'] == '')
                         return '-';
