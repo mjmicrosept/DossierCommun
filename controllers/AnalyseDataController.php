@@ -225,4 +225,8 @@ class AnalyseDataController extends Controller
         return $this->render('../synthese/statistiques', [
         ]);
     }
+
+    public function actionStatLabo(){
+        return $this->render('../synthese/statistiques-labo',[]);
+    }
 }

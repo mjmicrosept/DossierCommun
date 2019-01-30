@@ -4,7 +4,7 @@ use yii\helpers\Html;
 
 
 /* @var $this yii\web\View */
-/* @var $model app\models\DocumentAlerte */
+/* @var $model app\models\Alerte */
 
 $this->title = 'Create Document Alerte';
 $this->params['breadcrumbs'][] = ['label' => 'Document Alertes', 'url' => ['index']];

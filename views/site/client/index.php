@@ -29,7 +29,9 @@ SummerNoteAsset::register($this,View::POS_HEAD);
 
 $baseUrl = Yii::$app->request->baseUrl;
 $urlGeneralNoDocument = Url::to(['/alerte/general-no-document']);
+$urlGeneralNoAnalyse = Url::to(['/alerte/general-no-analyse']);
 $urlPeriodeMissing = Url::to(['/alerte/periode-missing']);
+$urlPeriodeAnalyseMissing = Url::to(['/alerte/periode-analyse-missing']);
 $urlSendMailLabo = Url::to(['/alerte/send-mail-labo']);
 $urlDeleteAlerte = Url::to(['/alerte/deactivate-alerte']);
 
@@ -37,7 +39,9 @@ $urlDeleteAlerte = Url::to(['/alerte/deactivate-alerte']);
 $this->registerJS(<<<JS
     var url = {
         generalNoDocument:'{$urlGeneralNoDocument}',
+        generalNoAnalyse:'{$urlGeneralNoAnalyse}',
         periodeMissing:'{$urlPeriodeMissing}',
+        periodeAnalyseMissing:'{$urlPeriodeAnalyseMissing}',
         sendMailLabo:'{$urlSendMailLabo}',
         deleteAlerte:'{$urlDeleteAlerte}'
     };
@@ -321,12 +325,11 @@ else{
 
     <div class="box box-info">
         <div class="box-header with-border">
-            <h3 class="box-title">Analyses</h3>
+            <h3 class="box-title">Analyses non conformes</h3>
 
             <div class="box-tools pull-right">
                 <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                 </button>
-                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
             </div>
         </div>
         <!-- /.box-header -->
@@ -371,12 +374,125 @@ else{
 
     <div class="box box-info">
         <div class="box-header with-border">
-            <h3 class="box-title">Derniers documents</h3>
+            <h3 class="box-title">Résultats d'analyses reçus</h3>
 
             <div class="box-tools pull-right">
                 <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
                 </button>
-                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="row" style="display:none">
+            <div class="col-sm-6">
+
+                <div class="form-inline pull-right">
+                    <?= \webvimark\extensions\GridPageSize\GridPageSize::widget([
+                        'pjaxId'=>'grid-list-resultat-pjax',
+                        'viewFile' => '@app/views/widgets/grid-page-size/index.php',
+                        'enableClearFilters' => true,
+                        'text' =>'',
+                    ]) ?>
+                    &nbsp;
+                </div>
+            </div>
+        </div>
+        <div class="box-body" style="">
+
+            <?= \kartik\grid\GridView::widget([
+                'dataProvider' => $dataProviderResultat,
+                'filterModel' => $searchModelResultat,
+                'filterRowOptions' => ['class' => 'filters-monthAlert'],
+                'filterSelector' => "filter-monthAlert select",
+                'id' => 'grid-list-resultat',
+                'pjax'=>true,
+                'striped'=>false,
+                'hover'=>true,
+                'bordered'=>true,
+                'bootstrap'=>true,
+                'floatHeader'=>false,
+                'panel' => [
+                    'type' => \kartik\grid\GridView::TYPE_PRIMARY,
+                    'heading' => '<i class="fa fa-dashboard"></i>  Tableau de bord',
+                    'before' => '<div style="text-align:center;float:right;margin-right:20px;margin-top:5px;"><span class="glyphicon glyphicon-info-sign obs_tooltip" style="color:rgb(0, 192, 239);top:5px;" title="Info" data-content="Nombre de mois sans envois permettant de visualiser une alerte (par défaut 1)" ></span></div>'.Form::widget([
+                            'formName'=>'kvformadmin',
+
+                            // default grid columns
+                            'columns'=>1,
+                            'compactGrid'=>true,
+
+                            // set global attribute defaults
+                            'attributeDefaults'=>[
+                                'type'=>Form::INPUT_TEXT,
+                                'labelOptions'=>['style'=>'float:right;margin-right:30px;width:200px;'],
+                                'inputContainer'=>['style'=>'float:right;margin-right:10px;width:190px;', 'class'=>'filter-month'],
+                                'container'=>['class'=>'form-group'],
+                            ],
+                            'attributes'=>[
+                                'monthAlertAnalyse'=>[
+                                    'filterType' => \kartik\grid\GridView::FILTER_SELECT2,
+                                    'type'=>Form::INPUT_WIDGET,
+                                    'widgetClass'=>'\kartik\select2\Select2',
+                                    'options'=>[
+                                        'data'=>AppCommon::$aMonthAlert,
+                                        'options' => [
+                                            'placeholder' => 'Nb mois sans envoi','dropdownCssClass' =>'dropdown-vente-livr'
+                                        ],
+                                    ],
+                                    //'name' => 'filter-monthAlert',
+                                    'value' => 1,
+                                    //'label'=>'Année',
+                                ],
+                            ]
+                        ])
+                ],
+                'toolbar'=>['{export}'],
+                'exportConfig' => [
+                    \kartik\grid\GridView::CSV => [
+                        'icon' => 'fa fa-file-code-o',
+                        'filename' => 'Synthese-upload'
+                    ],
+                    \kartik\grid\GridView::HTML => [
+                        'icon' => 'fa fa-file-text',
+                        'filename' => 'Synthese-upload'
+                    ],
+                    \kartik\grid\GridView::PDF => [
+                        'icon' => 'fa fa-file-pdf-o',
+                        'filename' => 'Synthese-upload'
+                    ],
+                ],
+                'rowOptions' => function ($model, $key, $index, $grid) {
+                    $lastPushObj = DocumentPushed::find()->andFilterWhere(['id_client'=>$model['id_client']])->andFilterWhere(['id_labo'=>$model['id_labo']])->orderBy('last_push DESC')->one();
+                    if(is_null($lastPushObj))
+                        return ['class'=>'data-error data-error-red'];
+                    else{
+                        $lastPush = $lastPushObj->last_push;
+                        $year = substr($lastPush, 0, 4);
+                        $month = intval(substr($lastPush, 5, 2));
+
+                        $datetimeNow = \Datetime::createFromFormat('d/m/Y', date('d/m/Y'));
+                        $datePush = strtotime($lastPush);
+                        $datetimePushed = \Datetime::createFromFormat('d/m/Y', date('d/m/Y', $datePush));
+                        $interval = \date_diff($datetimePushed,$datetimeNow);
+                        if((intval($interval->format('%r%m')) >= $model['monthAlert']))
+                            return ['class'=>'data-error data-error-yellow'];
+                        else
+                            return ['class'=>'data-error data-error-green'];
+                    }
+                },
+                'columns' => $gridColumnResultat
+            ]); ?>
+
+            <!-- /.table-responsive -->
+        </div>
+    </div>
+
+    <div class="box box-info">
+        <div class="box-header with-border">
+            <h3 class="box-title">Documents d'analyses reçus</h3>
+
+            <div class="box-tools pull-right">
+                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i>
+                </button>
             </div>
         </div>
         <!-- /.box-header -->
@@ -502,9 +618,9 @@ $( document ).ready(function() {
             $(this).html('Actions');
     });
 
-    /**********************************************************/
-    /* Actions de changements de valeurs de la liste des mois */
-    /**********************************************************/
+    /************************************************************************/
+    /* Actions de changements de valeurs de la liste des mois des documents */
+    /************************************************************************/
     $('#kvformadmin-monthalert').change(function(){
         //if($(this).val() != ''){
         var monthValue = parseInt($(this).val());
@@ -531,10 +647,39 @@ $( document ).ready(function() {
         $('.loader').hide();
     });
     
+    /************************************************************************/
+    /* Actions de changements de valeurs de la liste des mois des documents */
+    /************************************************************************/
+    $('#kvformadmin-monthalertanalyse').change(function(){
+        //if($(this).val() != ''){
+        var monthValue = parseInt($(this).val());
+        $('.loader').show();
+        //Modification des icones d'erreur
+        $('.field-data-admin').each(function(){
+            var monthInterval = $(this).data('monthinterval');
+            if(monthInterval != '-'){
+                var trParent = $(this).closest('tr');
+                if(parseInt(monthInterval) >= monthValue){
+                    $(this).html('<i class="fa fa-circle text-yellow"></i>');
+                    //Modification de la classe des lignes
+                    if(trParent.hasClass('data-error-green'))
+                        trParent.removeClass('data-error-green').addClass('data-error-yellow');
+                }
+                else{
+                    $(this).html('<i class="fa fa-circle text-green"></i>');
+                    //Modification de la classe des lignes
+                    if(trParent.hasClass('data-error-yellow'))
+                        trParent.removeClass('data-error-yellow').addClass('data-error-green');
+                }
+            }
+        });
+        $('.loader').hide();
+    });
     
-    /*********************************/
-    /*        ALERTES                */
-    /*********************************/
+    
+    /******************************************/
+    /*        ALERTES   DOCUMENTS             */
+    /******************************************/
     $('.periode-alerte').click(function(){
         var idLabo = $(this).data('labo');
         var periodeMissing = $('#kvformadmin-monthalert').val();
@@ -561,7 +706,7 @@ $( document ).ready(function() {
                         $('.loader').hide();
                         if(response.errorMail == 0){
                             //On active l'action suppression
-                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-exclamation-circle fa-2x text-orange"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
@@ -585,7 +730,7 @@ $( document ).ready(function() {
                         }
                         else if(response.errorMail == 3){
                             //On active l'action suppression
-                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-orange"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-exclamation-circle fa-2x text-orange"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
@@ -645,7 +790,7 @@ $( document ).ready(function() {
                         $('.loader').hide();
                         if(response.errorMail == 0){
                             //On active l'action suppression
-                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-exclamation-triangle fa-2x text-red"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
@@ -669,7 +814,7 @@ $( document ).ready(function() {
                         }
                         else if(response.errorMail == 3){
                             //On active l'action suppression
-                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-sync fa-2x text-red"></i>');
+                            $('.idlabo-' + idEtablissement + '-check').html('<i class="fas fa-exclamation-triangle fa-2x text-red"></i>');
                             $('.idlabo-' + idEtablissement + '-check').attr('data-idalerte', response.idalerte);
                             $('.lialerte-' + idEtablissement).css({'pointer-events':'auto'});
                             $('.deletealerte-' + idEtablissement).attr('data-idalerte', response.idalerte);
@@ -736,7 +881,8 @@ $( document ).ready(function() {
                     idLabo : idLabo,
                     idEtablissement:idEtablissement,
                     emetteur : 2,
-                    message : result[0]
+                    message : result[0],
+                    context: 2
                 });
                 $.post(url.sendMailLabo, {data:data}, function(response) {
                     if(response.error != 1){
@@ -825,7 +971,8 @@ $( document ).ready(function() {
                     idLabo : idLabo,
                     idEtablissement:idEtablissement,
                     emetteur : 2,
-                    idAlerte : idAlerte
+                    idAlerte : idAlerte,
+                    context:2
                 });
                 $.post(url.deleteAlerte, {data:data}, function(response) {
                     if(response.error != 1){
@@ -838,6 +985,337 @@ $( document ).ready(function() {
                         $('.limailadmin-' + idEtablissement).css({'pointer-events':'auto'});
                         $('.linodoc-' + idEtablissement).css({'pointer-events':'auto'});
                         $('.liperiode-' + idEtablissement).css({'pointer-events':'auto'});
+                        swal(
+                          'Confirmation',
+                          'L\'alerte a bien été supprimée.',
+                          'success'
+                        )
+                    }
+                    else{
+                        $('.loader').hide();
+                        //SweetAlert (une erreur est survenue)
+                        swal(
+                          'Erreur',
+                          'Une erreur est survenue veuillez contacter l\'administrateur',
+                          'error'
+                        )
+                    }
+                });
+            }
+        })
+    });
+    
+    
+    
+    
+    /******************************************/
+    /*        ALERTES   ANALYSES              */
+    /******************************************/
+    $('.periode-analyse-alerte').click(function(){
+        var idLabo = $(this).data('labo');
+        var periodeMissing = $('#kvformadmin-monthalertanalyse').val();
+        var idEtablissement = $(this).data('etablissement');
+        swal({
+            title :'Alerte',
+            type : 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Envoyer',
+            cancelButtonText: 'Annuler',
+            html:'Voulez-vous envoyer l\'alerte <br/><strong>"pas d\'analyses pendant une période de '+ periodeMissing +' mois"</strong><br/> au laboratoire ?'
+        }).then(function(result) {
+            if (result){
+                $('.loader').show();
+                var data = JSON.stringify({
+                    idClient : idClient,
+                    idLabo : idLabo,
+                    idEtablissement:idEtablissement,
+                    emetteur : 2,
+                    periodeMissing : periodeMissing
+                });
+                $.post(url.periodeAnalyseMissing, {data:data}, function(response) {
+                    if(response.error != 1){
+                        $('.loader').hide();
+                        if(response.errorMail == 0){
+                            //On active l'action suppression
+                            $('.idlabo-' + idEtablissement + '-check-analyse').html('<i class="fas fa-exclamation-circle fa-2x text-orange"></i>');
+                            $('.idlabo-' + idEtablissement + '-check-analyse').attr('data-idalerte', response.idalerte);
+                            $('.lialerteanalyse-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerteanalyse-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadminanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodocanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiodeanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            //SweetAlert (alerte confirmée)
+                            swal(
+                              'Confirmation',
+                              'Votre alerte (pas d\'analyses présentes pour l\'établissement ' + response.etablissement + ' du laboratoire ' + response.labo + ' pendant une période de ' + response.periode + ' mois, a bien été enregistrée.',
+                              'success'
+                            )
+                        }
+                        else if(response.errorMail == 1){
+                            swal(
+                              'Erreur',
+                              'Vous n\'avez pas d\'adresse email associée à votre compte. Veuillez en renseigner une.',
+                              'warning'
+                            )
+                        }
+                        else if(response.errorMail == 3){
+                            //On active l'action suppression
+                            $('.idlabo-' + idEtablissement + '-check-analyse').html('<i class="fas fa-exclamation-circle fa-2x text-orange"></i>');
+                            $('.idlabo-' + idEtablissement + '-check-analyse').attr('data-idalerte', response.idalerte);
+                            $('.lialerteanalyse-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerteanalyse-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadminanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodocanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiodeanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            swal(
+                              'Confirmation',
+                              'Votre alerte a bien été enregistrée cependant le laboratoire ne possède pas d\'adresse électronique. Vous pouvez les contacter directement au ' + response.laboTel + '.',
+                              'info'
+                            )
+                        }
+                        else{
+                            swal(
+                              'Erreur',
+                              'Erreur lors de l\'envoi de l\'email. Veuillez essayer ultérieurement.',
+                              'warning'
+                            )
+                        }
+                    }
+                    else{
+                        $('.loader').hide();
+                        //SweetAlert (une erreur est survenue)
+                        swal(
+                          'Erreur',
+                          'Une erreur est survenue veuillez contacter l\'administrateur',
+                          'error'
+                        )
+                    }
+                });
+            }
+        })
+    });
+    
+    $('.no-analyse-alerte').click(function(){
+        var idLabo = $(this).data('labo');
+        var idEtablissement = $(this).data('etablissement');
+        swal({
+            title :'Alerte',
+            type : 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Envoyer',
+            cancelButtonText: 'Annuler',
+            html:'Voulez-vous envoyer l\'alerte <br/><strong>"pas d\'analyses"</strong><br/> au laboratoire ?'
+        }).then(function(result) {
+            if (result){
+                $('.loader').show();
+                var data = JSON.stringify({
+                    idClient : idClient,
+                    idLabo : idLabo,
+                    idEtablissement:idEtablissement,
+                    emetteur : 2,
+                });
+                $.post(url.generalNoAnalyse, {data:data}, function(response) {
+                    if(response.error != 1){
+                        $('.loader').hide();
+                        if(response.errorMail == 0){
+                            //On active l'action suppression
+                            $('.idlabo-' + idEtablissement + '-check-analyse').html('<i class="fas fa-exclamation-triangle fa-2x text-red"></i>');
+                            $('.idlabo-' + idEtablissement + '-check-analyse').attr('data-idalerte', response.idalerte);
+                            $('.lialerteanalyse-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerteanalyse-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadminanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodocanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiodeanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            //SweetAlert (alerte confirmée)
+                            swal(
+                              'Confirmation',
+                              'Votre alerte (pas d\'analyses présentes pour l\'établissement ' + response.etablissement + ' du laboratoire ' + response.labo + ' a bien été enregistrée.',
+                              'success'
+                            )
+                        }
+                        else if(response.errorMail == 1){
+                            swal(
+                              'Erreur',
+                              'Vous n\'avez pas d\'adresse email associée à votre compte. Veuillez en renseigner une.',
+                              'warning'
+                            )
+                        }
+                        else if(response.errorMail == 3){
+                            //On active l'action suppression
+                            $('.idlabo-' + idEtablissement + '-check-analyse').html('<i class="fas fa-exclamation-triangle fa-2x text-red"></i>');
+                            $('.idlabo-' + idEtablissement + '-check-analyse').attr('data-idalerte', response.idalerte);
+                            $('.lialerteanalyse-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerteanalyse-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadminanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodocanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiodeanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            swal(
+                              'Confirmation',
+                              'Votre alerte a bien été enregistrée cependant le laboratoire ne possède pas d\'adresse électronique. Vous pouvez les contacter directement au ' + response.laboTel + '.',
+                              'info'
+                            )
+                        }
+                        else{
+                            swal(
+                              'Erreur',
+                              'Erreur lors de l\'envoi de l\'email. Veuillez essayer ultérieurement.',
+                              'warning'
+                            )
+                        }
+                    }
+                    else{
+                        $('.loader').hide();
+                        //SweetAlert (une erreur est survenue)
+                        swal(
+                          'Erreur',
+                          'Une erreur est survenue veuillez contacter l\'administrateur',
+                          'error'
+                        )
+                    }
+                });
+            }
+        })
+    });
+    
+    $('.mailadmin-analyse-alerte').click(function(){
+        var idLabo = $(this).data('labo');
+        var idEtablissement = $(this).data('etablissement');
+        swal({
+            title :'Envoyer un message au laboratoire',
+            showCancelButton: true,
+            confirmButtonText: 'Envoyer',
+            cancelButtonText: 'Annuler',
+            width: 800,
+            allowEnterKey:false,
+            allowOutsideClick:false,
+            allowEscapeKey:false,
+            html:
+            '<div id="summernote"></div>',
+            preConfirm: function() {
+                return new Promise(function(resolve) {
+                    if (true) {
+                        resolve([
+                            $('#summernote').summernote('code')
+                        ]);
+                    }
+                });
+            }
+        }).then(function(result) {
+            if(result){
+                $('.loader').show();
+                var data = JSON.stringify({
+                    idClient : idClient,
+                    idLabo : idLabo,
+                    idEtablissement:idEtablissement,
+                    emetteur : 2,
+                    message : result[0],
+                    context: 1
+                });
+                $.post(url.sendMailLabo, {data:data}, function(response) {
+                    if(response.error != 1){
+                        $('.loader').hide();
+                        if(response.errorMail == 0){
+                            //On active l'action suppression
+                            $('.idlabo-' + idEtablissement + '-check-analyse').html('<i class="fas fa-envelope-square fa-2x text-orange"></i>');
+                            $('.idlabo-' + idEtablissement + '-check-analyse').attr('data-idalerte', response.idalerte);
+                            $('.lialerteanalyse-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerteanalyse-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadminanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodocanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiodeanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            
+                            //SweetAlert (alerte confirmée)
+                            swal(
+                              'Confirmation',
+                              'Votre message au laboratoire ' + response.labo + ' concernant l\'établissement ' + response.etablissement + ' a bien été envoyé.',
+                              'success'
+                            )
+                        }
+                        else if(response.errorMail == 1){
+                            swal(
+                              'Erreur',
+                              'Vous n\'avez pas d\'adresse email associée à votre compte. Veuillez en renseigner une.',
+                              'warning'
+                            )
+                        }
+                        else if(response.errorMail == 3){
+                            //On active l'action suppression
+                            $('.idlabo-' + idEtablissement + '-check-analyse').html('<i class="fas fa-envelope-square fa-2x text-red"></i>');
+                            $('.idlabo-' + idEtablissement + '-check-analyse').attr('data-idalerte', response.idalerte);
+                            $('.lialerteanalyse-' + idEtablissement).css({'pointer-events':'auto'});
+                            $('.deletealerteanalyse-' + idEtablissement).attr('data-idalerte', response.idalerte);
+                            //On désactive les autres actions
+                            $('.limailadminanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.linodocanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            $('.liperiodeanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                            swal(
+                              'Confirmation',
+                              'Le laboratoire ne possède pas d\'adresse électronique. Vous pouvez les contacter directement au ' + response.laboTel + '.',
+                              'info'
+                            )
+                        }
+                        else{
+                            swal(
+                              'Erreur',
+                              'Erreur lors de l\'envoi de l\'email. Veuillez essayer ultérieurement.',
+                              'warning'
+                            )
+                        }
+                    }
+                    else{
+                        $('.loader').hide();
+                        //SweetAlert (une erreur est survenue)
+                        swal(
+                          'Erreur',
+                          'Une erreur est survenue veuillez contacter l\'administrateur',
+                          'error'
+                        )
+                    }
+                });
+            }
+        });
+        $('#summernote').summernote({height: 200,focus: true});
+        $('.note-editable').css({'text-align':'left'});
+    });
+    
+    $('.deletealerte-analyse-alerte').click(function(){
+        var idLabo = $(this).data('labo');
+        var idEtablissement = $(this).data('etablissement');
+        var idAlerte = $(this).data('idalerte');
+        swal({
+            title :'Alerte',
+            type : 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Supprimer',
+            cancelButtonText: 'Annuler',
+            html:'Voulez-vous supprimer cette alerte ?'
+        }).then(function(result) {
+            if (result){
+                $('.loader').show();
+                var data = JSON.stringify({
+                    idClient : idClient,
+                    idLabo : idLabo,
+                    idEtablissement:idEtablissement,
+                    emetteur : 2,
+                    idAlerte : idAlerte,
+                    context: 1
+                });
+                $.post(url.deleteAlerte, {data:data}, function(response) {
+                    if(response.error != 1){
+                        $('.loader').hide();
+                        $('.idlabo-' + idEtablissement + '-check-analyse').html('');
+                        $('.idlabo-' + idEtablissement + '-check-analyse').attr('data-idalerte', '');
+                        $('.lialerteanalyse-' + idEtablissement).css({'pointer-events':'none'});
+                        $('.deletealerteanalyse-' + idEtablissement).attr('data-idalerte', '');
+                        //On reactive les autres actions
+                        $('.limailadminanalyse-' + idEtablissement).css({'pointer-events':'auto'});
+                        $('.linodocanalyse-' + idEtablissement).css({'pointer-events':'auto'});
+                        $('.liperiodeanalyse-' + idEtablissement).css({'pointer-events':'auto'});
                         swal(
                           'Confirmation',
                           'L\'alerte a bien été supprimée.',

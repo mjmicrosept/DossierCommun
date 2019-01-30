@@ -97,9 +97,7 @@ return [
                                 <i class="fa fa-angle-left pull-right"></i></a>',
         'options' => ['class' => ' treeview'],
         'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
-//        'linkTemplate' => '<a target="{target}" href="{url}">{label}</a>',
         'items' => [
-            //['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
             ['label' => '<span class="fas fa-cloud-upload-alt"></span> Envoi des documents', 'url' => ['/document/upload']],
             ['label' => '<span class="fa fa-tag"></span> Résultats d\'analyses', 'url' => ['/document/result-analyse-index']],
             ['label' => '<span class="fas fa-book"></span> Logs', 'url' => ['/log-labo-documents-delete/index']],
@@ -112,16 +110,36 @@ return [
                                 <i class="fa fa-angle-left pull-right"></i></a>',
         'options' => ['class' => ' treeview'],
         'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
-//        'linkTemplate' => '<a target="{target}" href="{url}">{label}</a>',
         'items' => [
-            //['label' => '<span class="fa fa-folder-open"></span> Arborescence', 'url' => ['/document/arborescence'],'visible' => Yii::$app->user->isSuperAdmin],
             ['label' => '<span class="fas fa-table"></span> Synthèse',
                 'url' => ['/synthese/index'],
-                //'visible'=>true
                 'visible' => !User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) && !User::getCurrentUser()->hasRole([User::TYPE_LABO_USER]) ? true : Yii::$app->user->isSuperAdmin  ? true : false
             ],
             ['label' => '<span class="fas fa-cloud-upload-alt"></span> Envoi des données', 'url' => ['/analyse-data/upload']],
-            ['label' => '<span class="fas fa-chart-pie"></span> Statistiques', 'url' => ['/analyse-data/statistique'],'visible'=>Yii::$app->user->isSuperAdmin ? true : false],
+            [
+                'label' => '<span class="fas fa-chart-pie"></span> Statistiques<i class="fa fa-angle-left pull-right"></i></a>',
+                'url' => ['/analyse-data/statistique'],
+                'options' => ['class' => ' treeview'],
+                'visible'=>Yii::$app->user->isSuperAdmin ? true : false,
+                //'visible' => true,
+                'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
+                'items' => [
+                    [
+                        'label' => '<i class="fas fa-angle-double-right"></i> Laboratoire',
+                        'url' => ['/analyse-data/stat-labo','tag' => 'new'],
+                        'visible' => !User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) && !User::getCurrentUser()->hasRole([User::TYPE_LABO_USER]) && !User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]) ? true : Yii::$app->user->isSuperAdmin  ? true : false
+                    ],
+                    [
+                        'label' => '<i class="fas fa-angle-double-right"></i> Etablissement',
+                        'url' => ['/labo/create','tag' => 'new'],
+                        'visible' => true,
+                    ],
+                    [
+                        'label' => '<i class="fas fa-angle-double-right"></i>',
+                        'url' => ['/user/create','tag' => 'new']
+                    ],
+                ]
+            ],
         ],
     ],
 ];

@@ -199,5 +199,7 @@ return [
     "LiaisonUpdateSuccess"=>"La liaison a été mise à jour avec succès",
     "LiaisonCreateError"=>"Une erreur s'est produite, veuillez contacter l'administrateur",
     "Upload_Doc_Data"=>"Envoi des données d'analyses",
-    "Historique"=>"Historique"
+    "Historique"=>"Historique",
+    "Stat Labo"=>"Statistiques des laboratoires",
+    "Search" => "Recherche"
 ];

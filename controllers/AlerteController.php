@@ -5,9 +5,10 @@ namespace app\controllers;
 use app\models\AppCommon;
 use app\models\Labo;
 use app\models\Client;
+use app\widgets\Alert;
 use Yii;
-use app\models\DocumentAlerte;
-use app\models\DocumentAlerteSearch;
+use app\models\Alerte;
+use app\models\AlerteSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -17,7 +18,7 @@ use yii\web\Response;
 
 
 /**
- * AlerteController implements the CRUD actions for DocumentAlerte model.
+ * AlerteController implements the CRUD actions for Alerte model.
  */
 class AlerteController extends Controller
 {
@@ -55,20 +56,21 @@ class AlerteController extends Controller
         if($idClient == $idEtablissement)
             $idEtablissement = null;
         $emetteur = $_data['emetteur'];
-        $vecteur = DocumentAlerte::VECTEUR_APPLI;
+        $vecteur = Alerte::VECTEUR_APPLI;
         $labo = Labo::find()->andFilterWhere(['id'=>$idLabo])->one();
         $laboTel = '';
         if(!is_null($labo->tel))
             $laboTel = $labo->tel;
 
-        $transaction = DocumentAlerte::getDb()->beginTransaction();
+        $transaction = Alerte::getDb()->beginTransaction();
         try {
-            $alerte = new DocumentAlerte();
+            $alerte = new Alerte();
             $alerte->id_client = intval($idClient);
             $alerte->id_labo = intval($idLabo);
             $alerte->id_etablissement = !is_null($idEtablissement) ? intval($idEtablissement) : null;
             $alerte->id_user = User::getCurrentUser()->id;
-            $alerte->type = DocumentAlerte::TYPE_PERIODE_MISSING;
+            $alerte->context = Alerte::CONTEXT_DOCUMENT;
+            $alerte->type = Alerte::TYPE_PERIODE_MISSING;
             $alerte->vecteur = intval($vecteur);
             $alerte->type_emetteur = intval($emetteur);
             $alerte->periode_missing = intval($periodeMissing);
@@ -94,9 +96,84 @@ class AlerteController extends Controller
                 $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
                 $clientName = $client->name;
 
-                $errorMail = DocumentAlerte::mailPeriodeMissing($alerte->id_client,$alerte->id_labo,$alerte->id_user,$alerte->id_etablissement,$clientName,$etablissementName,$alerte->periode_missing,$alerte->id);
+                $errorMail = Alerte::mailPeriodeMissing($alerte->id_client,$alerte->id_labo,$alerte->id_user,$alerte->id_etablissement,$clientName,$etablissementName,$alerte->periode_missing,$alerte->id,$alerte->context);
             }
-            if(!$errors && ($errorMail == DocumentAlerte::MAIL_ERROR_NOERROR || $errorMail == DocumentAlerte::MAIL_ERROR_NOMAILLABO))
+            if(!$errors && ($errorMail == Alerte::MAIL_ERROR_NOERROR || $errorMail == Alerte::MAIL_ERROR_NOMAILLABO))
+                $transaction->commit();
+            else
+                $transaction->rollBack();
+        } catch (Exception $e) {
+            $transaction->rollBack();
+        }
+        $alerteResponse = '';
+        if(!is_null($alerte))
+            $alerteResponse = $alerte->id;
+
+        return ['error'=>$errors,'idEtablissement'=>$idEtablissement,'labo'=>$laboName,'client'=>$clientName,'etablissement'=>$etablissementName,'errorMail'=>$errorMail,'laboTel'=>$laboTel,'periode'=>intval($periodeMissing),'idalerte'=>$alerteResponse];
+    }
+
+    /**
+     * Création de l'alerte pour le cas d'une période sans analyses
+     * @return array
+     */
+    public function actionPeriodeAnalyseMissing(){
+        $errors = false;
+        $errorMail = false;
+        $laboName = '';
+
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = $_data['idClient'];
+        $idLabo = $_data['idLabo'];
+        $periodeMissing = $_data['periodeMissing'];
+        $idEtablissement = $_data['idEtablissement'];
+        if($idClient == $idEtablissement)
+            $idEtablissement = null;
+        $emetteur = $_data['emetteur'];
+        $vecteur = Alerte::VECTEUR_APPLI;
+        $labo = Labo::find()->andFilterWhere(['id'=>$idLabo])->one();
+        $laboTel = '';
+        if(!is_null($labo->tel))
+            $laboTel = $labo->tel;
+
+        $transaction = Alerte::getDb()->beginTransaction();
+        try {
+            $alerte = new Alerte();
+            $alerte->id_client = intval($idClient);
+            $alerte->id_labo = intval($idLabo);
+            $alerte->id_etablissement = !is_null($idEtablissement) ? intval($idEtablissement) : null;
+            $alerte->id_user = User::getCurrentUser()->id;
+            $alerte->context = Alerte::CONTEXT_ANALYSE;
+            $alerte->type = Alerte::TYPE_PERIODE_MISSING;
+            $alerte->vecteur = intval($vecteur);
+            $alerte->type_emetteur = intval($emetteur);
+            $alerte->periode_missing = intval($periodeMissing);
+
+            if(!$alerte->save())
+                $errors = true;
+
+            if(!$errors) {
+                $alerte->id_hashed = md5($alerte->id);
+                if(!$alerte->save())
+                    $errors = true;
+            }
+
+            if(!$errors){
+                $laboName = $labo->raison_sociale;
+                if(!is_null($idEtablissement)) {
+                    $etablissement = Client::find()->andFilterWhere(['id' => $idEtablissement])->one();
+                    $etablissementName = $etablissement->name;
+                }
+                else{
+                    $etablissementName = '';
+                }
+                $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
+                $clientName = $client->name;
+
+                $errorMail = Alerte::mailPeriodeMissing($alerte->id_client,$alerte->id_labo,$alerte->id_user,$alerte->id_etablissement,$clientName,$etablissementName,$alerte->periode_missing,$alerte->id,$alerte->context);
+            }
+            if(!$errors && ($errorMail == Alerte::MAIL_ERROR_NOERROR || $errorMail == Alerte::MAIL_ERROR_NOMAILLABO))
                 $transaction->commit();
             else
                 $transaction->rollBack();
@@ -128,21 +205,22 @@ class AlerteController extends Controller
         if($idClient == $idEtablissement)
             $idEtablissement = null;
         $emetteur = $_data['emetteur'];
-        $vecteur = DocumentAlerte::VECTEUR_APPLI;
+        $vecteur = Alerte::VECTEUR_APPLI;
 
         $labo = Labo::find()->andFilterWhere(['id'=>$idLabo])->one();
         $laboTel = '';
         if(!is_null($labo->tel))
             $laboTel = $labo->tel;
 
-        $transaction = DocumentAlerte::getDb()->beginTransaction();
+        $transaction = Alerte::getDb()->beginTransaction();
         try {
-            $alerte = new DocumentAlerte();
+            $alerte = new Alerte();
             $alerte->id_client = intval($idClient);
             $alerte->id_etablissement = !is_null($idEtablissement) ? intval($idEtablissement) : null;
             $alerte->id_labo = intval($idLabo);
             $alerte->id_user = User::getCurrentUser()->id;
-            $alerte->type = DocumentAlerte::TYPE_NODOC;
+            $alerte->context = Alerte::CONTEXT_DOCUMENT;
+            $alerte->type = Alerte::TYPE_NODOC;
             $alerte->vecteur = intval($vecteur);
             $alerte->type_emetteur = intval($emetteur);
 
@@ -167,10 +245,85 @@ class AlerteController extends Controller
                 $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
                 $clientName = $client->name;
 
-                $errorMail = DocumentAlerte::mailGeneralNoDocument($alerte->id_client,$alerte->id_labo,$alerte->id_user,$alerte->id_etablissement,$clientName,$etablissementName,$alerte->id);
+                $errorMail = Alerte::mailGeneralNoDocument($alerte->id_client,$alerte->id_labo,$alerte->id_user,$alerte->id_etablissement,$clientName,$etablissementName,$alerte->id,$alerte->context);
             }
 
-            if(!$errors && ($errorMail == DocumentAlerte::MAIL_ERROR_NOERROR || $errorMail == DocumentAlerte::MAIL_ERROR_NOMAILLABO))
+            if(!$errors && ($errorMail == Alerte::MAIL_ERROR_NOERROR || $errorMail == Alerte::MAIL_ERROR_NOMAILLABO))
+                $transaction->commit();
+            else
+                $transaction->rollBack();
+        } catch (Exception $e) {
+            $transaction->rollBack();
+        }
+        $alerteResponse = '';
+        if(!is_null($alerte))
+            $alerteResponse = $alerte->id;
+
+        return ['error'=>$errors,'idEtablissement'=>$idEtablissement,'labo'=>$laboName,'client'=>$clientName,'etablissement'=>$etablissementName,'errorMail'=>$errorMail,'laboTel'=>$laboTel,'idalerte'=>$alerteResponse];
+    }
+
+    /**
+     * @return array
+     * @throws \yii\db\Exception
+     */
+    public function actionGeneralNoAnalyse(){
+        $errors = false;
+        $errorMail = false;
+        $laboName = '';
+
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        $_data = Json::decode($_POST['data']);
+        $idClient = $_data['idClient'];
+        $idLabo = $_data['idLabo'];
+        $idEtablissement = $_data['idEtablissement'];
+        if($idClient == $idEtablissement)
+            $idEtablissement = null;
+        $emetteur = $_data['emetteur'];
+        $vecteur = Alerte::VECTEUR_APPLI;
+
+        $labo = Labo::find()->andFilterWhere(['id'=>$idLabo])->one();
+        $laboTel = '';
+        if(!is_null($labo->tel))
+            $laboTel = $labo->tel;
+
+        $transaction = Alerte::getDb()->beginTransaction();
+        try {
+            $alerte = new Alerte();
+            $alerte->id_client = intval($idClient);
+            $alerte->id_etablissement = !is_null($idEtablissement) ? intval($idEtablissement) : null;
+            $alerte->id_labo = intval($idLabo);
+            $alerte->id_user = User::getCurrentUser()->id;
+            $alerte->context = Alerte::CONTEXT_ANALYSE;
+            $alerte->type = Alerte::TYPE_NODOC;
+            $alerte->vecteur = intval($vecteur);
+            $alerte->type_emetteur = intval($emetteur);
+
+            if(!$alerte->save())
+                $errors = true;
+
+            if(!$errors) {
+                $alerte->id_hashed = md5($alerte->id);
+                if(!$alerte->save())
+                    $errors = true;
+            }
+
+            if(!$errors){
+                $laboName = $labo->raison_sociale;
+                if(!is_null($idEtablissement)) {
+                    $etablissement = Client::find()->andFilterWhere(['id' => $idEtablissement])->one();
+                    $etablissementName = $etablissement->name;
+                }
+                else{
+                    $etablissementName = '';
+                }
+                $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
+                $clientName = $client->name;
+
+                $errorMail = Alerte::mailGeneralNoDocument($alerte->id_client,$alerte->id_labo,$alerte->id_user,$alerte->id_etablissement,$clientName,$etablissementName,$alerte->id,$alerte->context);
+            }
+
+            if(!$errors && ($errorMail == Alerte::MAIL_ERROR_NOERROR || $errorMail == Alerte::MAIL_ERROR_NOMAILLABO))
                 $transaction->commit();
             else
                 $transaction->rollBack();
@@ -203,7 +356,8 @@ class AlerteController extends Controller
         if($idClient == $idEtablissement)
             $idEtablissement = null;
         $emetteur = $_data['emetteur'];
-        $vecteur = DocumentAlerte::VECTEUR_APPLI;
+        $vecteur = Alerte::VECTEUR_APPLI;
+        $context = $_data['context'];
         $message = $_data['message'];
 
         $labo = Labo::find()->andFilterWhere(['id'=>$idLabo])->one();
@@ -211,14 +365,15 @@ class AlerteController extends Controller
         if(!is_null($labo->tel))
             $laboTel = $labo->tel;
 
-        $transaction = DocumentAlerte::getDb()->beginTransaction();
+        $transaction = Alerte::getDb()->beginTransaction();
         try {
-            $alerte = new DocumentAlerte();
+            $alerte = new Alerte();
             $alerte->id_client = intval($idClient);
             $alerte->id_etablissement = !is_null($idEtablissement) ? intval($idEtablissement) : null;
             $alerte->id_labo = intval($idLabo);
             $alerte->id_user = User::getCurrentUser()->id;
-            $alerte->type = DocumentAlerte::TYPE_SENDMAIL;
+            $alerte->context = $context;
+            $alerte->type = Alerte::TYPE_SENDMAIL;
             $alerte->vecteur = intval($vecteur);
             $alerte->type_emetteur = intval($emetteur);
 
@@ -243,10 +398,10 @@ class AlerteController extends Controller
                 $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
                 $clientName = $client->name;
 
-                $errorMail = DocumentAlerte::mailSendMailLabo($alerte->id_client,$alerte->id_labo,$alerte->id_user,$alerte->id_etablissement,$clientName,$etablissementName,$alerte->id,$message);
+                $errorMail = Alerte::mailSendMailLabo($alerte->id_client,$alerte->id_labo,$alerte->id_user,$alerte->id_etablissement,$clientName,$etablissementName,$alerte->id,$message);
             }
 
-            if(!$errors && ($errorMail == DocumentAlerte::MAIL_ERROR_NOERROR || $errorMail == DocumentAlerte::MAIL_ERROR_NOMAILLABO))
+            if(!$errors && ($errorMail == Alerte::MAIL_ERROR_NOERROR || $errorMail == Alerte::MAIL_ERROR_NOMAILLABO))
                 $transaction->commit();
             else
                 $transaction->rollBack();
@@ -279,12 +434,13 @@ class AlerteController extends Controller
         if($idClient == $idEtablissement)
             $idEtablissement = null;
         $emetteur = $_data['emetteur'];
-        $vecteur = DocumentAlerte::VECTEUR_APPLI;
+        $vecteur = Alerte::VECTEUR_APPLI;
         $idAlerte = $_data['idAlerte'];
+        $context = $_data['context'];
 
-        $transaction = DocumentAlerte::getDb()->beginTransaction();
+        $transaction = Alerte::getDb()->beginTransaction();
         try {
-            $alerte = DocumentAlerte::find()->andFilterWhere(['id'=>intval($idAlerte)])->one();
+            $alerte = Alerte::find()->andFilterWhere(['id'=>intval($idAlerte)])->one();
             $alerte->active = 0;
 
             if(!$alerte->save())
@@ -305,12 +461,12 @@ class AlerteController extends Controller
     }
 
     /**
-     * Lists all DocumentAlerte models.
+     * Lists all Alerte models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $searchModel = new DocumentAlerteSearch();
+        $searchModel = new AlerteSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
@@ -320,7 +476,7 @@ class AlerteController extends Controller
     }
 
     /**
-     * Displays a single DocumentAlerte model.
+     * Displays a single Alerte model.
      * @param integer $id
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
@@ -333,13 +489,13 @@ class AlerteController extends Controller
     }
 
     /**
-     * Creates a new DocumentAlerte model.
+     * Creates a new Alerte model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new DocumentAlerte();
+        $model = new Alerte();
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'id' => $model->id]);
@@ -351,7 +507,7 @@ class AlerteController extends Controller
     }
 
     /**
-     * Updates an existing DocumentAlerte model.
+     * Updates an existing Alerte model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
@@ -371,7 +527,7 @@ class AlerteController extends Controller
     }
 
     /**
-     * Deletes an existing DocumentAlerte model.
+     * Deletes an existing Alerte model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
@@ -385,15 +541,15 @@ class AlerteController extends Controller
     }
 
     /**
-     * Finds the DocumentAlerte model based on its primary key value.
+     * Finds the Alerte model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id
-     * @return DocumentAlerte the loaded model
+     * @return Alerte the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = DocumentAlerte::findOne($id)) !== null) {
+        if (($model = Alerte::findOne($id)) !== null) {
             return $model;
         }
 
@@ -405,7 +561,7 @@ class AlerteController extends Controller
         if(is_null(User::getCurrentUser()))
             return $this->redirect([Yii::$app->request->baseUrl.'/user-management/auth/login','alerte'=>$alerte]);
         else {
-            $docAlerte = DocumentAlerte::find()->andFilterWhere(['id_hashed'=>$alerte])->andFilterWhere(['vue'=>0])->andFilterWhere(['active'=>1])->one();
+            $docAlerte = Alerte::find()->andFilterWhere(['id_hashed'=>$alerte])->andFilterWhere(['vue'=>0])->andFilterWhere(['active'=>1])->one();
             if(!is_null($docAlerte)){
                 $docAlerte->vue = 1;
                 $docAlerte->save();

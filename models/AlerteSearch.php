@@ -5,12 +5,12 @@ namespace app\models;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\DocumentAlerte;
+use app\models\Alerte;
 
 /**
- * DocumentAlerteSearch represents the model behind the search form of `app\models\DocumentAlerte`.
+ * AlerteSearch represents the model behind the search form of `app\models\Alerte`.
  */
-class DocumentAlerteSearch extends DocumentAlerte
+class AlerteSearch extends Alerte
 {
     /**
      * {@inheritdoc}
@@ -41,7 +41,7 @@ class DocumentAlerteSearch extends DocumentAlerte
      */
     public function search($params)
     {
-        $query = DocumentAlerte::find();
+        $query = Alerte::find();
 
         // add conditions that should always apply here
 

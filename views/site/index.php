@@ -38,12 +38,15 @@ $this->title = 'P.C.R.A.M';
                     'client/index.php',[
                         'searchModel' => $searchModel,
                         'dataProvider' => $dataProvider,
+                        'searchModelResultat' => $searchModelResultat,
+                        'dataProviderResultat' => $dataProviderResultat,
                         'dataProviderAnalyse' => $dataProviderAnalyse,
                         'listMonthAlert' => $listMonthAlert,
                         'idClient' => $idClient,
                         'isAdmin'=> User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) ? true : false,
                         'isResponsable'=> User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP]) ? true : false,
                         'gridColumn' => $gridColumn,
+                        'gridColumnResultat' => $gridColumnResultat,
                         'gridColumnAnalyse' => $gridColumnAnalyse,
                         'idLabo' => $idLabo
                     ]

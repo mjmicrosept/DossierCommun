@@ -8,17 +8,18 @@
 
 use yii\db\Migration;
 
-class m160408_074829_create_document_alerte extends Migration
+class m160408_074829_create_alerte extends Migration
 {
     public function up()
     {
-        $this->createTable('document_alerte', [
+        $this->createTable('alerte', [
             'id' => $this->primaryKey(),
             'id_hashed' => $this->string(255)->defaultValue(NULL),
             'id_labo' => $this->integer(11)->notNull(),
             'id_client' => $this->integer(11)->notNull(),
             'id_etablissement' => $this->integer(11),
             'id_user' => $this->integer(11)->notNull(),
+            'context' => $this->integer(11)->notNull(),
             'type' => $this->integer(11)->notNull(),
             'type_emetteur' => $this->integer(11)->notNull(),
             'vecteur' => $this->integer(11)->notNull(),
@@ -40,6 +41,6 @@ class m160408_074829_create_document_alerte extends Migration
 
     public function down()
     {
-        $this->dropTable('document_alerte');
+        $this->dropTable('alerte');
     }
 }

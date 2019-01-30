@@ -13,6 +13,7 @@ use Yii;
  * @property int $id_client
  * @property int $id_etablissement
  * @property int $id_user
+ * @property int $context
  * @property int $type
  * @property int $type_emetteur
  * @property int $vecteur
@@ -28,15 +29,18 @@ use Yii;
  * @property int $vue
  * @property int $active
  */
-class DocumentAlerte extends \yii\db\ActiveRecord
+class Alerte extends \yii\db\ActiveRecord
 {
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return 'document_alerte';
+        return 'alerte';
     }
+
+    const CONTEXT_ANALYSE = 1;
+    const CONTEXT_DOCUMENT = 2;
 
     const TYPE_DATE_MISSING = 1;
     const TYPE_DATE_CORRUPTED = 2;
@@ -62,8 +66,8 @@ class DocumentAlerte extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id_labo', 'id_client', 'id_user', 'type', 'type_emetteur', 'vecteur'], 'required'],
-            [['id_labo', 'id_client', 'id_user', 'type', 'type_emetteur', 'vecteur', 'year_missing', 'month_missing', 'year_corrupted', 'month_corrupted', 'year_nocontext', 'month_nocontext', 'periode_missing', 'vue', 'active','id_etablissement'], 'integer'],
+            [['id_labo', 'id_client', 'id_user','context', 'type', 'type_emetteur', 'vecteur'], 'required'],
+            [['id_labo', 'id_client', 'id_user','context', 'type', 'type_emetteur', 'vecteur', 'year_missing', 'month_missing', 'year_corrupted', 'month_corrupted', 'year_nocontext', 'month_nocontext', 'periode_missing', 'vue', 'active','id_etablissement'], 'integer'],
             [['id_hashed'], 'string', 'max' => 255],
             [['date_create', 'date_update'], 'safe'],
         ];
@@ -81,6 +85,7 @@ class DocumentAlerte extends \yii\db\ActiveRecord
             'id_user' => 'Id User',
             'id_etablissement' => 'Id Etablissement',
             'type' => 'Type',
+            'context' => 'Context',
             'type_emetteur' => 'Type Emetteur',
             'vecteur' => 'Vecteur',
             'year_missing' => 'Year Missing',
@@ -105,7 +110,7 @@ class DocumentAlerte extends \yii\db\ActiveRecord
      * @param $idUser
      * @return bool
      */
-    public static function mailGeneralNoDocument($idClient,$idLabo,$idUser,$idEtablissement,$clientName,$etablissementName,$idAlerte){
+    public static function mailGeneralNoDocument($idClient,$idLabo,$idUser,$idEtablissement,$clientName,$etablissementName,$idAlerte,$contextAlerte){
         $error = self::MAIL_ERROR_NOERROR;
         $emailLabo = '';
         $emailClient = '';
@@ -121,7 +126,11 @@ class DocumentAlerte extends \yii\db\ActiveRecord
                 //Dans le cas de l'établissement d'un groupe
                 if (!is_null($idEtablissement)) {
                     $bodyText = '';
-                    $bodyText .= 'Une alerte a été levée par l\'établissement <strong>' . $etablissementName . '</strong> du groupe <strong>' . $clientName . '</strong> pour la raison suivante : <br/> - Pas de documents présents sur la plateforme.<br/><br/>';
+                    $bodyText .= 'Une alerte a été levée par l\'établissement <strong>' . $etablissementName . '</strong> du groupe <strong>' . $clientName . '</strong> pour la raison suivante : <br/>';
+                    if($contextAlerte == self::CONTEXT_DOCUMENT)
+                        $bodyText .= ' - Pas de documents présents sur la plateforme.<br/><br/>';
+                    else
+                        $bodyText .= ' - Pas d\'analyses présentes sur la plateforme.<br/><br/>';
                     $bodyText .= 'Vous pouvez passer le statut de cette alerte à <strong>"traitée"</strong> en cliquant sur le lien suivant : <br>';
                     $bodyText .= 'http://dossiercommun.test.local/index.php/alerte/change-statut?alerte='.md5($idAlerte);
                 } else {
@@ -174,7 +183,7 @@ class DocumentAlerte extends \yii\db\ActiveRecord
      * @param $periode
      * @return bool
      */
-    public static function mailPeriodeMissing($idClient,$idLabo,$idUser,$idEtablissement,$clientName,$etablissementName,$periode,$idAlerte){
+    public static function mailPeriodeMissing($idClient,$idLabo,$idUser,$idEtablissement,$clientName,$etablissementName,$periode,$idAlerte,$contextAlerte){
         $error = false;
         $emailLabo = '';
         $emailClient = '';
@@ -190,7 +199,11 @@ class DocumentAlerte extends \yii\db\ActiveRecord
                 //Dans le cas de l'établissement d'un groupe
                 if (!is_null($idEtablissement)) {
                     $bodyText = '';
-                    $bodyText .= 'Une alerte a été levée par l\'établissement <strong>' . $etablissementName . '</strong> du groupe <strong>' . $clientName . '</strong> pour la raison suivante : <br/> - Pas de documents présents pendant une période de '.$periode.' mois.<br/><br/>';
+                    $bodyText .= 'Une alerte a été levée par l\'établissement <strong>' . $etablissementName . '</strong> du groupe <strong>' . $clientName . '</strong> pour la raison suivante : <br/> ';
+                    if($contextAlerte == self::CONTEXT_DOCUMENT)
+                        $bodyText .= '- Pas de documents présents pendant une période de '.$periode.' mois.<br/><br/>';
+                    else
+                        $bodyText .= '- Pas d\'analyses présentes pendant une période de '.$periode.' mois.<br/><br/>';
                     $bodyText .= 'Vous pouvez passer le statut de cette alerte à <strong>"traitée"</strong> en cliquant sur le lien suivant : <br>';
                     $bodyText .= 'http://dossiercommun.test.local/index.php/alerte/change-statut?alerte='.md5($idAlerte);
                 } else {
