@@ -1147,22 +1147,58 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    $analyseData->id_interpretation = null;
+
+
+                                    $interpretation = null;
+                                    if($aColumns['7'] != '')
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
                                     if($aColumns['7'] == ''){
                                         $analyseData->id_conformite = AnalyseConformite::CONF_INDETERMINE;
+                                        $analyseData->id_interpretation = null;
                                     }
                                     else{
                                         $posNonConforme = strpos(strtolower($aColumns['7']),'non satisfaisant');
                                         if($posNonConforme !== false){
                                             $analyseData->id_conformite = AnalyseConformite::CONF_NON_CONFORME;
+                                            if(!is_null($interpretation)) {
+                                                $analyseData->id_interpretation = $interpretation->id;
+                                            }
+                                            else{
+                                                $interpretation = new AnalyseInterpretation();
+                                                $interpretation->id_labo = $idLabo;
+                                                $interpretation->active = 1;
+                                                $interpretation->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                                $interpretation->conforme = AnalyseConformite::CONF_NON_CONFORME;
+                                                if (!$interpretation->save()) {
+                                                    $error = true;
+                                                    $ligneError = $nbLignes;
+                                                }
+                                                $analyseData->id_interpretation = $interpretation->id;
+                                            }
                                         }
                                         else{
                                             $posConforme = strpos(strtolower($aColumns['7']),'satisfaisant');
                                             if($posConforme !== false){
                                                 $analyseData->id_conformite = AnalyseConformite::CONF_CONFORME;
+                                                if(!is_null($interpretation)) {
+                                                    $analyseData->id_interpretation = $interpretation->id;
+                                                }
+                                                else{
+                                                    $interpretation = new AnalyseInterpretation();
+                                                    $interpretation->id_labo = $idLabo;
+                                                    $interpretation->active = 1;
+                                                    $interpretation->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                                    $interpretation->conforme = AnalyseConformite::CONF_CONFORME;
+                                                    if (!$interpretation->save()) {
+                                                        $error = true;
+                                                        $ligneError = $nbLignes;
+                                                    }
+                                                    $analyseData->id_interpretation = $interpretation->id;
+                                                }
                                             }
                                             else{
                                                 $analyseData->id_conformite = AnalyseConformite::CONF_INDETERMINE;
+                                                $analyseData->id_interpretation = null;
                                             }
                                         }
                                     }
