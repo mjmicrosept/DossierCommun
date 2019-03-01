@@ -18,7 +18,7 @@ class m160408_074838_create_analyse_data_germe extends Migration
             'libelle' => $this->string(255)->notNull(),
             'resultat' => $this->string(50),
             'expression' => $this->string(50),
-            'interpretation' => $this->string(50),
+            'interpretation' => $this->string(255),
         ]);
 
         //$this->createIndex('societe_user_create','client',['user_create']);

@@ -32,8 +32,8 @@ class AnalyseDataGerme extends \yii\db\ActiveRecord
         return [
             [['id_analyse','libelle'], 'required'],
             [['id_analyse'], 'integer'],
-            [['resultat','expression','interpretation'], 'string', 'max' => 50],
-            [['libelle'], 'string', 'max' => 255],
+            [['resultat','expression'], 'string', 'max' => 50],
+            [['libelle','interpretation'], 'string', 'max' => 255],
         ];
     }
 

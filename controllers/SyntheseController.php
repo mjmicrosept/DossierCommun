@@ -1012,7 +1012,14 @@ class SyntheseController extends Controller
      * @return string
      */
     public function actionGetSyntheseResult(){
-        $_data = Json::decode($_POST['data']);
+        //$_data = Json::decode($_POST['data']);
+        if(isset($_POST['data'])) {
+            $_data = Json::decode($_POST['data']);
+            $_SESSION['synthese'] = $_POST['data'];
+        }
+        else{
+            $_data = Json::decode($_SESSION['synthese']);
+        }
 
         if(isset($_data['listEtablissement']))
             if($_data['listEtablissement'] != '')
@@ -1137,7 +1144,7 @@ class SyntheseController extends Controller
             },
             'allModels' => $aGlobalData,
             'pagination' => [
-                'pageSize' => 1000
+                'pageSize' => 100
             ]
         ]);
         $gridColumns = [

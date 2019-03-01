@@ -192,7 +192,27 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $analyseData->date_analyse = $dateAnalyse;
                                     }
                                     else{
-                                        $analyseData->date_analyse = '1970-01-02';
+                                        //Si pas de date d'analyse on se réfère à la date de réception
+                                        if($aColumns['2'] != '') {
+                                            $year = substr($aColumns['2'], 6, 4);
+                                            $month = intval(substr($aColumns['2'], 3, 2));
+                                            $day = substr($aColumns['2'], 0, 2);
+                                            $dateAnalyse = $year . '-' . $month . '-' . $day;
+                                            $analyseData->date_analyse = $dateAnalyse;
+                                        }
+                                        else{
+                                            //Si pas de date d'analyse on se réfère à la date de prélèvement
+                                            if($aColumns['5'] != '') {
+                                                $year = substr($aColumns['5'], 6, 4);
+                                                $month = intval(substr($aColumns['5'], 3, 2));
+                                                $day = substr($aColumns['5'], 0, 2);
+                                                $dateAnalyse = $year . '-' . $month . '-' . $day;
+                                                $analyseData->date_analyse = $dateAnalyse;
+                                            }
+                                            else{
+                                                $analyseData->date_analyse = '1970-01-02';
+                                            }
+                                        }
                                     }
 
                                     if (!$analyseData->save()) {
@@ -321,7 +341,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $service = null;
                                     else
                                         $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['9']), ENT_QUOTES, "UTF-8"))])->one();
-                                    $analyseData->id_service = $service->id;
+                                    if(!is_null($service))
+                                        $analyseData->id_service = $service->id;
+                                    else
+                                        $analyseData->id_service = \Yii::$app->params['services']['generique'];
                                     //echo $aColumns['5'].PHP_EOL;
                                     if($aColumns['5'] == '')
                                         $conditionnement = null;
@@ -719,7 +742,145 @@ class AnalyseData extends \yii\db\ActiveRecord
                     $aGlobal = (explode("\r\n",$strGlobal));
 
                     foreach ($aGlobal as $f) {
+                        $aColumns = str_getcsv($f, ';');
 
+                        if ($index == 0) {
+                            //On construit le tableau des germes présents dans les fichiers
+                            $iColumn = 12;
+                            $lastColumn = false;
+                            $title = '';
+                            while($lastColumn == false){
+                                if($aColumns[$iColumn] == ''){
+                                    if(!isset($aColumns[$iColumn + 1])) {
+                                        //Dernière colonne
+                                        $lastColumn = true;
+                                        $aGermes[$title]['interpretation'] = $iColumn;
+                                    }
+                                    else{
+                                        //Colonne interprétation
+                                        $aGermes[$title]['interpretation'] = $iColumn;
+                                    }
+                                }
+                                else{
+                                    $aTitle = explode('(Résultat)',html_entity_decode(htmlentities(utf8_encode($aColumns[$iColumn]), ENT_QUOTES, "UTF-8")));
+
+                                    if(count($aTitle) == 2){
+                                        if($title == '' || $title != $aTitle[0])
+                                            $title = $aTitle[0];
+                                        //Colonne résultat
+                                        if(!isset($aGermes[$title])) {
+                                            $aGermes[$title]['libelle'] = $title;
+                                            $aGermes[$title]['resultat'] = $iColumn;
+                                        }
+                                    }
+                                    else{
+                                        //Colonne expression
+                                        $aGermes[$title]['expression'] = $iColumn;
+                                    }
+                                }
+
+                                $iColumn++;
+                            }
+                        }
+                        else{
+                            //var_dump($aColumns).PHP_EOL;
+                            if(isset($aColumns['0'])) {
+                                //Test d'existence de l'analyse en base
+                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['0']])->andFilterWhere(['id_labo'=>$idLabo])->one();
+                                if(is_null($analyseData)) {
+                                    $nbLignes++;
+                                    //Création des données générales
+                                    $analyseData = new self();
+                                    $analyseData->num_analyse = $aColumns['0'];
+                                    $analyseData->id_labo = $idLabo;
+                                    $analyseData->id_client = $idClient;
+                                    $analyseData->id_parent = $idParent;
+                                    if($aColumns['8'] == '')
+                                        $service = null;
+                                    else
+                                        $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+                                    if(!is_null($service))
+                                        $analyseData->id_service = $service->id;
+                                    else
+                                        $analyseData->id_service = \Yii::$app->params['services']['generique'];
+                                    if($aColumns['6'] == '')
+                                        $conditionnement = null;
+                                    else {
+                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['6']), ENT_QUOTES, "UTF-8"))])->one();
+                                        if(is_null($conditionnement)){
+                                            $conditionnement = new AnalyseConditionnement();
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['6']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->active = 1;
+                                            if (!$conditionnement->save()) {
+                                                $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
+                                        }
+                                    }
+                                    $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
+                                    if($aColumns['7'] == '')
+                                        $lieuPrelevement = null;
+                                    else {
+                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
+                                        if(is_null($lieuPrelevement)){
+                                            $lieuPrelevement = new AnalyseLieuPrelevement();
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->active = 1;
+                                            if (!$lieuPrelevement->save()) {
+                                                $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
+                                        }
+                                    }
+                                    $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
+                                    if($aColumns['4'] == '')
+                                        $interpretation = null;
+                                    else
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"))])->one();
+
+                                    $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
+                                    $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['1']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['6']), ENT_QUOTES, "UTF-8"));
+                                    $year = substr($aColumns['2'], 6, 4);
+                                    $month = intval(substr($aColumns['2'], 3, 2));
+                                    $day = substr($aColumns['2'], 0, 2);
+                                    $dateAnalyse = $year . '-' . $month . '-' . $day;
+                                    $analyseData->date_analyse = $dateAnalyse;
+
+                                    if (!$analyseData->save()) {
+                                        $error = true;
+                                        $ligneError = $nbLignes;
+                                    }
+
+                                    //Création des données relatives aux germes
+                                    foreach ($aGermes as $germe) {
+                                        //var_dump($germe['libelle']);
+                                        if(isset($aColumns[$germe['resultat']])) {
+                                            if ($aColumns[$germe['resultat']] != '') {
+                                                $analyseDataGerme = new AnalyseDataGerme();
+                                                $analyseDataGerme->id_analyse = $analyseData->id;
+                                                $analyseDataGerme->libelle = $germe['libelle'];
+                                                $resultat = !isset($aColumns[$germe['resultat']]) ? '' : html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[$germe['resultat']])), ENT_QUOTES, "UTF-8"));
+                                                $analyseDataGerme->resultat = $resultat;
+                                                $expression = !isset($aColumns[$germe['expression']]) ? '' : html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[$germe['expression']])), ENT_QUOTES, "UTF-8"));
+                                                $analyseDataGerme->expression = $expression;
+                                                $interpretation = !isset($aColumns[$germe['interpretation']]) ? '' : html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[$germe['interpretation']])), ENT_QUOTES, "UTF-8"));
+                                                $analyseDataGerme->interpretation = $interpretation;
+
+                                                if (!$analyseDataGerme->save()) {
+                                                    Yii::trace($germe);
+                                                    Yii::trace($analyseDataGerme);
+                                                    $error = true;
+                                                    $ligneError = $nbLignes;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        $index++;
                     }
                     break;
                 case Labo::QUALHYGIENE :
@@ -964,13 +1125,25 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    if($aColumns['7'] == '')
-                                        $interpretation = null;
-                                    else
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
-
-                                    $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
-                                    $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
+                                    $analyseData->id_interpretation = null;
+                                    if($aColumns['7'] == ''){
+                                        $analyseData->id_conformite = AnalyseConformite::CONF_INDETERMINE;
+                                    }
+                                    else{
+                                        $posNonConforme = strpos(strtolower($aColumns['7']),'non satisfaisant');
+                                        if($posNonConforme !== false){
+                                            $analyseData->id_conformite = AnalyseConformite::CONF_NON_CONFORME;
+                                        }
+                                        else{
+                                            $posConforme = strpos(strtolower($aColumns['7']),'satisfaisant');
+                                            if($posConforme !== false){
+                                                $analyseData->id_conformite = AnalyseConformite::CONF_CONFORME;
+                                            }
+                                            else{
+                                                $analyseData->id_conformite = AnalyseConformite::CONF_INDETERMINE;
+                                            }
+                                        }
+                                    }
                                     $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['2']), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
                                     $year = substr($aColumns['3'], 6, 4);

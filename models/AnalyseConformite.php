@@ -13,6 +13,9 @@ use yii\helpers\ArrayHelper;
  */
 class AnalyseConformite extends \yii\db\ActiveRecord
 {
+    const CONF_CONFORME = 1;
+    const CONF_NON_CONFORME = 2;
+    const CONF_INDETERMINE = 3;
     /**
      * {@inheritdoc}
      */
