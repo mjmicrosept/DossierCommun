@@ -375,13 +375,13 @@ class SyntheseController extends Controller
                         'options' => [
                             'data' => ArrayHelper::map(AnalyseConformite::find()->orderBy('libelle')->asArray()->all(), 'id', 'libelle'),
                             'options' => [
-                                'placeholder' => 'Sélectionner une ou plusieurs conclusions', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                                'placeholder' => 'Sélectionner une ou plusieurs conformités', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
                             ],
                             'pluginOptions' => [
                                 'allowClear' => true,
                             ]
                         ],
-                        'label' => 'Conclusions',
+                        'label' => 'Conformité',
                     ],
                 ]
             ]);
@@ -487,13 +487,13 @@ class SyntheseController extends Controller
                         'options' => [
                             'data' => ArrayHelper::map(AnalyseConformite::find()->orderBy('libelle')->asArray()->all(), 'id', 'libelle'),
                             'options' => [
-                                'placeholder' => 'Sélectionner une ou plusieurs conclusions', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                                'placeholder' => 'Sélectionner une ou plusieurs conformités', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
                             ],
                             'pluginOptions' => [
                                 'allowClear' => true,
                             ]
                         ],
-                        'label' => 'Conclusions',
+                        'label' => 'Conformités',
                     ],
                 ]
             ]);
@@ -640,13 +640,13 @@ class SyntheseController extends Controller
                         'options' => [
                             'data' => ArrayHelper::map(AnalyseConformite::find()->orderBy('libelle')->asArray()->all(), 'id', 'libelle'),
                             'options' => [
-                                'placeholder' => 'Sélectionner une ou plusieurs conclusions', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
+                                'placeholder' => 'Sélectionner une ou plusieurs conformités', 'dropdownCssClass' => 'dropdown-vente-livr', 'multiple' => true
                             ],
                             'pluginOptions' => [
                                 'allowClear' => true,
                             ]
                         ],
-                        'label' => 'Conclusions',
+                        'label' => 'Conformités',
                     ],
                 ]
             ]);
@@ -1148,18 +1148,18 @@ class SyntheseController extends Controller
             ]
         ]);
         $gridColumns = [
-            [
-                'label' => 'Service',
-                'format' => 'raw',
-                'value' => function($row) {
-                    return '<i class="fas fa-stream"></i>&nbsp;&nbsp;' . AnalyseService::find()->andFilterWhere(['id'=>$row['id_service']])->one()->libelle;
-                },
-                'contentOptions' => ['style'=>'font-weight:bold'],
-                'group'=>true,  // enable grouping,
-                'groupedRow'=>true,                    // move grouped column to a single grouped row
-                'groupOddCssClass'=>'kv-grouped-row',  // configure odd group cell css class
-                'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
-            ],
+//            [
+//                'label' => 'Service',
+//                'format' => 'raw',
+//                'value' => function($row) {
+//                    return '<i class="fas fa-stream"></i>&nbsp;&nbsp;' . AnalyseService::find()->andFilterWhere(['id'=>$row['id_service']])->one()->libelle;
+//                },
+//                'contentOptions' => ['style'=>'font-weight:bold'],
+//                'group'=>true,  // enable grouping,
+//                'groupedRow'=>true,                    // move grouped column to a single grouped row
+//                'groupOddCssClass'=>'kv-grouped-row',  // configure odd group cell css class
+//                'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
+//            ],
             [
                 'label' => 'client',
                 'format' => 'raw',
@@ -1170,8 +1170,8 @@ class SyntheseController extends Controller
                 'vAlign'=>'middle',
                 'group'=>true,
                 'groupedRow'=>true,                    // move grouped column to a single grouped row
-                'groupOddCssClass'=>'kv-grouped-child-row',  // configure odd group cell css class
-                'groupEvenCssClass'=>'kv-grouped-child-row', // configure even group cell css class
+                'groupOddCssClass'=>'kv-grouped-row',  // configure odd group cell css class
+                'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
             ],
             [
                 'label' => '',
@@ -1183,8 +1183,8 @@ class SyntheseController extends Controller
                 'vAlign'=>'middle',
                 'group'=>true,
                 'groupedRow'=>true,                    // move grouped column to a single grouped row
-                'groupOddCssClass'=>'kv-grouped-labo-row',  // configure odd group cell css class
-                'groupEvenCssClass'=>'kv-grouped-labo-row', // configure even group cell css class
+                'groupOddCssClass'=>'kv-grouped-child-row',  // configure odd group cell css class
+                'groupEvenCssClass'=>'kv-grouped-child-row', // configure even group cell css class
             ],
             [
                 'label' => 'N° Analyse',
@@ -1216,6 +1216,13 @@ class SyntheseController extends Controller
                     else{
                         return '<i class="fa fa-circle text-yellow"></i>';
                     }
+                },
+            ],
+            [
+                'label' => 'Service',
+                'format' => 'raw',
+                'value' => function($row) {
+                    return AnalyseService::find()->andFilterWhere(['id'=>$row['id_service']])->one()->libelle;
                 },
             ],
             [
