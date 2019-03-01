@@ -795,10 +795,21 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_labo = $idLabo;
                                     $analyseData->id_client = $idClient;
                                     $analyseData->id_parent = $idParent;
-                                    if($aColumns['8'] == '')
+                                    if($aColumns['8'] == '') {
                                         $service = null;
-                                    else
+                                    }
+                                    else {
                                         $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+                                        if(is_null($service)){
+                                            $service = new AnalyseService();
+                                            $service->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
+                                            $service->active = 1;
+                                            if (!$service->save()) {
+                                                $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
+                                        }
+                                    }
                                     if(!is_null($service))
                                         $analyseData->id_service = $service->id;
                                     else
@@ -1099,10 +1110,21 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_labo = $idLabo;
                                     $analyseData->id_client = $idClient;
                                     $analyseData->id_parent = $idParent;
-                                    if($aColumns['8'] == '')
+                                    if($aColumns['8'] == '') {
                                         $service = null;
-                                    else
+                                    }
+                                    else {
                                         $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+                                        if(is_null($service)){
+                                            $service = new AnalyseService();
+                                            $service->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
+                                            $service->active = 1;
+                                            if (!$service->save()) {
+                                                $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
+                                        }
+                                    }
                                     if(!is_null($service))
                                         $analyseData->id_service = $service->id;
                                     else
