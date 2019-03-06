@@ -98,10 +98,9 @@ JS
                 </strong>
             </div>
             <div class="panel-body" style="padding:20px 50px 20px 50px;">
-                <?php Pjax::begin([
-                    'id'=>'synthese-grid',
-                ]) ?>
-                <?php Pjax::end() ?>
+
+                <div id="synthese-grid"></div>,
+
             </div>
         </div>
     </div>

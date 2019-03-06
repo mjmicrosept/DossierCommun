@@ -89,6 +89,7 @@ CSS
         ]
     ],
     'dataProvider' => $dataProvider,
+    'hover' => true,
     'columns' => $gridColumns
 ]); ?>
 
