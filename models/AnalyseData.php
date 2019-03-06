@@ -584,6 +584,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                     $aGermes = [];
                     $aGlobal = [];
                     $strGlobal = '';
+                    $indexResultat = null;
 
                     //On supprime les tabulations et retour chariot interne aux cellules et place le tout dans une variable qu'on retransformera en tableau pour ne plus avoir de cassure dans les lignes
                     foreach ($file as $f) {
@@ -605,6 +606,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                             $title = '';
                             while($lastColumn == false){
                                 if(isset($aColumns[$iColumn])) {
+                                    if (html_entity_decode(htmlentities(utf8_encode($aColumns[$iColumn]), ENT_QUOTES, "UTF-8")) == 'Résultat') {
+                                        $indexResultat = $iColumn;
+                                    }
+
                                     if ($aColumns[$iColumn] == '') {
                                         $lastColumn = true;
                                     } else {
@@ -658,10 +663,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $lieuPrelevement = null;
 
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    if($aColumns['22'] == '')
+                                    if($aColumns[''.$indexResultat.''] == '')
                                         $interpretation = null;
                                     else
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['22']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[''.$indexResultat.'']), ENT_QUOTES, "UTF-8"))])->one();
 
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
@@ -680,7 +685,6 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     }
 
                                     foreach ($aGermes as $germe) {
-                                        //var_dump($germe['libelle']);
                                         if(isset($aColumns[$germe['resultat']])) {
                                             if ($aColumns[$germe['resultat']] != '') {
                                                 $analyseDataGerme = new AnalyseDataGerme();
@@ -1284,17 +1288,22 @@ class AnalyseData extends \yii\db\ActiveRecord
             }
 
             if(!$error) {
+                //Dans le cas d'un upload du même fichier donc pas de lignes enregistrée du fait du doublon du numéro d'analyse
+                if(intval($nbLignes) != 0) {
+                    //On renseigne la table data_pushed
+                    $logData = new DataPushed();
+                    $logData->id_user = User::getCurrentUser()->id;
+                    $logData->filename = $name;
+                    $logData->id_labo = intval($idLabo);
+                    $logData->id_client = intval($idClient);
+                    $logData->id_parent = intval($idParent);
+                    $logData->nb_lignes = intval($nbLignes);
+                    $logData->save();
+                }
+
                 //On valide l'enregistrement des données
                 $transaction->commit();
-                //On renseigne la table data_pushed
-                $logData = new DataPushed();
-                $logData->id_user = User::getCurrentUser()->id;
-                $logData->filename = $name;
-                $logData->id_labo = intval($idLabo);
-                $logData->id_client = intval($idClient);
-                $logData->id_parent = intval($idParent);
-                $logData->nb_lignes = intval($nbLignes);
-                $logData->save();
+
                 //On supprime le fichier
                 unlink($filename);
                 return $ligneError;
