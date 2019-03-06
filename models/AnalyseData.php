@@ -346,13 +346,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     else
                                         $analyseData->id_service = \Yii::$app->params['services']['generique'];
                                     //echo $aColumns['5'].PHP_EOL;
-                                    if($aColumns['5'] == '')
+                                    if($aColumns['7'] == '')
                                         $conditionnement = null;
                                     else {
-                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($conditionnement)){
                                             $conditionnement = new AnalyseConditionnement();
-                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
                                             if (!$conditionnement->save()) {
                                                 $error = true;
@@ -361,13 +361,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
-                                    if($aColumns['7'] == '')
+                                    if($aColumns['8'] == '')
                                         $lieuPrelevement = null;
                                     else {
-                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($lieuPrelevement)){
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
-                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
                                             if (!$lieuPrelevement->save()) {
                                                 $error = true;
@@ -376,15 +376,15 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    if($aColumns['8'] == '')
+                                    if($aColumns['5'] == '')
                                         $interpretation = null;
                                     else
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"))])->one();
 
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
                                     $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['1']), ENT_QUOTES, "UTF-8"));
-                                    $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['6']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
                                     $year = substr($aColumns['2'], 6, 4);
                                     $month = intval(substr($aColumns['2'], 3, 2));
                                     $day = substr($aColumns['2'], 0, 2);
