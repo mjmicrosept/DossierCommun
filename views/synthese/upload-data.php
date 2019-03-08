@@ -313,6 +313,7 @@ $this->registerJS(<<<JS
         initialPreviewThumbTags: [
             
         ],
+        maxFileSize: 8000,
         uploadExtraData: function() {  // callback example
             var outData = {
                 idLabo:$('#hfIdLabo').val(),

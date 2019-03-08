@@ -1,5 +1,5 @@
 <?php
-
+ini_set('memory_limit', '1024M'); // or you could use 1G
 // comment out the following two lines when deployed to production
 defined('YII_DEBUG') or define('YII_DEBUG', true);
 defined('YII_ENV') or define('YII_ENV', 'dev');
