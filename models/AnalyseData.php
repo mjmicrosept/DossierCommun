@@ -994,7 +994,105 @@ class AnalyseData extends \yii\db\ActiveRecord
                     $aGlobal = (explode("\r\n",$strGlobal));
 
                     foreach ($aGlobal as $f) {
+                        $aColumns = str_getcsv($f, ';');
+                        if ($index == 0) {
 
+                        }
+                        else {
+                            if (isset($aColumns['0'])) {
+                                $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns['0']])->andFilterWhere(['id_labo' => $idLabo])->one();
+                                if (is_null($analyseData)) {
+                                    $nbLignes++;
+                                    //Création des données générales
+                                    $analyseData = new self();
+                                    $analyseData->num_analyse = $aColumns['0'];
+                                    $analyseData->id_labo = $idLabo;
+                                    $analyseData->id_client = $idClient;
+                                    $analyseData->id_parent = $idParent;
+                                    $analyseData->id_service = \Yii::$app->params['services']['generique'];
+                                    //echo $aColumns['5'].PHP_EOL;
+                                    if($aColumns['3'] == '')
+                                        $conditionnement = null;
+                                    else {
+                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['3']), ENT_QUOTES, "UTF-8"))])->one();
+                                        if(is_null($conditionnement)){
+                                            $conditionnement = new AnalyseConditionnement();
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['3']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->active = 1;
+                                            if (!$conditionnement->save()) {
+                                                $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
+                                        }
+                                    }
+                                    $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
+                                    if($aColumns['7'] == '')
+                                        $lieuPrelevement = null;
+                                    else {
+                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
+                                        if(is_null($lieuPrelevement)){
+                                            $lieuPrelevement = new AnalyseLieuPrelevement();
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->active = 1;
+                                            if (!$lieuPrelevement->save()) {
+                                                $error = true;
+                                                $ligneError = $nbLignes;
+                                            }
+                                        }
+                                    }
+                                    $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
+                                    if($aColumns['18'] == '')
+                                        $interpretation = null;
+                                    else
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns['18'])])->one();
+                                    $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
+                                    $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['1']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->commentaire = '';
+                                    if ($aColumns['15'] != '') {
+                                        $year = substr($aColumns['15'], 0, 4);
+                                        $month = intval(substr($aColumns['15'], 4, 2));
+                                        $day = substr($aColumns['15'], 6, 2);
+                                        $dateAnalyse = $year . '-' . $month . '-' . $day;
+                                        $analyseData->date_analyse = $dateAnalyse;
+                                    } else {
+                                        $analyseData->date_analyse = '1970-01-02';
+                                    }
+
+                                    if (!$analyseData->save()) {
+                                        $error = true;
+                                        $ligneError = $nbLignes;
+                                    }
+
+                                    $analyseDataGerme = new AnalyseDataGerme();
+                                    $analyseDataGerme->id_analyse = $analyseData->id;
+                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['14']), ENT_QUOTES, "UTF-8"));
+                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['16'])), ENT_QUOTES, "UTF-8"));
+                                    $analyseDataGerme->resultat = $resultat;
+                                    $analyseDataGerme->expression = '';
+                                    $analyseDataGerme->interpretation = '';
+
+                                    if (!$analyseDataGerme->save()) {
+                                        $error = true;
+                                        $ligneError = $nbLignes;
+                                    }
+                                } else {
+                                    $analyseDataGerme = new AnalyseDataGerme();
+                                    $analyseDataGerme->id_analyse = $analyseData->id;
+                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['14']), ENT_QUOTES, "UTF-8"));
+                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['16'])), ENT_QUOTES, "UTF-8"));
+                                    $analyseDataGerme->resultat = $resultat;
+                                    $analyseDataGerme->expression = '';
+                                    $analyseDataGerme->interpretation = '';
+
+                                    if (!$analyseDataGerme->save()) {
+                                        $error = true;
+                                        $ligneError = $nbLignes;
+                                    }
+                                }
+                            }
+                        }
+                        $index++;
                     }
                     break;
                 case Labo::BIOVAL :
