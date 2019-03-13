@@ -3,7 +3,7 @@
 /* @var $this yii\web\View */
 use app\models\User;
 
-$this->title = 'P.C.R.A.M';
+$this->title = 'RFL Portail';
 
 ?>
 <div class="site-index">

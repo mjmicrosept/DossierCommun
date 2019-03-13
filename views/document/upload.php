@@ -359,30 +359,35 @@ $this->registerJS(<<<JS
     }
     
     function changeWidgetChildValue(text,value){
-        $('.widget-child-name').html(text);
-        if(value != ''){
-            var data = JSON.stringify({
-                idClient : value,
-                idLabo:$('#hfIdLabo').val()
-            });
-            $.post(url.totalDocumentClientPushed, {data:data}, function(response) {
-                if(response.error == false){
-                    $('.span-total-child').html(text);
-                    $('.badge-total-child').html(response.result);
-                    if(response.result == 0){
-                        if($('.badge-total-child').hasClass('bg-blue'))
-                            $('.badge-total-child').removeClass('bg-blue').addClass('bg-yellow');
+        if(text != ''){
+            var childText = '';
+            var tEtablissement = text.split('-');
+            childText = tEtablissement[0];
+            $('.widget-child-name').html(childText);
+            if(value != ''){
+                var data = JSON.stringify({
+                    idClient : value,
+                    idLabo:$('#hfIdLabo').val()
+                });
+                $.post(url.totalDocumentClientPushed, {data:data}, function(response) {
+                    if(response.error == false){
+                        $('.span-total-child').html(childText);
+                        $('.badge-total-child').html(response.result);
+                        if(response.result == 0){
+                            if($('.badge-total-child').hasClass('bg-blue'))
+                                $('.badge-total-child').removeClass('bg-blue').addClass('bg-yellow');
+                        }
+                        else{
+                            if($('.badge-total-child').hasClass('bg-yellow'))
+                                $('.badge-total-child').removeClass('bg-yellow').addClass('bg-blue');
+                        }
+                        $('.nav-total-child').show();
                     }
-                    else{
-                        if($('.badge-total-child').hasClass('bg-yellow'))
-                            $('.badge-total-child').removeClass('bg-yellow').addClass('bg-blue');
-                    }
-                    $('.nav-total-child').show();
-                }
-            })
-        }
-        else{
-            $('.nav-total-child').hide();
+                })
+            }
+            else{
+                $('.nav-total-child').hide();
+            }
         }
     }
     

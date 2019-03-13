@@ -103,11 +103,11 @@ class Client extends \yii\db\ActiveRecord
             return self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->select('id, name')->all();
         else{
             $result = [];
-            $listEtablissement = self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->select('id, name')->all();
+            $listEtablissement = self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->all();
             foreach ($listEtablissement as $item) {
                 $assign = LaboClientAssign::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$item->id])->andFilterWhere(['assign'=>1])->one();
                 if(!is_null($assign)) {
-                    array_push($result, $item);
+                    array_push($result, ['id'=>$item->id,'name'=>$item->name . ' - ' . $item->ville]);
                 }
             }
             return $result;

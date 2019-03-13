@@ -323,19 +323,20 @@ class DocumentController extends Controller
         $idClient = intval($_data['idClient']);
         $client = Client::find()->andFilterWhere(['id'=>$idClient])->one();
         $idLabo = intval($_data['idLabo']);
-        if($client->is_parent) {
-            $laboAssign = LaboClientAssign::getListLaboClientGroupAssign($idLabo,$idClient);
-            $aIds = [];
-            foreach ($laboAssign as $item) {
-                array_push($aIds,$item->id_client);
+        if(!is_null($client)) {
+            if ($client->is_parent) {
+                $laboAssign = LaboClientAssign::getListLaboClientGroupAssign($idLabo, $idClient);
+                $aIds = [];
+                foreach ($laboAssign as $item) {
+                    array_push($aIds, $item->id_client);
+                }
+                $clientLaboList = DocumentPushed::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['IN', 'id_client', $aIds])->all();
+            } else {
+                $clientLaboList = DocumentPushed::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_client' => $idClient])->all();
             }
-            $clientLaboList = DocumentPushed::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['IN','id_client',$aIds])->all();
-        }
-        else{
-            $clientLaboList = DocumentPushed::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$idClient])->all();
-        }
-        foreach ($clientLaboList as $item) {
-            $result += $item->nb_doc;
+            foreach ($clientLaboList as $item) {
+                $result += $item->nb_doc;
+            }
         }
 
         return ['error'=>$errors,'result'=>$result];

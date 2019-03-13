@@ -11,7 +11,7 @@ use yii\bootstrap\ActiveForm;
 use yii\helpers\Html;
 
 
-$this->title = 'Microsept';
+$this->title = 'RFL Portail';
 $web = Yii::getAlias('@web');
 $alerteLink = '';
 if(isset($_GET['alerte']))
