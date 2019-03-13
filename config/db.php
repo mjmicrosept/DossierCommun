@@ -2,8 +2,8 @@
 
 return [
     'class' => 'yii\db\Connection',
-    'dsn' => 'mysql:host=localhost;dbname=pcram',
-    'username' => 'pcram',
+    'dsn' => 'mysql:host=localhost;dbname=rfl_portail',
+    'username' => 'rfl_portail',
     'password' => 'IJXublv2tW2QcZFmjVyE',
     'charset' => 'utf8',
     'enableQueryCache' => true,
