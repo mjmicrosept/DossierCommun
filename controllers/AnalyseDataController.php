@@ -77,19 +77,21 @@ class AnalyseDataController extends Controller
      * Récupère la liste des enfants d'un client pour renseigner la liste des établissement
      * @return array
      */
-    public function actionGetChildList(){
+    public function actionGetChildList($all = false){
         $errors = false;
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $_data = $_POST['depdrop_params'];
         $clientIdParent = $_data[0];
         $clientIdLabo = null;
-        if(count($_data) > 1)
+        if(count($_data) > 1) {
             $clientIdLabo = $_data[1];
+            $all = Yii::$app->params['importData']['acceptAll']['laboratoires'][intval($clientIdLabo)];
+        }
         $listClient = null;
 
         if($_data[0] != '')
-            $listClient = Client::getChildList($clientIdParent,$clientIdLabo);
+            $listClient = Client::getChildList($clientIdParent,$clientIdLabo,$all);
 
         return ['output'=>$listClient];
     }
@@ -121,6 +123,7 @@ class AnalyseDataController extends Controller
     public function actionGetHistorique(){
         $errors = false;
         $result = '';
+        $etablissementName = '';
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $_data = Json::decode($_POST['data']);
@@ -130,7 +133,13 @@ class AnalyseDataController extends Controller
         foreach ($aDataPushed as $item) {
             $user = User::find()->andFilterWhere(['id'=>$item->id_user])->one();
             $client = Client::find()->andFilterWhere(['id'=>$item->id_parent])->one();
-            $etablissement = Client::find()->andFilterWhere(['id'=>$item->id_client])->one();
+            if($item->id_client == -1) {
+                $etablissementName = 'Tous';
+            }
+            else {
+                $etablissement = Client::find()->andFilterWhere(['id' => $item->id_client])->one();
+                $etablissementName = $etablissement->name;
+            }
             $year = substr($item->last_push, 0, 4);
             $month = intval(substr($item->last_push, 5, 2));
             $day = substr($item->last_push, 8, 2);
@@ -143,7 +152,7 @@ class AnalyseDataController extends Controller
             $result .= '<td>'.$item->filename.'</td>';
             $result .= '<td>'.$item->nb_lignes.'</td>';
             $result .= '<td>'.$client->name.'</td>';
-            $result .= '<td>'.$etablissement->name.'</td>';
+            $result .= '<td>'.$etablissementName.'</td>';
             $result .= '</tr>';
         }
 

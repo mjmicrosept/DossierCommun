@@ -1087,7 +1087,7 @@ class SyntheseController extends Controller
             $aAnalyseData = $aAnalyseData->andFilterWhere(['IN','id_lieu_prelevement',$listLieuPrelevement]);
 
 
-        $aAnalyseData = $aAnalyseData->orderBy('id_client,id_labo,date_analyse,id_service')->all();
+        $aAnalyseData = $aAnalyseData->orderBy('id_client,id_labo,date_analyse,id_service,num_analyse')->all();
 
         //Ajout des germes dans la requête
         foreach ($aAnalyseData as $analyseData) {

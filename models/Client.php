@@ -98,11 +98,14 @@ class Client extends \yii\db\ActiveRecord
      * @param $idParent
      * @return array
      */
-    public static function getChildList($idParent,$idLabo = null){
+    public static function getChildList($idParent,$idLabo = null,$all = false){
         if(is_null($idLabo))
             return self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->select('id, name')->all();
         else{
             $result = [];
+            if($all){
+                array_push($result, ['id'=>-1,'name'=>'Tous...']);
+            }
             $listEtablissement = self::find()->andFilterWhere(['active'=>1])->andFilterWhere(['id_parent'=>$idParent])->all();
             foreach ($listEtablissement as $item) {
                 $assign = LaboClientAssign::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_client'=>$item->id])->andFilterWhere(['assign'=>1])->one();
