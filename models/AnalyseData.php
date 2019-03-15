@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use yii\db\IntegrityException;
 use app\models\Labo;
+use app\models\MappageIdClient;
 
 /**
  * This is the model class for table "analyse_data".
@@ -79,6 +80,7 @@ class AnalyseData extends \yii\db\ActiveRecord
      * @throws \yii\db\Exception
      */
     public static function insertAllFromCsv($filename,$idLabo,$idClient,$idParent,$name = null){
+        Yii::trace($filename);
         $file = file($filename);
         $error = false;
         $nbLignes = 0;
@@ -446,6 +448,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                     }
                     break;
                 case Labo::AGROALIMCONSEIL :
+                    $idClientImport = $idClient;
                     $index = 0;
                     $aGermes = [];
                     $aGlobal = [];
@@ -475,7 +478,12 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['0'];
                                     $analyseData->id_labo = $idLabo;
-                                    $analyseData->id_client = $idClient;
+                                    if($idClientImport == -1){
+                                        $idClientImport = $aColumns['1'];
+                                        $mappage = MappageIdClient::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_lims_client'=>$idClientImport])->one();
+                                        $idClientImport = $mappage->id_portail_client;
+                                    }
+                                    $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
                                     $analyseData->id_service = \Yii::$app->params['services']['generique'];
                                     //echo $aColumns['5'].PHP_EOL;
@@ -483,15 +491,18 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
                                     $lieuPrelevement = null;
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    $interpretation = null;
+                                    if($aColumns['7'] == '')
+                                        $interpretation = null;
+                                    else
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns['7'])])->one();
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['2']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['3']), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = '';
-                                    if ($aColumns['5'] != '') {
-                                        $year = substr($aColumns['5'], 6, 4);
-                                        $month = intval(substr($aColumns['5'], 3, 2));
-                                        $day = substr($aColumns['5'], 0, 2);
+                                    if ($aColumns['4'] != '') {
+                                        $year = substr($aColumns['4'], 6, 4);
+                                        $month = intval(substr($aColumns['4'], 3, 2));
+                                        $day = substr($aColumns['4'], 0, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
@@ -505,8 +516,8 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                                     $analyseDataGerme = new AnalyseDataGerme();
                                     $analyseDataGerme->id_analyse = $analyseData->id;
-                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
-                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['9'])), ENT_QUOTES, "UTF-8"));
+                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
+                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['6'])), ENT_QUOTES, "UTF-8"));
                                     $analyseDataGerme->resultat = $resultat;
                                     $analyseDataGerme->expression = '';
                                     $analyseDataGerme->interpretation = '';
@@ -516,7 +527,18 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $ligneError = $nbLignes;
                                     }
                                 } else {
+                                    $analyseDataGerme = new AnalyseDataGerme();
+                                    $analyseDataGerme->id_analyse = $analyseData->id;
+                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
+                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['6'])), ENT_QUOTES, "UTF-8"));
+                                    $analyseDataGerme->resultat = $resultat;
+                                    $analyseDataGerme->expression = '';
+                                    $analyseDataGerme->interpretation = '';
 
+                                    if (!$analyseDataGerme->save()) {
+                                        $error = true;
+                                        $ligneError = $nbLignes;
+                                    }
                                 }
                             }
                         }

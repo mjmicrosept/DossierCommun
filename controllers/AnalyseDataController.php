@@ -202,10 +202,14 @@ class AnalyseDataController extends Controller
 
                     for($i = 0; $i < count($_FILES['upload-files']['name']);$i++){
                         $aFileExtension = explode(".", $_FILES['upload-files']['name'][$i]);
-                        if($aFileExtension[count($aFileExtension) -1] == 'csv') {
+                        if(strtolower($aFileExtension[count($aFileExtension) -1]) == 'csv') {
+                            Yii::trace('extension OK');
                             $destination = Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/';
                             if(!file_exists($destination . $_FILES['upload-files']['name'][$i])) {
-                                @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $_FILES['upload-files']['name'][$i]);
+                                Yii::trace('file_exist');
+                                $pathInfoExtension = strtolower(pathinfo($_FILES['upload-files']['name'][$i],PATHINFO_EXTENSION));
+                                $pathInfoName = strtolower(pathinfo($_FILES['upload-files']['name'][$i],PATHINFO_FILENAME));
+                                @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $pathInfoName.'.'.$pathInfoExtension);
                                 @unlink($_FILES['files']['tmp_name'][$i]);
                             }
                         }
@@ -220,7 +224,10 @@ class AnalyseDataController extends Controller
 
         //On insère les données du fichier dans la base de données
         if(count($error == 0)){
-            $errorLine = AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $_FILES['upload-files']['name'][0], $idLabo,$idEtablissement,$idClient,$_FILES['upload-files']['name'][0]);
+            $pathInfoExtension = strtolower(pathinfo($_FILES['upload-files']['name'][0],PATHINFO_EXTENSION));
+            $pathInfoName = strtolower(pathinfo($_FILES['upload-files']['name'][0],PATHINFO_FILENAME));
+            $errorLine = AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $pathInfoName.'.'.$pathInfoExtension, $idLabo,$idEtablissement,$idClient,$_FILES['upload-files']['name'][0]);
+            //$errorLine = AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $_FILES['upload-files']['name'][0], $idLabo,$idEtablissement,$idClient,$_FILES['upload-files']['name'][0]);
             if(!is_null($errorLine)){
                 array_push($error, 'L\'importation des données a échouée à la ligne '.$errorLine.'.');
                 array_push($errorkey, 0);
