@@ -20,6 +20,7 @@ class m160408_074851_create_data_pushed extends Migration
             'id_parent' => $this->integer(11)->notNull(),
             'id_client' => $this->integer(11)->notNull(),
             'nb_lignes' => $this->integer(11)->notNull(),
+            'nb_analyses' => $this->integer(11)->notNull(),
             'last_push' => $this->timestamp()->notNull()->defaultExpression('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'),
         ]);
 

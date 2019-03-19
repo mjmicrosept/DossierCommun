@@ -196,6 +196,7 @@ JS
                             <th>Par</th>
                             <th>Fichier</th>
                             <th>Nb lignes</th>
+                            <th>Nb analyses</th>
                             <th>Client</th>
                             <th>Etablissement</th>
                         </thead>

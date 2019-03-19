@@ -151,6 +151,7 @@ class AnalyseDataController extends Controller
             $result .= '<td>'.$user->username.'</td>';
             $result .= '<td>'.$item->filename.'</td>';
             $result .= '<td>'.$item->nb_lignes.'</td>';
+            $result .= '<td>'.$item->nb_analyses.'</td>';
             $result .= '<td>'.$client->name.'</td>';
             $result .= '<td>'.$etablissementName.'</td>';
             $result .= '</tr>';
@@ -172,6 +173,7 @@ class AnalyseDataController extends Controller
         $idClient = null;
         $idEtablissement = null;
         $idInterne = null;
+        $aErrors = [];
 
         if(isset($_POST['idLabo']))
             $idLabo = $_POST['idLabo'];
@@ -206,7 +208,13 @@ class AnalyseDataController extends Controller
                             Yii::trace('extension OK');
                             $destination = Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/';
                             if(!file_exists($destination . $_FILES['upload-files']['name'][$i])) {
-                                Yii::trace('file_exist');
+                                $pathInfoExtension = strtolower(pathinfo($_FILES['upload-files']['name'][$i],PATHINFO_EXTENSION));
+                                $pathInfoName = strtolower(pathinfo($_FILES['upload-files']['name'][$i],PATHINFO_FILENAME));
+                                @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $pathInfoName.'.'.$pathInfoExtension);
+                                @unlink($_FILES['files']['tmp_name'][$i]);
+                            }
+                            else{
+                                @unlink($destination . $_FILES['upload-files']['name'][$i]);
                                 $pathInfoExtension = strtolower(pathinfo($_FILES['upload-files']['name'][$i],PATHINFO_EXTENSION));
                                 $pathInfoName = strtolower(pathinfo($_FILES['upload-files']['name'][$i],PATHINFO_FILENAME));
                                 @copy($_FILES['upload-files']['tmp_name'][$i], $destination . $pathInfoName.'.'.$pathInfoExtension);
@@ -226,11 +234,14 @@ class AnalyseDataController extends Controller
         if(count($error == 0)){
             $pathInfoExtension = strtolower(pathinfo($_FILES['upload-files']['name'][0],PATHINFO_EXTENSION));
             $pathInfoName = strtolower(pathinfo($_FILES['upload-files']['name'][0],PATHINFO_FILENAME));
-            $errorLine = AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $pathInfoName.'.'.$pathInfoExtension, $idLabo,$idEtablissement,$idClient,$_FILES['upload-files']['name'][0]);
+            $aErrors = AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $pathInfoName.'.'.$pathInfoExtension, $idLabo,$idEtablissement,$idClient,$_FILES['upload-files']['name'][0]);
             //$errorLine = AnalyseData::insertAllFromCsv(Yii::$app->params['laboratoire']['path']['dossierLabo'] . $folderLabo . '/' . $idInterne . '/' . $_FILES['upload-files']['name'][0], $idLabo,$idEtablissement,$idClient,$_FILES['upload-files']['name'][0]);
-            if(!is_null($errorLine)){
-                array_push($error, 'L\'importation des données a échouée à la ligne '.$errorLine.'.');
-                array_push($errorkey, 0);
+            if(count($aErrors) != 0){
+                $iError = 0;
+                foreach ($aErrors as $errImport) {
+                    array_push($error, $errImport['error']);
+                    array_push($errorkey, $iError);
+                }
             }
         }
         //On récupère le nom du dossier client

@@ -26,6 +26,7 @@ use app\models\MappageIdClient;
  */
 class AnalyseData extends \yii\db\ActiveRecord
 {
+    const ERROR_DATA = 0;
     /**
      * {@inheritdoc}
      */
@@ -80,9 +81,11 @@ class AnalyseData extends \yii\db\ActiveRecord
      * @throws \yii\db\Exception
      */
     public static function insertAllFromCsv($filename,$idLabo,$idClient,$idParent,$name = null){
+        $aError = [];
         $file = file($filename);
         $error = false;
         $nbLignes = 0;
+        $nbAnalyses = 0;
         $transaction = self::getDb()->beginTransaction();
         $ligneError = null;
 
@@ -93,6 +96,7 @@ class AnalyseData extends \yii\db\ActiveRecord
             //Switch sur les différents labo car chacun aura ses règles
             switch ($idLabo) {
                 case Labo::CERALIM :
+                    $errorDataClient = false;
                     $index = 0;
                     $aGermes = [];
                     $aGlobal = [];
@@ -122,8 +126,8 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $lastColumn = true;
                                     } else {
                                         $title = html_entity_decode(htmlentities(utf8_encode($aColumns[$iColumn]), ENT_QUOTES, "UTF-8"));
-                                        $aGermes[$title]['libelle'] = $title;
-                                        $aGermes[$title]['resultat'] = $iColumn;
+                                        $aGermes[$title . '|'. $iColumn]['libelle'] = $title;
+                                        $aGermes[$title . '|'. $iColumn]['resultat'] = $iColumn;
                                     }
                                 }
                                 else{
@@ -132,18 +136,28 @@ class AnalyseData extends \yii\db\ActiveRecord
                                 $iColumn++;
                             }
                         }
-                        else{
+                        elseif($index < count($aGlobal) - 1){
                             //var_dump($aColumns).PHP_EOL;
-                            if(isset($aColumns['3'])) {
+                            if(isset($aColumns['3']) && $aColumns['3'] != '') {
                                 //Test d'existence de l'analyse en base
                                 $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['3']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
-                                    $nbLignes++;
+                                    $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['3'];
                                     $analyseData->id_labo = $idLabo;
-                                    $analyseData->id_client = $idClient;
+                                    if($idClient == -1){
+                                        $idClientImport = $aColumns['1'];
+                                        if($idClientImport != '') {
+                                            $mappage = MappageIdClient::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_lims_client' => $idClientImport])->one();
+                                            $idClientImport = $mappage->id_portail_client;
+                                        }
+                                    }
+                                    else{
+                                        $idClientImport = $idClient;
+                                    }
+                                    $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
                                     $analyseData->id_service = \Yii::$app->params['services']['generique'];
                                     //echo $aColumns['5'].PHP_EOL;
@@ -155,9 +169,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $conditionnement = new AnalyseConditionnement();
                                             $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['21']), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
-                                            if (!$conditionnement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $conditionnement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Conditionnement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -170,9 +185,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
                                             $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
-                                            if (!$lieuPrelevement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $lieuPrelevement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Lieu prélèvement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -211,15 +227,33 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $analyseData->date_analyse = $dateAnalyse;
                                             }
                                             else{
-                                                $analyseData->date_analyse = '1970-01-02';
+                                                throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
                                             }
                                         }
                                     }
 
-                                    if (!$analyseData->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    //On teste si le client existe dans le cas d'un import multiclient
+                                    if($idClient == -1){
+                                        if($idClientImport == '')
+                                            $client = null;
+                                        else
+                                            $client = Client::find()->andFilterWhere(['id'=>$idClientImport])->one();
+
+                                        if(is_null($client))
+                                            $errorDataClient = true;
                                     }
+
+                                    if(!$errorDataClient) {
+                                        try {
+                                            $analyseData->save();
+                                        }catch (\yii\db\Exception $e) {
+                                            throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                                        }
+                                    }
+                                    else{
+                                        throw new \yii\db\Exception('Client inexistant', self::ERROR_DATA);
+                                    }
+
 
                                     //Création des données relatives aux germes
                                     foreach ($aGermes as $germe) {
@@ -234,17 +268,22 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $analyseDataGerme->expression = '';
                                                 $analyseDataGerme->interpretation = '';
 
-                                                if (!$analyseDataGerme->save()) {
-                                                    $error = true;
-                                                    $ligneError = $nbLignes;
+                                                try {
+                                                    $analyseDataGerme->save();
+                                                }catch (\yii\db\Exception $e) {
+                                                    throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
+                            else{
+                                throw new \yii\db\Exception('N° analyse absent', self::ERROR_DATA);
+                            }
                         }
                         $index++;
+                        $nbLignes++;
                     }
                     //var_dump($aGermes);
                     break;
@@ -269,6 +308,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                     }
                     break;
                 case Labo::MICROSEPT :
+                    $errorDataClient = false;
                     $index = 0;
                     $aGermes = [];
                     $aGlobal = [];
@@ -324,20 +364,28 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                                 $iColumn++;
                             }
-                            Yii::trace($aGermes);
                         }
-                        else{
-                            //var_dump($aColumns).PHP_EOL;
-                            if(isset($aColumns['0'])) {
+                        elseif($index < count($aGlobal) - 1){
+                            if(isset($aColumns['0']) && $aColumns['0'] != '') {
                                 //Test d'existence de l'analyse en base
                                 $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['0']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
-                                    $nbLignes++;
+                                    $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['0'];
                                     $analyseData->id_labo = $idLabo;
-                                    $analyseData->id_client = $idClient;
+                                    if($idClient == -1){
+                                        $idClientImport = $aColumns['1'];
+                                        if($idClientImport != '') {
+                                            $mappage = MappageIdClient::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_lims_client' => $idClientImport])->one();
+                                            $idClientImport = $mappage->id_portail_client;
+                                        }
+                                    }
+                                    else{
+                                        $idClientImport = $idClient;
+                                    }
+                                    $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
                                     if($aColumns['9'] == '')
                                         $service = null;
@@ -356,9 +404,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $conditionnement = new AnalyseConditionnement();
                                             $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
-                                            if (!$conditionnement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $conditionnement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Conditionnement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -371,9 +420,11 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
                                             $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
-                                            if (!$lieuPrelevement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+
+                                            try {
+                                                $conditionnement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Lieu de prélèvement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -387,15 +438,37 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
                                     $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['1']), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
-                                    $year = substr($aColumns['2'], 6, 4);
-                                    $month = intval(substr($aColumns['2'], 3, 2));
-                                    $day = substr($aColumns['2'], 0, 2);
-                                    $dateAnalyse = $year . '-' . $month . '-' . $day;
-                                    $analyseData->date_analyse = $dateAnalyse;
 
-                                    if (!$analyseData->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    if ($aColumns['2'] != '') {
+                                        $year = substr($aColumns['2'], 6, 4);
+                                        $month = intval(substr($aColumns['2'], 3, 2));
+                                        $day = substr($aColumns['2'], 0, 2);
+                                        $dateAnalyse = $year . '-' . $month . '-' . $day;
+                                        $analyseData->date_analyse = $dateAnalyse;
+                                    } else {
+                                        throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                                    }
+
+                                    //On teste si le client existe dans le cas d'un import multiclient
+                                    if($idClient == -1){
+                                        if($idClientImport == '')
+                                            $client = null;
+                                        else
+                                            $client = Client::find()->andFilterWhere(['id'=>$idClientImport])->one();
+
+                                        if(is_null($client))
+                                            $errorDataClient = true;
+                                    }
+
+                                    if(!$errorDataClient) {
+                                        try {
+                                            $analyseData->save();
+                                        }catch (\yii\db\Exception $e) {
+                                            throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                                        }
+                                    }
+                                    else{
+                                        throw new \yii\db\Exception('Client inexistant', self::ERROR_DATA);
                                     }
 
                                     //Création des données relatives aux germes
@@ -413,17 +486,22 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $interpretation = !isset($aColumns[$germe['interpretation']]) ? '' : html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[$germe['interpretation']])), ENT_QUOTES, "UTF-8"));
                                                 $analyseDataGerme->interpretation = $interpretation;
 
-                                                if (!$analyseDataGerme->save()) {
-                                                    $error = true;
-                                                    $ligneError = $nbLignes;
+                                                try {
+                                                    $analyseDataGerme->save();
+                                                }catch (\yii\db\Exception $e) {
+                                                    throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
+                            else{
+                                throw new \yii\db\Exception('N° analyse absent', self::ERROR_DATA);
+                            }
                         }
                         $index++;
+                        $nbLignes++;
                     }
                     break;
                 case Labo::BIOQUAL :
@@ -447,7 +525,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                     }
                     break;
                 case Labo::AGROALIMCONSEIL :
-                    $idClientImport = $idClient;
+                    $errorDataClient = false;
                     $index = 0;
                     $aGermes = [];
                     $aGlobal = [];
@@ -468,24 +546,29 @@ class AnalyseData extends \yii\db\ActiveRecord
                         if ($index == 0) {
 
                         }
-                        else {
-                            if (isset($aColumns['0'])) {
+                        elseif($index < count($aGlobal) - 1) {
+                            if (isset($aColumns['0']) && $aColumns['0'] != '') {
                                 $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns['0']])->andFilterWhere(['id_labo' => $idLabo])->one();
                                 if (is_null($analyseData)) {
-                                    $nbLignes++;
+                                    $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['0'];
                                     $analyseData->id_labo = $idLabo;
-                                    if($idClientImport == -1){
+                                    if($idClient == -1){
                                         $idClientImport = $aColumns['1'];
-                                        $mappage = MappageIdClient::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['id_lims_client'=>$idClientImport])->one();
-                                        $idClientImport = $mappage->id_portail_client;
+                                        if($idClientImport != '') {
+                                            $mappage = MappageIdClient::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_lims_client' => $idClientImport])->one();
+                                            $idClientImport = $mappage->id_portail_client;
+                                        }
                                     }
+                                    else{
+                                        $idClientImport = $idClient;
+                                    }
+
                                     $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
                                     $analyseData->id_service = \Yii::$app->params['services']['generique'];
-                                    //echo $aColumns['5'].PHP_EOL;
                                     $conditionnement = null;
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
                                     $lieuPrelevement = null;
@@ -505,25 +588,43 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
-                                        $analyseData->date_analyse = '1970-01-02';
+                                        throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
                                     }
 
-                                    if (!$analyseData->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    //On teste si le client existe dans le cas d'un import multiclient
+                                    if($idClient == -1){
+                                        if($idClientImport == '')
+                                            $client = null;
+                                        else
+                                            $client = Client::find()->andFilterWhere(['id'=>$idClientImport])->one();
+
+                                        if(is_null($client))
+                                            $errorDataClient = true;
                                     }
 
-                                    $analyseDataGerme = new AnalyseDataGerme();
-                                    $analyseDataGerme->id_analyse = $analyseData->id;
-                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
-                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['6'])), ENT_QUOTES, "UTF-8"));
-                                    $analyseDataGerme->resultat = $resultat;
-                                    $analyseDataGerme->expression = '';
-                                    $analyseDataGerme->interpretation = '';
+                                    if(!$errorDataClient) {
+                                        try {
+                                            $analyseData->save();
+                                        }catch (\yii\db\Exception $e) {
+                                            throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                                        }
 
-                                    if (!$analyseDataGerme->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                        $analyseDataGerme = new AnalyseDataGerme();
+                                        $analyseDataGerme->id_analyse = $analyseData->id;
+                                        $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
+                                        $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['6'])), ENT_QUOTES, "UTF-8"));
+                                        $analyseDataGerme->resultat = $resultat;
+                                        $analyseDataGerme->expression = '';
+                                        $analyseDataGerme->interpretation = '';
+
+                                        try {
+                                            $analyseDataGerme->save();
+                                        }catch (\yii\db\Exception $e) {
+                                            throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
+                                        }
+                                    }
+                                    else{
+                                        throw new \yii\db\Exception('Client inexistant', self::ERROR_DATA);
                                     }
                                 } else {
                                     $analyseDataGerme = new AnalyseDataGerme();
@@ -534,14 +635,19 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseDataGerme->expression = '';
                                     $analyseDataGerme->interpretation = '';
 
-                                    if (!$analyseDataGerme->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    try {
+                                        $analyseDataGerme->save();
+                                    }catch (\yii\db\Exception $e) {
+                                        throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                     }
                                 }
                             }
+                            else{
+                                throw new \yii\db\Exception('N° analyse absent', self::ERROR_DATA);
+                            }
                         }
                         $index++;
+                        $nbLignes++;
                     }
                     break;
                 case Labo::QSACONSEIL :
@@ -583,8 +689,8 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                         else{
                                             $title = html_entity_decode(htmlentities(utf8_encode($aColumns[$iColumn]), ENT_QUOTES, "UTF-8"));
-                                            $aGermes[$title]['libelle'] = $title;
-                                            $aGermes[$title]['resultat'] = $iColumn;
+                                            $aGermes[$title . '|'. $iColumn]['libelle'] = $title;
+                                            $aGermes[$title . '|'. $iColumn]['resultat'] = $iColumn;
                                         }
                                     }
                                 }
@@ -600,7 +706,6 @@ class AnalyseData extends \yii\db\ActiveRecord
                                 //Test d'existence de l'analyse en base
                                 $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['14']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
-                                    $nbLignes++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['14'];
@@ -617,10 +722,11 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $conditionnement = new AnalyseConditionnement();
                                             $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['10']), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
-                                            if (!$conditionnement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
-                                                Yii::trace('Lou');
+
+                                            try {
+                                                $conditionnement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Conditionnement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -637,16 +743,21 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
                                     $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = '';
-                                    $year = substr($aColumns['13'], 6, 4);
-                                    $month = intval(substr($aColumns['13'], 3, 2));
-                                    $day = substr($aColumns['13'], 0, 2);
-                                    $dateAnalyse = $year . '-' . $month . '-' . $day;
-                                    $analyseData->date_analyse = $dateAnalyse;
 
-                                    if (!$analyseData->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
-                                        Yii::trace('Emmy');
+                                    if ($aColumns['13'] != '') {
+                                        $year = substr($aColumns['13'], 6, 4);
+                                        $month = intval(substr($aColumns['13'], 3, 2));
+                                        $day = substr($aColumns['13'], 0, 2);
+                                        $dateAnalyse = $year . '-' . $month . '-' . $day;
+                                        $analyseData->date_analyse = $dateAnalyse;
+                                    } else {
+                                        throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                                    }
+
+                                    try {
+                                        $analyseData->save();
+                                    }catch (\yii\db\Exception $e) {
+                                        throw new \yii\db\Exception('Erreur d\'insertion de données', self::ERROR_DATA);
                                     }
 
                                     foreach ($aGermes as $germe) {
@@ -660,10 +771,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $analyseDataGerme->expression = '';
                                                 $analyseDataGerme->interpretation = '';
 
-                                                if (!$analyseDataGerme->save()) {
-                                                    $error = true;
-                                                    $ligneError = $nbLignes;
-                                                    Yii::trace('Jules');
+                                                try {
+                                                    $analyseDataGerme->save();
+                                                }catch (\yii\db\Exception $e) {
+                                                    throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                                 }
                                             }
                                         }
@@ -672,10 +783,11 @@ class AnalyseData extends \yii\db\ActiveRecord
                             }
                         }
                         $index++;
+                        $nbLignes++;
                     }
                     break;
                 case Labo::LICAAL :
-                    $idClientImport = $idClient;
+                    $errorDataClient = false;
                     $index = 0;
                     $aGermes = [];
                     $aGlobal = [];
@@ -696,17 +808,20 @@ class AnalyseData extends \yii\db\ActiveRecord
                         if ($index == 0) {
 
                         }
-                        else {
-                            if (isset($aColumns['1'])) {
+                        elseif($index < count($aGlobal) - 1) {
+                            if (isset($aColumns['1']) && $aColumns['1'] != '') {
                                 $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns['1']])->andFilterWhere(['id_labo' => $idLabo])->one();
                                 if (is_null($analyseData)) {
-                                    $nbLignes++;
+                                    $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['1'];
                                     $analyseData->id_labo = $idLabo;
-                                    if($idClientImport == -1){
+                                    if($idClient == -1){
                                         $idClientImport = $aColumns['0'];
+                                    }
+                                    else{
+                                        $idClientImport = $idClient;
                                     }
                                     $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
@@ -720,9 +835,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $conditionnement = new AnalyseConditionnement();
                                             $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
-                                            if (!$conditionnement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $conditionnement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Conditionnement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -735,9 +851,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
                                             $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
-                                            if (!$lieuPrelevement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $lieuPrelevement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Lieu prélèvement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -764,25 +881,42 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
-                                        $analyseData->date_analyse = '1970-01-02';
+                                        throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
                                     }
 
-                                    if (!$analyseData->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    //On teste si le client existe dans le cas d'un import multiclient
+                                    if($idClient == -1){
+                                        if($idClientImport == '')
+                                            $client = null;
+                                        else
+                                            $client = Client::find()->andFilterWhere(['id'=>$idClientImport])->one();
+                                        if(is_null($client))
+                                            $errorDataClient = true;
                                     }
 
-                                    $analyseDataGerme = new AnalyseDataGerme();
-                                    $analyseDataGerme->id_analyse = $analyseData->id;
-                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['15']), ENT_QUOTES, "UTF-8"));
-                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
-                                    $analyseDataGerme->resultat = $resultat;
-                                    $analyseDataGerme->expression = '';
-                                    $analyseDataGerme->interpretation = '';
+                                    if(!$errorDataClient) {
+                                        try {
+                                            $analyseData->save();
+                                        }catch (\yii\db\Exception $e) {
+                                            throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                                        }
 
-                                    if (!$analyseDataGerme->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                        $analyseDataGerme = new AnalyseDataGerme();
+                                        $analyseDataGerme->id_analyse = $analyseData->id;
+                                        $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['15']), ENT_QUOTES, "UTF-8"));
+                                        $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
+                                        $analyseDataGerme->resultat = $resultat;
+                                        $analyseDataGerme->expression = '';
+                                        $analyseDataGerme->interpretation = '';
+
+                                        try {
+                                            $analyseDataGerme->save();
+                                        }catch (\yii\db\Exception $e) {
+                                            throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
+                                        }
+                                    }
+                                    else{
+                                        throw new \yii\db\Exception('Client inexistant', self::ERROR_DATA);
                                     }
                                 } else {
                                     $analyseDataGerme = new AnalyseDataGerme();
@@ -793,17 +927,23 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseDataGerme->expression = '';
                                     $analyseDataGerme->interpretation = '';
 
-                                    if (!$analyseDataGerme->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    try {
+                                        $analyseDataGerme->save();
+                                    }catch (\yii\db\Exception $e) {
+                                        throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                     }
                                 }
                             }
+                            else{
+                                throw new \yii\db\Exception('N° analyse absent', self::ERROR_DATA);
+                            }
                         }
                         $index++;
+                        $nbLignes++;
                     }
                     break;
                 case Labo::AGROQUAL :
+                    $errorDataClient = false;
                     $index = 0;
                     $aGermes = [];
                     $aGlobal = [];
@@ -860,18 +1000,24 @@ class AnalyseData extends \yii\db\ActiveRecord
                                 $iColumn++;
                             }
                         }
-                        else{
+                        elseif($index < count($aGlobal) - 1){
                             //var_dump($aColumns).PHP_EOL;
-                            if(isset($aColumns['0'])) {
+                            if(isset($aColumns['0']) && $aColumns['0'] != '') {
                                 //Test d'existence de l'analyse en base
                                 $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['0']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
-                                    $nbLignes++;
+                                    $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['0'];
                                     $analyseData->id_labo = $idLabo;
-                                    $analyseData->id_client = $idClient;
+                                    if($idClient == -1){
+                                        $idClientImport = $aColumns['0'];
+                                    }
+                                    else{
+                                        $idClientImport = $idClient;
+                                    }
+                                    $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
                                     if($aColumns['8'] == '') {
                                         $service = null;
@@ -882,9 +1028,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $service = new AnalyseService();
                                             $service->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
                                             $service->active = 1;
-                                            if (!$service->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $service->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Service erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -900,9 +1047,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $conditionnement = new AnalyseConditionnement();
                                             $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['6']), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
-                                            if (!$conditionnement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $conditionnement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Conditionnement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -915,9 +1063,11 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
                                             $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
-                                            if (!$lieuPrelevement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+
+                                            try {
+                                                $lieuPrelevement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Lieu de prélèvement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -931,15 +1081,21 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
                                     $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['1']), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['6']), ENT_QUOTES, "UTF-8"));
-                                    $year = substr($aColumns['2'], 6, 4);
-                                    $month = intval(substr($aColumns['2'], 3, 2));
-                                    $day = substr($aColumns['2'], 0, 2);
-                                    $dateAnalyse = $year . '-' . $month . '-' . $day;
-                                    $analyseData->date_analyse = $dateAnalyse;
 
-                                    if (!$analyseData->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    if ($aColumns['2'] != '') {
+                                        $year = substr($aColumns['2'], 6, 4);
+                                        $month = intval(substr($aColumns['2'], 3, 2));
+                                        $day = substr($aColumns['2'], 0, 2);
+                                        $dateAnalyse = $year . '-' . $month . '-' . $day;
+                                        $analyseData->date_analyse = $dateAnalyse;
+                                    } else {
+                                        throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                                    }
+
+                                    try {
+                                        $analyseData->save();
+                                    }catch (\yii\db\Exception $e) {
+                                        throw new \yii\db\Exception('Erreur d\'insertion de données', self::ERROR_DATA);
                                     }
 
                                     //Création des données relatives aux germes
@@ -957,19 +1113,22 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $interpretation = !isset($aColumns[$germe['interpretation']]) ? '' : html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[$germe['interpretation']])), ENT_QUOTES, "UTF-8"));
                                                 $analyseDataGerme->interpretation = $interpretation;
 
-                                                if (!$analyseDataGerme->save()) {
-                                                    Yii::trace($germe);
-                                                    Yii::trace($analyseDataGerme);
-                                                    $error = true;
-                                                    $ligneError = $nbLignes;
+                                                try {
+                                                    $analyseDataGerme->save();
+                                                }catch (\yii\db\Exception $e) {
+                                                    throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
+                            else{
+                                throw new \yii\db\Exception('N° analyse absent', self::ERROR_DATA);
+                            }
                         }
                         $index++;
+                        $nbLignes++;
                     }
                     break;
                 case Labo::QUALHYGIENE :
@@ -1108,7 +1267,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                     }
                     break;
                 case Labo::TREGOBIO :
-                    $idClientImport = $idClient;
+                    $errorDataClient = false;
                     $index = 0;
                     $aGermes = [];
                     $aGlobal = [];
@@ -1129,22 +1288,24 @@ class AnalyseData extends \yii\db\ActiveRecord
                         if ($index == 0) {
 
                         }
-                        else {
-                            if (isset($aColumns['1'])) {
+                        elseif($index < count($aGlobal) - 1) {
+                            if (isset($aColumns['1']) && $aColumns['1'] != '') {
                                 $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns['1']])->andFilterWhere(['id_labo' => $idLabo])->one();
                                 if (is_null($analyseData)) {
-                                    $nbLignes++;
+                                    $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['1'];
                                     $analyseData->id_labo = $idLabo;
-                                    if($idClientImport == -1){
+                                    if($idClient == -1){
                                         $idClientImport = $aColumns['0'];
+                                    }
+                                    else{
+                                        $idClientImport = $idClient;
                                     }
                                     $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
                                     $analyseData->id_service = \Yii::$app->params['services']['generique'];
-                                    //echo $aColumns['5'].PHP_EOL;
                                     if($aColumns['4'] == '')
                                         $conditionnement = null;
                                     else {
@@ -1153,9 +1314,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $conditionnement = new AnalyseConditionnement();
                                             $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
-                                            if (!$conditionnement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $conditionnement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Conditionnement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -1168,9 +1330,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
                                             $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
-                                            if (!$lieuPrelevement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $lieuPrelevement->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Lieu de prélèvement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -1197,25 +1360,42 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
-                                        $analyseData->date_analyse = '1970-01-02';
+                                        throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
                                     }
 
-                                    if (!$analyseData->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    //On teste si le client existe dans le cas d'un import multiclient
+                                    if($idClient == -1){
+                                        if($idClientImport == '')
+                                            $client = null;
+                                        else
+                                            $client = Client::find()->andFilterWhere(['id'=>$idClientImport])->one();
+                                        if(is_null($client))
+                                            $errorDataClient = true;
                                     }
 
-                                    $analyseDataGerme = new AnalyseDataGerme();
-                                    $analyseDataGerme->id_analyse = $analyseData->id;
-                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['15']), ENT_QUOTES, "UTF-8"));
-                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
-                                    $analyseDataGerme->resultat = $resultat;
-                                    $analyseDataGerme->expression = '';
-                                    $analyseDataGerme->interpretation = '';
+                                    if(!$errorDataClient) {
+                                        try {
+                                            $analyseData->save();
+                                        }catch (\yii\db\Exception $e) {
+                                            throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                                        }
 
-                                    if (!$analyseDataGerme->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                        $analyseDataGerme = new AnalyseDataGerme();
+                                        $analyseDataGerme->id_analyse = $analyseData->id;
+                                        $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['15']), ENT_QUOTES, "UTF-8"));
+                                        $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
+                                        $analyseDataGerme->resultat = $resultat;
+                                        $analyseDataGerme->expression = '';
+                                        $analyseDataGerme->interpretation = '';
+
+                                        try {
+                                            $analyseDataGerme->save();
+                                        }catch (\yii\db\Exception $e) {
+                                            throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
+                                        }
+                                    }
+                                    else{
+                                        throw new \yii\db\Exception('Client inexistant', self::ERROR_DATA);
                                     }
                                 } else {
                                     $analyseDataGerme = new AnalyseDataGerme();
@@ -1226,17 +1406,23 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseDataGerme->expression = '';
                                     $analyseDataGerme->interpretation = '';
 
-                                    if (!$analyseDataGerme->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    try {
+                                        $analyseDataGerme->save();
+                                    }catch (\yii\db\Exception $e) {
+                                        throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                     }
                                 }
                             }
+                            else{
+                                throw new \yii\db\Exception('N° analyse absent', self::ERROR_DATA);
+                            }
                         }
                         $index++;
+                        $nbLignes++;
                     }
                     break;
                 case Labo::BIOVAL :
+                    $errorDataClient = false;
                     $index = 0;
                     $aGermes = [];
                     $aGlobal = [];
@@ -1269,10 +1455,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $title = html_entity_decode(htmlentities(utf8_encode($aColumns[$iColumn]), ENT_QUOTES, "UTF-8"));
 
                                         //Colonne résultat
-                                        if(!isset($aGermes[$title])) {
-                                            $aGermes[$title]['libelle'] = $title;
-                                            $aGermes[$title]['resultat'] = $iColumn;
-                                            $aGermes[$title]['interpretation'] = $iColumn + 1;
+                                        if(!isset($aGermes[$title . '|'. $iColumn])) {
+                                            $aGermes[$title . '|'. $iColumn]['libelle'] = $title;
+                                            $aGermes[$title . '|'. $iColumn]['resultat'] = $iColumn;
+                                            $aGermes[$title . '|'. $iColumn]['interpretation'] = $iColumn + 1;
                                         }
                                     }
                                 }
@@ -1282,20 +1468,25 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                                 $iColumn += 2;
                             }
-                            Yii::trace($aGermes);
                         }
-                        else{
+                        elseif($index < count($aGlobal) - 1){
                             //var_dump($aColumns).PHP_EOL;
-                            if(isset($aColumns['0'])) {
+                            if(isset($aColumns['1']) && $aColumns['1'] != '') {
                                 //Test d'existence de l'analyse en base
-                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['0']])->andFilterWhere(['id_labo'=>$idLabo])->one();
+                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['1']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
-                                    $nbLignes++;
+                                    $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['1'];
                                     $analyseData->id_labo = $idLabo;
-                                    $analyseData->id_client = $idClient;
+                                    if($idClient == -1){
+                                        $idClientImport = $aColumns['0'];
+                                    }
+                                    else{
+                                        $idClientImport = $idClient;
+                                    }
+                                    $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
                                     if($aColumns['8'] == '') {
                                         $service = null;
@@ -1306,9 +1497,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $service = new AnalyseService();
                                             $service->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
                                             $service->active = 1;
-                                            if (!$service->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $service->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Service erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -1327,9 +1519,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
                                             $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
-                                            if (!$lieuPrelevement->save()) {
-                                                $error = true;
-                                                $ligneError = $nbLignes;
+                                            try {
+                                                $service->save();
+                                            }catch (\yii\db\Exception $e) {
+                                                throw new \yii\db\Exception('Lieu de prélèvement erreur d\'insertion', self::ERROR_DATA);
                                             }
                                         }
                                     }
@@ -1356,9 +1549,11 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $interpretation->active = 1;
                                                 $interpretation->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
                                                 $interpretation->conforme = AnalyseConformite::CONF_NON_CONFORME;
-                                                if (!$interpretation->save()) {
-                                                    $error = true;
-                                                    $ligneError = $nbLignes;
+
+                                                try {
+                                                    $interpretation->save();
+                                                }catch (\yii\db\Exception $e) {
+                                                    throw new \yii\db\Exception('Interprétation erreur d\'insertion', self::ERROR_DATA);
                                                 }
                                                 $analyseData->id_interpretation = $interpretation->id;
                                             }
@@ -1376,9 +1571,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                     $interpretation->active = 1;
                                                     $interpretation->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
                                                     $interpretation->conforme = AnalyseConformite::CONF_CONFORME;
-                                                    if (!$interpretation->save()) {
-                                                        $error = true;
-                                                        $ligneError = $nbLignes;
+                                                    try {
+                                                        $interpretation->save();
+                                                    }catch (\yii\db\Exception $e) {
+                                                        throw new \yii\db\Exception('Interprétation erreur d\'insertion', self::ERROR_DATA);
                                                     }
                                                     $analyseData->id_interpretation = $interpretation->id;
                                                 }
@@ -1391,15 +1587,21 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     }
                                     $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['2']), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
-                                    $year = substr($aColumns['3'], 6, 4);
-                                    $month = intval(substr($aColumns['3'], 3, 2));
-                                    $day = substr($aColumns['3'], 0, 2);
-                                    $dateAnalyse = $year . '-' . $month . '-' . $day;
-                                    $analyseData->date_analyse = $dateAnalyse;
 
-                                    if (!$analyseData->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    if ($aColumns['3'] != '') {
+                                        $year = substr($aColumns['3'], 6, 4);
+                                        $month = intval(substr($aColumns['3'], 3, 2));
+                                        $day = substr($aColumns['3'], 0, 2);
+                                        $dateAnalyse = $year . '-' . $month . '-' . $day;
+                                        $analyseData->date_analyse = $dateAnalyse;
+                                    } else {
+                                        throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                                    }
+
+                                    try {
+                                        $analyseData->save();
+                                    }catch (\yii\db\Exception $e) {
+                                        throw new \yii\db\Exception('Erreur d\'insertion de données', self::ERROR_DATA);
                                     }
 
                                     //Création des données relatives aux germes
@@ -1415,17 +1617,22 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $interpretation = !isset($aColumns[$germe['interpretation']]) ? '' : html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[$germe['interpretation']])), ENT_QUOTES, "UTF-8"));
                                                 $analyseDataGerme->interpretation = $interpretation;
 
-                                                if (!$analyseDataGerme->save()) {
-                                                    $error = true;
-                                                    $ligneError = $nbLignes;
+                                                try {
+                                                    $analyseDataGerme->save();
+                                                }catch (\yii\db\Exception $e) {
+                                                    throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
+                            else{
+                                throw new \yii\db\Exception('N° analyse absent', self::ERROR_DATA);
+                            }
                         }
                         $index++;
+                        $nbLignes++;
                     }
                     break;
                 case Labo::AQMC :
@@ -1453,7 +1660,6 @@ class AnalyseData extends \yii\db\ActiveRecord
                             if (isset($aColumns['20']) && $aColumns['20'] != '') {
                                 $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns['20']])->andFilterWhere(['id_labo' => $idLabo])->one();
                                 if (is_null($analyseData)) {
-                                    $nbLignes++;
                                     //Création des données générales
                                     $analyseData = new self();
                                     $analyseData->num_analyse = $aColumns['20'];
@@ -1495,6 +1701,11 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $error = true;
                                         $ligneError = $nbLignes;
                                     }
+                                    try {
+                                        $analyseData->save();
+                                    }catch (\yii\db\Exception $e) {
+                                        throw new \yii\db\Exception('Erreur d\'insertion de données', self::ERROR_DATA);
+                                    }
 
                                     $analyseDataGerme = new AnalyseDataGerme();
                                     $analyseDataGerme->id_analyse = $analyseData->id;
@@ -1504,9 +1715,10 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseDataGerme->expression = '';
                                     $analyseDataGerme->interpretation = '';
 
-                                    if (!$analyseDataGerme->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    try {
+                                        $analyseDataGerme->save();
+                                    }catch (\yii\db\Exception $e) {
+                                        throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                     }
                                 } else {
                                     $analyseDataGerme = new AnalyseDataGerme();
@@ -1517,14 +1729,16 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseDataGerme->expression = '';
                                     $analyseDataGerme->interpretation = '';
 
-                                    if (!$analyseDataGerme->save()) {
-                                        $error = true;
-                                        $ligneError = $nbLignes;
+                                    try {
+                                        $analyseDataGerme->save();
+                                    }catch (\yii\db\Exception $e) {
+                                        throw new \yii\db\Exception('Germe erreur d\'insertion', self::ERROR_DATA);
                                     }
                                 }
                             }
                         }
                         $index++;
+                        $nbLignes++;
                     }
                     break;
                 case Labo::AQCF :
@@ -1559,7 +1773,8 @@ class AnalyseData extends \yii\db\ActiveRecord
                     $logData->id_labo = intval($idLabo);
                     $logData->id_client = intval($idClient);
                     $logData->id_parent = intval($idParent);
-                    $logData->nb_lignes = intval($nbLignes);
+                    $logData->nb_lignes = intval($nbLignes - 1);
+                    $logData->nb_analyses = intval($nbAnalyses);
                     $logData->save();
                 }
 
@@ -1568,33 +1783,30 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                 //On supprime le fichier
                 unlink($filename);
-                return $ligneError;
+                return $aError;
             }
             else {
                 $transaction->rollBack();
                 //On supprime le fichier
                 unlink($filename);
-                return $ligneError;
+                throw new \yii\db\Exception('Erreur d\'insertion de donnée', self::ERROR_DATA);
+                return $aError;
             }
 
         }catch (\yii\db\IntegrityException $e) {
             $transaction->rollBack();
-            //Yii::error($e->getMessage(), 'analyse/importation');
-            //echo $e->getMessage();
-            //throw $e;
             //On supprime le fichier
             unlink($filename);
-            $ligneError = $nbLignes;
-            return $ligneError;
+            $message = $e->getMessage() . ' - ligne ' . ($nbLignes + 1);
+            array_push($aError,['error'=>$message]);
+            return $aError;
         }catch (\yii\db\Exception $e) {
             $transaction->rollBack();
-            //Yii::error($e->getMessage(), 'analyse/importation');
-            //echo $e->getMessage();
-            //throw $e;
             //On supprime le fichier
             unlink($filename);
-            $ligneError = $nbLignes;
-            return $ligneError;
+            $message = $e->getMessage() . ' - ligne ' . ($nbLignes + 1);
+            array_push($aError,['error'=>$message]);
+            return $aError;
         }
     }
 }

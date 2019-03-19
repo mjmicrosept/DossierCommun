@@ -14,6 +14,7 @@ use Yii;
  * @property int $id_parent
  * @property int $id_client
  * @property int $nb_lignes
+ * @property int $nb_analyses
  * @property string $last_push
  */
 class DataPushed extends \yii\db\ActiveRecord
@@ -32,8 +33,8 @@ class DataPushed extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['id_user','id_labo', 'id_parent', 'id_client', 'nb_lignes','filename'], 'required'],
-            [['id_user','id_labo', 'id_parent', 'id_client', 'nb_lignes'], 'integer'],
+            [['id_user','id_labo', 'id_parent', 'id_client', 'nb_lignes','nb_analyses','filename'], 'required'],
+            [['id_user','id_labo', 'id_parent', 'id_client', 'nb_lignes','nb_analyses'], 'integer'],
             [['filename'], 'string', 'max' => 80],
             [['last_push'], 'safe'],
         ];
@@ -50,6 +51,7 @@ class DataPushed extends \yii\db\ActiveRecord
             'id_parent' => 'Id Parent',
             'id_client' => 'Id Client',
             'nb_lignes' => 'Nb Lignes',
+            'nb_analyses' => 'Nb Analyses',
             'last_push' => 'Last Push',
             'id_user' => 'Id User',
             'filename' => 'Fichier',
