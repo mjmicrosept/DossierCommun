@@ -12,7 +12,7 @@
         <div class="notfound-404">
             <h1>404</h1>
         </div>
-        <h2>Oops! La page demandée n'existe pas</h2>
+        <h2>Oups! La page demandée n'existe pas</h2>
         <p>La page que vous recherchez a été déplacée, renommée ou est momentanément indisponible.</p>
         <p><a href="/index.php">Retour à l'accueil</a></p>
     </div>
