@@ -138,17 +138,17 @@ class AnalyseData extends \yii\db\ActiveRecord
                         }
                         elseif($index < count($aGlobal) - 1){
                             //var_dump($aColumns).PHP_EOL;
-                            if(isset($aColumns['3']) && $aColumns['3'] != '') {
+                            if(isset($aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]) && $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]] != '') {
                                 //Test d'existence de l'analyse en base
                                 $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['3']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
                                     $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
-                                    $analyseData->num_analyse = $aColumns['3'];
+                                    $analyseData->num_analyse = $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]];
                                     $analyseData->id_labo = $idLabo;
                                     if($idClient == -1){
-                                        $idClientImport = $aColumns['1'];
+                                        $idClientImport = $aColumns[Yii::$app->params['importData']['laboColumn']['client']['laboratoire'][$idLabo]];
                                         if($idClientImport != '') {
                                             $mappage = MappageIdClient::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_lims_client' => $idClientImport])->one();
                                             $idClientImport = $mappage->id_portail_client;
@@ -161,13 +161,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_parent = $idParent;
                                     $analyseData->id_service = \Yii::$app->params['services']['generique'];
                                     //echo $aColumns['5'].PHP_EOL;
-                                    if($aColumns['21'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]] == '')
                                         $conditionnement = null;
                                     else {
-                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['21']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($conditionnement)){
                                             $conditionnement = new AnalyseConditionnement();
-                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['21']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
                                             try {
                                                 $conditionnement->save();
@@ -177,13 +177,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
-                                    if($aColumns['7'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]] == '')
                                         $lieuPrelevement = null;
                                     else {
-                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($lieuPrelevement)){
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
-                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
                                             try {
                                                 $lieuPrelevement->save();
@@ -193,36 +193,36 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    if($aColumns['54'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]] == '')
                                         $interpretation = null;
                                     else
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns['54'])])->one();
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]])])->one();
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['9']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['designation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = '';
-                                    if($aColumns['8'] != '') {
-                                        $year = substr($aColumns['8'], 6, 4);
-                                        $month = intval(substr($aColumns['8'], 3, 2));
-                                        $day = substr($aColumns['8'], 0, 2);
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]] != '') {
+                                        $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 6, 4);
+                                        $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 3, 2));
+                                        $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 0, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     }
                                     else{
                                         //Si pas de date d'analyse on se réfère à la date de réception
-                                        if($aColumns['2'] != '') {
-                                            $year = substr($aColumns['2'], 6, 4);
-                                            $month = intval(substr($aColumns['2'], 3, 2));
-                                            $day = substr($aColumns['2'], 0, 2);
+                                        if($aColumns[Yii::$app->params['importData']['laboColumn']['date_reception']['laboratoire'][$idLabo]] != '') {
+                                            $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_reception']['laboratoire'][$idLabo]], 6, 4);
+                                            $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_reception']['laboratoire'][$idLabo]], 3, 2));
+                                            $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_reception']['laboratoire'][$idLabo]], 0, 2);
                                             $dateAnalyse = $year . '-' . $month . '-' . $day;
                                             $analyseData->date_analyse = $dateAnalyse;
                                         }
                                         else{
                                             //Si pas de date d'analyse on se réfère à la date de prélèvement
-                                            if($aColumns['5'] != '') {
-                                                $year = substr($aColumns['5'], 6, 4);
-                                                $month = intval(substr($aColumns['5'], 3, 2));
-                                                $day = substr($aColumns['5'], 0, 2);
+                                            if($aColumns[Yii::$app->params['importData']['laboColumn']['date_prelevement']['laboratoire'][$idLabo]] != '') {
+                                                $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_prelevement']['laboratoire'][$idLabo]], 6, 4);
+                                                $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_prelevement']['laboratoire'][$idLabo]], 3, 2));
+                                                $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_prelevement']['laboratoire'][$idLabo]], 0, 2);
                                                 $dateAnalyse = $year . '-' . $month . '-' . $day;
                                                 $analyseData->date_analyse = $dateAnalyse;
                                             }
@@ -366,17 +366,17 @@ class AnalyseData extends \yii\db\ActiveRecord
                             }
                         }
                         elseif($index < count($aGlobal) - 1){
-                            if(isset($aColumns['0']) && $aColumns['0'] != '') {
+                            if(isset($aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]) && $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]] != '') {
                                 //Test d'existence de l'analyse en base
                                 $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['0']])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
                                     $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
-                                    $analyseData->num_analyse = $aColumns['0'];
+                                    $analyseData->num_analyse = $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]];
                                     $analyseData->id_labo = $idLabo;
                                     if($idClient == -1){
-                                        $idClientImport = $aColumns['1'];
+                                        $idClientImport = $aColumns[Yii::$app->params['importData']['laboColumn']['client']['laboratoire'][$idLabo]];
                                         if($idClientImport != '') {
                                             $mappage = MappageIdClient::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_lims_client' => $idClientImport])->one();
                                             $idClientImport = $mappage->id_portail_client;
@@ -387,22 +387,22 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     }
                                     $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
-                                    if($aColumns['9'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['service']['laboratoire'][$idLabo]] == '')
                                         $service = null;
                                     else
-                                        $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['9']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['service']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                     if(!is_null($service))
                                         $analyseData->id_service = $service->id;
                                     else
                                         $analyseData->id_service = \Yii::$app->params['services']['generique'];
                                     //echo $aColumns['5'].PHP_EOL;
-                                    if($aColumns['7'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]] == '')
                                         $conditionnement = null;
                                     else {
-                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($conditionnement)){
                                             $conditionnement = new AnalyseConditionnement();
-                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
                                             try {
                                                 $conditionnement->save();
@@ -412,13 +412,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
-                                    if($aColumns['8'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]] == '')
                                         $lieuPrelevement = null;
                                     else {
-                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($lieuPrelevement)){
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
-                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
 
                                             try {
@@ -429,20 +429,20 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    if($aColumns['5'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]] == '')
                                         $interpretation = null;
                                     else
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
 
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['1']), ENT_QUOTES, "UTF-8"));
-                                    $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['designation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['commentaire']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
 
-                                    if ($aColumns['2'] != '') {
-                                        $year = substr($aColumns['2'], 6, 4);
-                                        $month = intval(substr($aColumns['2'], 3, 2));
-                                        $day = substr($aColumns['2'], 0, 2);
+                                    if ($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]] != '') {
+                                        $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 6, 4);
+                                        $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 3, 2));
+                                        $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 0, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
@@ -547,16 +547,16 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                         }
                         elseif($index < count($aGlobal) - 1) {
-                            if (isset($aColumns['0']) && $aColumns['0'] != '') {
+                            if (isset($aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]) && $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]] != '') {
                                 $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns['0']])->andFilterWhere(['id_labo' => $idLabo])->one();
                                 if (is_null($analyseData)) {
                                     $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
-                                    $analyseData->num_analyse = $aColumns['0'];
+                                    $analyseData->num_analyse = $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]];
                                     $analyseData->id_labo = $idLabo;
                                     if($idClient == -1){
-                                        $idClientImport = $aColumns['1'];
+                                        $idClientImport = $aColumns[Yii::$app->params['importData']['laboColumn']['client']['laboratoire'][$idLabo]];
                                         if($idClientImport != '') {
                                             $mappage = MappageIdClient::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['id_lims_client' => $idClientImport])->one();
                                             $idClientImport = $mappage->id_portail_client;
@@ -573,18 +573,18 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
                                     $lieuPrelevement = null;
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    if($aColumns['7'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]] == '')
                                         $interpretation = null;
                                     else
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns['7'])])->one();
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]])])->one();
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['3']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['designation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = '';
-                                    if ($aColumns['4'] != '') {
-                                        $year = substr($aColumns['4'], 6, 4);
-                                        $month = intval(substr($aColumns['4'], 3, 2));
-                                        $day = substr($aColumns['4'], 0, 2);
+                                    if ($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]] != '') {
+                                        $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 6, 4);
+                                        $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 3, 2));
+                                        $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 0, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
@@ -611,8 +611,8 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                                         $analyseDataGerme = new AnalyseDataGerme();
                                         $analyseDataGerme->id_analyse = $analyseData->id;
-                                        $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
-                                        $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['6'])), ENT_QUOTES, "UTF-8"));
+                                        $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['germe_libelle']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
+                                        $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[Yii::$app->params['importData']['laboColumn']['germe_resultat']['laboratoire'][$idLabo]])), ENT_QUOTES, "UTF-8"));
                                         $analyseDataGerme->resultat = $resultat;
                                         $analyseDataGerme->expression = '';
                                         $analyseDataGerme->interpretation = '';
@@ -629,8 +629,8 @@ class AnalyseData extends \yii\db\ActiveRecord
                                 } else {
                                     $analyseDataGerme = new AnalyseDataGerme();
                                     $analyseDataGerme->id_analyse = $analyseData->id;
-                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
-                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['6'])), ENT_QUOTES, "UTF-8"));
+                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['germe_libelle']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
+                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[Yii::$app->params['importData']['laboColumn']['germe_resultat']['laboratoire'][$idLabo]])), ENT_QUOTES, "UTF-8"));
                                     $analyseDataGerme->resultat = $resultat;
                                     $analyseDataGerme->expression = '';
                                     $analyseDataGerme->interpretation = '';
@@ -702,25 +702,26 @@ class AnalyseData extends \yii\db\ActiveRecord
                         }
                         elseif ($index > 5){
                             //var_dump($aColumns).PHP_EOL;
-                            if(isset($aColumns['14'])) {
+                            if(isset($aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]) && $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]] != '') {
                                 //Test d'existence de l'analyse en base
-                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['14']])->andFilterWhere(['id_labo'=>$idLabo])->one();
+                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
+                                    $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
-                                    $analyseData->num_analyse = $aColumns['14'];
+                                    $analyseData->num_analyse = $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]];
                                     $analyseData->id_labo = $idLabo;
                                     $analyseData->id_client = $idClient;
                                     $analyseData->id_parent = $idParent;
                                     $analyseData->id_service = \Yii::$app->params['services']['generique'];
 
-                                    if($aColumns['10'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]] == '')
                                         $conditionnement = null;
                                     else {
-                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['10']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($conditionnement)){
                                             $conditionnement = new AnalyseConditionnement();
-                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['10']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
 
                                             try {
@@ -741,13 +742,13 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['designation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = '';
 
-                                    if ($aColumns['13'] != '') {
-                                        $year = substr($aColumns['13'], 6, 4);
-                                        $month = intval(substr($aColumns['13'], 3, 2));
-                                        $day = substr($aColumns['13'], 0, 2);
+                                    if ($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]] != '') {
+                                        $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 6, 4);
+                                        $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 3, 2));
+                                        $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 0, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
@@ -809,16 +810,16 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                         }
                         elseif($index < count($aGlobal) - 1) {
-                            if (isset($aColumns['1']) && $aColumns['1'] != '') {
-                                $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns['1']])->andFilterWhere(['id_labo' => $idLabo])->one();
+                            if (isset($aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]) && $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]] != '') {
+                                $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]])->andFilterWhere(['id_labo' => $idLabo])->one();
                                 if (is_null($analyseData)) {
                                     $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
-                                    $analyseData->num_analyse = $aColumns['1'];
+                                    $analyseData->num_analyse = $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]];
                                     $analyseData->id_labo = $idLabo;
                                     if($idClient == -1){
-                                        $idClientImport = $aColumns['0'];
+                                        $idClientImport = $aColumns[Yii::$app->params['importData']['laboColumn']['client']['laboratoire'][$idLabo]];
                                     }
                                     else{
                                         $idClientImport = $idClient;
@@ -827,13 +828,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_parent = $idParent;
                                     $analyseData->id_service = \Yii::$app->params['services']['generique'];
                                     //echo $aColumns['5'].PHP_EOL;
-                                    if($aColumns['4'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]] == '')
                                         $conditionnement = null;
                                     else {
-                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($conditionnement)){
                                             $conditionnement = new AnalyseConditionnement();
-                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
                                             try {
                                                 $conditionnement->save();
@@ -843,13 +844,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
-                                    if($aColumns['8'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]] == '')
                                         $lieuPrelevement = null;
                                     else {
-                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($lieuPrelevement)){
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
-                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
                                             try {
                                                 $lieuPrelevement->save();
@@ -859,25 +860,25 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    if($aColumns['19'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]] == '')
                                         $interpretation = null;
                                     else {
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns['19'])])->one();
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]])])->one();
                                         if(is_null($interpretation)){
-                                            $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['19']), ENT_QUOTES, "UTF-8"))])->one();
+                                            $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                             if(is_null($interpretation)){
-                                                $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => str_replace ("\r", '', utf8_encode($aColumns['19']))])->one();
+                                                $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => str_replace ("\r", '', utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]))])->one();
                                             }
                                         }
                                     }
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['2']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['designation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = '';
-                                    if ($aColumns['16'] != '') {
-                                        $year = substr($aColumns['16'], 0, 4);
-                                        $month = intval(substr($aColumns['16'], 4, 2));
-                                        $day = substr($aColumns['16'], 6, 2);
+                                    if ($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]] != '') {
+                                        $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 0, 4);
+                                        $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 4, 2));
+                                        $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 6, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
@@ -903,8 +904,8 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                                         $analyseDataGerme = new AnalyseDataGerme();
                                         $analyseDataGerme->id_analyse = $analyseData->id;
-                                        $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['15']), ENT_QUOTES, "UTF-8"));
-                                        $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
+                                        $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['germe_libelle']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
+                                        $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[Yii::$app->params['importData']['laboColumn']['germe_resultat']['laboratoire'][$idLabo]])), ENT_QUOTES, "UTF-8"));
                                         $analyseDataGerme->resultat = $resultat;
                                         $analyseDataGerme->expression = '';
                                         $analyseDataGerme->interpretation = '';
@@ -921,8 +922,8 @@ class AnalyseData extends \yii\db\ActiveRecord
                                 } else {
                                     $analyseDataGerme = new AnalyseDataGerme();
                                     $analyseDataGerme->id_analyse = $analyseData->id;
-                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['15']), ENT_QUOTES, "UTF-8"));
-                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
+                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['germe_libelle']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
+                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[Yii::$app->params['importData']['laboColumn']['germe_resultat']['laboratoire'][$idLabo]])), ENT_QUOTES, "UTF-8"));
                                     $analyseDataGerme->resultat = $resultat;
                                     $analyseDataGerme->expression = '';
                                     $analyseDataGerme->interpretation = '';
@@ -1002,31 +1003,31 @@ class AnalyseData extends \yii\db\ActiveRecord
                         }
                         elseif($index < count($aGlobal) - 1){
                             //var_dump($aColumns).PHP_EOL;
-                            if(isset($aColumns['0']) && $aColumns['0'] != '') {
+                            if(isset($aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]) && $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]] != '') {
                                 //Test d'existence de l'analyse en base
-                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['0']])->andFilterWhere(['id_labo'=>$idLabo])->one();
+                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
                                     $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
-                                    $analyseData->num_analyse = $aColumns['0'];
+                                    $analyseData->num_analyse = $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]];
                                     $analyseData->id_labo = $idLabo;
                                     if($idClient == -1){
-                                        $idClientImport = $aColumns['0'];
+                                        $idClientImport = $aColumns[Yii::$app->params['importData']['laboColumn']['client']['laboratoire'][$idLabo]];
                                     }
                                     else{
                                         $idClientImport = $idClient;
                                     }
                                     $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
-                                    if($aColumns['8'] == '') {
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['service']['laboratoire'][$idLabo]] == '') {
                                         $service = null;
                                     }
                                     else {
-                                        $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['service']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($service)){
                                             $service = new AnalyseService();
-                                            $service->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
+                                            $service->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['service']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $service->active = 1;
                                             try {
                                                 $service->save();
@@ -1039,13 +1040,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         $analyseData->id_service = $service->id;
                                     else
                                         $analyseData->id_service = \Yii::$app->params['services']['generique'];
-                                    if($aColumns['6'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]] == '')
                                         $conditionnement = null;
                                     else {
-                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['6']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($conditionnement)){
                                             $conditionnement = new AnalyseConditionnement();
-                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['6']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
                                             try {
                                                 $conditionnement->save();
@@ -1055,13 +1056,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
-                                    if($aColumns['7'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]] == '')
                                         $lieuPrelevement = null;
                                     else {
-                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($lieuPrelevement)){
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
-                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
 
                                             try {
@@ -1072,20 +1073,20 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    if($aColumns['4'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]] == '')
                                         $interpretation = null;
                                     else
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
 
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['1']), ENT_QUOTES, "UTF-8"));
-                                    $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['6']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['designation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['commentaire']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
 
-                                    if ($aColumns['2'] != '') {
-                                        $year = substr($aColumns['2'], 6, 4);
-                                        $month = intval(substr($aColumns['2'], 3, 2));
-                                        $day = substr($aColumns['2'], 0, 2);
+                                    if ($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]] != '') {
+                                        $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 6, 4);
+                                        $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 3, 2));
+                                        $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 0, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
@@ -1289,16 +1290,16 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                         }
                         elseif($index < count($aGlobal) - 1) {
-                            if (isset($aColumns['1']) && $aColumns['1'] != '') {
-                                $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns['1']])->andFilterWhere(['id_labo' => $idLabo])->one();
+                            if (isset($aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]) && $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]] != '') {
+                                $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]])->andFilterWhere(['id_labo' => $idLabo])->one();
                                 if (is_null($analyseData)) {
                                     $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
-                                    $analyseData->num_analyse = $aColumns['1'];
+                                    $analyseData->num_analyse = $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]];
                                     $analyseData->id_labo = $idLabo;
                                     if($idClient == -1){
-                                        $idClientImport = $aColumns['0'];
+                                        $idClientImport = $aColumns[Yii::$app->params['importData']['laboColumn']['client']['laboratoire'][$idLabo]];
                                     }
                                     else{
                                         $idClientImport = $idClient;
@@ -1306,13 +1307,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
                                     $analyseData->id_service = \Yii::$app->params['services']['generique'];
-                                    if($aColumns['4'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]] == '')
                                         $conditionnement = null;
                                     else {
-                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $conditionnement = AnalyseConditionnement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($conditionnement)){
                                             $conditionnement = new AnalyseConditionnement();
-                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
+                                            $conditionnement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['conditionnement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $conditionnement->active = 1;
                                             try {
                                                 $conditionnement->save();
@@ -1322,13 +1323,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
-                                    if($aColumns['8'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]] == '')
                                         $lieuPrelevement = null;
                                     else {
-                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($lieuPrelevement)){
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
-                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
                                             try {
                                                 $lieuPrelevement->save();
@@ -1338,25 +1339,25 @@ class AnalyseData extends \yii\db\ActiveRecord
                                         }
                                     }
                                     $analyseData->id_lieu_prelevement = is_null($lieuPrelevement) ? null : $lieuPrelevement->id;
-                                    if($aColumns['19'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]] == '')
                                         $interpretation = null;
                                     else {
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns['19'])])->one();
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]])])->one();
                                         if(is_null($interpretation)){
-                                            $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['19']), ENT_QUOTES, "UTF-8"))])->one();
+                                            $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                             if(is_null($interpretation)){
-                                                $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => str_replace ("\r", '', utf8_encode($aColumns['19']))])->one();
+                                                $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => str_replace ("\r", '', utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]))])->one();
                                             }
                                         }
                                     }
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['2']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['designation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = '';
-                                    if ($aColumns['16'] != '') {
-                                        $year = substr($aColumns['16'], 0, 4);
-                                        $month = intval(substr($aColumns['16'], 4, 2));
-                                        $day = substr($aColumns['16'], 6, 2);
+                                    if ($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]] != '') {
+                                        $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 0, 4);
+                                        $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 4, 2));
+                                        $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 6, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
@@ -1382,8 +1383,8 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                                         $analyseDataGerme = new AnalyseDataGerme();
                                         $analyseDataGerme->id_analyse = $analyseData->id;
-                                        $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['15']), ENT_QUOTES, "UTF-8"));
-                                        $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
+                                        $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['germe_libelle']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
+                                        $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[Yii::$app->params['importData']['laboColumn']['germe_resultat']['laboratoire'][$idLabo]])), ENT_QUOTES, "UTF-8"));
                                         $analyseDataGerme->resultat = $resultat;
                                         $analyseDataGerme->expression = '';
                                         $analyseDataGerme->interpretation = '';
@@ -1400,8 +1401,8 @@ class AnalyseData extends \yii\db\ActiveRecord
                                 } else {
                                     $analyseDataGerme = new AnalyseDataGerme();
                                     $analyseDataGerme->id_analyse = $analyseData->id;
-                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['15']), ENT_QUOTES, "UTF-8"));
-                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
+                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['germe_libelle']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
+                                    $resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns[Yii::$app->params['importData']['laboColumn']['germe_resultat']['laboratoire'][$idLabo]])), ENT_QUOTES, "UTF-8"));
                                     $analyseDataGerme->resultat = $resultat;
                                     $analyseDataGerme->expression = '';
                                     $analyseDataGerme->interpretation = '';
@@ -1471,31 +1472,31 @@ class AnalyseData extends \yii\db\ActiveRecord
                         }
                         elseif($index < count($aGlobal) - 1){
                             //var_dump($aColumns).PHP_EOL;
-                            if(isset($aColumns['1']) && $aColumns['1'] != '') {
+                            if(isset($aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]) && $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]] != '') {
                                 //Test d'existence de l'analyse en base
-                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns['1']])->andFilterWhere(['id_labo'=>$idLabo])->one();
+                                $analyseData = self::find()->andFilterWhere(['num_analyse'=>$aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]])->andFilterWhere(['id_labo'=>$idLabo])->one();
                                 if(is_null($analyseData)) {
                                     $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
-                                    $analyseData->num_analyse = $aColumns['1'];
+                                    $analyseData->num_analyse = $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]];
                                     $analyseData->id_labo = $idLabo;
                                     if($idClient == -1){
-                                        $idClientImport = $aColumns['0'];
+                                        $idClientImport = $aColumns[Yii::$app->params['importData']['laboColumn']['client']['laboratoire'][$idLabo]];
                                     }
                                     else{
                                         $idClientImport = $idClient;
                                     }
                                     $analyseData->id_client = $idClientImport;
                                     $analyseData->id_parent = $idParent;
-                                    if($aColumns['8'] == '') {
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['service']['laboratoire'][$idLabo]] == '') {
                                         $service = null;
                                     }
                                     else {
-                                        $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $service = AnalyseService::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['service']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($service)){
                                             $service = new AnalyseService();
-                                            $service->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['8']), ENT_QUOTES, "UTF-8"));
+                                            $service->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['service']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $service->active = 1;
                                             try {
                                                 $service->save();
@@ -1511,13 +1512,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     //echo $aColumns['5'].PHP_EOL;
                                     $conditionnement = null;
                                     $analyseData->id_conditionnement = is_null($conditionnement) ? null : $conditionnement->id;
-                                    if($aColumns['5'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]] == '')
                                         $lieuPrelevement = null;
                                     else {
-                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"))])->one();
+                                        $lieuPrelevement = AnalyseLieuPrelevement::find()->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                         if(is_null($lieuPrelevement)){
                                             $lieuPrelevement = new AnalyseLieuPrelevement();
-                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['5']), ENT_QUOTES, "UTF-8"));
+                                            $lieuPrelevement->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['lieu_prelevement']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                             $lieuPrelevement->active = 1;
                                             try {
                                                 $service->save();
@@ -1530,14 +1531,14 @@ class AnalyseData extends \yii\db\ActiveRecord
 
 
                                     $interpretation = null;
-                                    if($aColumns['7'] != '')
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"))])->one();
-                                    if($aColumns['7'] == ''){
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]] != '')
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo'=>$idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]] == ''){
                                         $analyseData->id_conformite = AnalyseConformite::CONF_INDETERMINE;
                                         $analyseData->id_interpretation = null;
                                     }
                                     else{
-                                        $posNonConforme = strpos(strtolower($aColumns['7']),'non satisfaisant');
+                                        $posNonConforme = strpos(strtolower($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]),'non satisfaisant');
                                         if($posNonConforme !== false){
                                             $analyseData->id_conformite = AnalyseConformite::CONF_NON_CONFORME;
                                             if(!is_null($interpretation)) {
@@ -1547,7 +1548,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                 $interpretation = new AnalyseInterpretation();
                                                 $interpretation->id_labo = $idLabo;
                                                 $interpretation->active = 1;
-                                                $interpretation->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                                $interpretation->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                                 $interpretation->conforme = AnalyseConformite::CONF_NON_CONFORME;
 
                                                 try {
@@ -1559,7 +1560,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             }
                                         }
                                         else{
-                                            $posConforme = strpos(strtolower($aColumns['7']),'satisfaisant');
+                                            $posConforme = strpos(strtolower($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]),'satisfaisant');
                                             if($posConforme !== false){
                                                 $analyseData->id_conformite = AnalyseConformite::CONF_CONFORME;
                                                 if(!is_null($interpretation)) {
@@ -1569,7 +1570,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                                                     $interpretation = new AnalyseInterpretation();
                                                     $interpretation->id_labo = $idLabo;
                                                     $interpretation->active = 1;
-                                                    $interpretation->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['7']), ENT_QUOTES, "UTF-8"));
+                                                    $interpretation->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                                     $interpretation->conforme = AnalyseConformite::CONF_CONFORME;
                                                     try {
                                                         $interpretation->save();
@@ -1585,13 +1586,13 @@ class AnalyseData extends \yii\db\ActiveRecord
                                             }
                                         }
                                     }
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['2']), ENT_QUOTES, "UTF-8"));
-                                    $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns['4']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['designation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->commentaire = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['commentaire']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
 
-                                    if ($aColumns['3'] != '') {
-                                        $year = substr($aColumns['3'], 6, 4);
-                                        $month = intval(substr($aColumns['3'], 3, 2));
-                                        $day = substr($aColumns['3'], 0, 2);
+                                    if ($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]] != '') {
+                                        $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 6, 4);
+                                        $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 3, 2));
+                                        $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 0, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
@@ -1657,12 +1658,13 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                         }
                         else {
-                            if (isset($aColumns['20']) && $aColumns['20'] != '') {
-                                $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns['20']])->andFilterWhere(['id_labo' => $idLabo])->one();
+                            if (isset($aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]) && $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]] != '') {
+                                $analyseData = self::find()->andFilterWhere(['num_analyse' => $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]]])->andFilterWhere(['id_labo' => $idLabo])->one();
                                 if (is_null($analyseData)) {
+                                    $nbAnalyses++;
                                     //Création des données générales
                                     $analyseData = new self();
-                                    $analyseData->num_analyse = $aColumns['20'];
+                                    $analyseData->num_analyse = $aColumns[Yii::$app->params['importData']['laboColumn']['num_analyse']['laboratoire'][$idLabo]];
                                     $analyseData->id_labo = $idLabo;
                                     $analyseData->id_client = $idClient;
                                     $analyseData->id_parent = $idParent;
@@ -1672,25 +1674,25 @@ class AnalyseData extends \yii\db\ActiveRecord
                                     $analyseData->id_conditionnement =  null;
                                     $lieuPrelevement = null;
                                     $analyseData->id_lieu_prelevement = null;
-                                    if($aColumns['14'] == '')
+                                    if($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]] == '')
                                         $interpretation = null;
                                     else {
-                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns['14'])])->one();
+                                        $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]])])->one();
                                         if(is_null($interpretation)){
-                                            $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns['14']), ENT_QUOTES, "UTF-8"))])->one();
+                                            $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"))])->one();
                                             if(is_null($interpretation)){
-                                                $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => str_replace ("\r", '', utf8_encode($aColumns['14']))])->one();
+                                                $interpretation = AnalyseInterpretation::find()->andFilterWhere(['id_labo' => $idLabo])->andFilterWhere(['libelle' => str_replace ("\r", '', utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['interpretation']['laboratoire'][$idLabo]]))])->one();
                                             }
                                         }
                                     }
                                     $analyseData->id_interpretation = is_null($interpretation) ? null : $interpretation->id;
                                     $analyseData->id_conformite = is_null($interpretation) ? 3 : $interpretation->conforme;
-                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns['18']), ENT_QUOTES, "UTF-8"));
+                                    $analyseData->designation = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['designation']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                     $analyseData->commentaire = '';
-                                    if ($aColumns['15'] != '') {
-                                        $year = substr($aColumns['15'], 0, 4);
-                                        $month = intval(substr($aColumns['15'], 4, 2));
-                                        $day = substr($aColumns['15'], 6, 2);
+                                    if ($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]] != '') {
+                                        $year = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 0, 4);
+                                        $month = intval(substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 4, 2));
+                                        $day = substr($aColumns[Yii::$app->params['importData']['laboColumn']['date_analyse']['laboratoire'][$idLabo]], 6, 2);
                                         $dateAnalyse = $year . '-' . $month . '-' . $day;
                                         $analyseData->date_analyse = $dateAnalyse;
                                     } else {
@@ -1709,7 +1711,7 @@ class AnalyseData extends \yii\db\ActiveRecord
 
                                     $analyseDataGerme = new AnalyseDataGerme();
                                     $analyseDataGerme->id_analyse = $analyseData->id;
-                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['22']), ENT_QUOTES, "UTF-8"));
+                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['germe_libelle']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                     //$resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
                                     $analyseDataGerme->resultat = '';
                                     $analyseDataGerme->expression = '';
@@ -1723,7 +1725,7 @@ class AnalyseData extends \yii\db\ActiveRecord
                                 } else {
                                     $analyseDataGerme = new AnalyseDataGerme();
                                     $analyseDataGerme->id_analyse = $analyseData->id;
-                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns['22']), ENT_QUOTES, "UTF-8"));
+                                    $analyseDataGerme->libelle = html_entity_decode(htmlentities(utf8_encode($aColumns[Yii::$app->params['importData']['laboColumn']['germe_libelle']['laboratoire'][$idLabo]]), ENT_QUOTES, "UTF-8"));
                                     //$resultat = html_entity_decode(htmlentities(utf8_encode(\trim($aColumns['17'])), ENT_QUOTES, "UTF-8"));
                                     $analyseDataGerme->resultat = '';
                                     $analyseDataGerme->expression = '';
