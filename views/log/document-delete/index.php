@@ -233,7 +233,10 @@ $this->params['breadcrumbs'][] = $this->title;
                         },
                         'label' => 'Mois'
                     ],
-                    'raison',
+                    [
+                        'attribute' => 'raison',
+                        'vAlign' => 'middle',
+                    ],
                     [
                         'attribute'=>'filename',
                         'vAlign' => 'middle',
