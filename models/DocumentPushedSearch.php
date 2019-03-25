@@ -5,12 +5,12 @@ namespace app\models;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use app\models\LogLaboDocumentsDelete;
+use app\models\DocumentPushed;
 
 /**
- * LogLaboDocumentsDeleteSearch represents the model behind the search form of `app\models\LogLaboDocumentsDelete`.
+ * DocumentPushedSearch represents the model behind the search form of `app\models\DocumentPushed`.
  */
-class LogLaboDocumentsDeleteSearch extends LogLaboDocumentsDelete
+class DocumentPushedSearch extends DocumentPushed
 {
     /**
      * {@inheritdoc}
@@ -18,8 +18,8 @@ class LogLaboDocumentsDeleteSearch extends LogLaboDocumentsDelete
     public function rules()
     {
         return [
-            [['id', 'id_user', 'id_labo', 'id_client', 'id_etablissement', 'year', 'month'], 'integer'],
-            [['raison', 'filename', 'log_date'], 'safe'],
+            [['id', 'id_user', 'id_labo', 'id_client', 'year', 'month', 'nb_doc'], 'integer'],
+            [['last_push'], 'safe'],
         ];
     }
 
@@ -41,7 +41,7 @@ class LogLaboDocumentsDeleteSearch extends LogLaboDocumentsDelete
      */
     public function search($params)
     {
-        $query = LogLaboDocumentsDelete::find();
+        $query = DocumentPushed::find();
 
         // add conditions that should always apply here
 
@@ -63,25 +63,23 @@ class LogLaboDocumentsDeleteSearch extends LogLaboDocumentsDelete
             'id_user' => $this->id_user,
             'id_labo' => $this->id_labo,
             'id_client' => $this->id_client,
-            'id_etablissement' => $this->id_etablissement,
             'year' => $this->year,
             'month' => $this->month,
+            'nb_doc' => $this->nb_doc,
         ]);
-        if($this->log_date != '') {
-            $year = substr($this->log_date, 6, 4);
-            $month = intval(substr($this->log_date, 3, 2));
-            $day = substr($this->log_date, 0, 2);
+
+        if($this->last_push != '') {
+            $year = substr($this->last_push, 6, 4);
+            $month = intval(substr($this->last_push, 3, 2));
+            $day = substr($this->last_push, 0, 2);
             $query->andFilterWhere([
                     'between',
-                    'log_date',
+                    'last_push',
                     $year . '-' . $month . '-' . $day . ' 00:00:00',
                     $year . '-' . $month . '-' . $day . ' 23:59:59',
                 ]
             );
         }
-
-        $query->andFilterWhere(['like', 'raison', $this->raison])
-            ->andFilterWhere(['like', 'filename', $this->filename]);
 
         return $dataProvider;
     }

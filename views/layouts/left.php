@@ -1,24 +1,5 @@
 <?php
-$this->registerCss(<<<CSS
-/*
-.row-sub-logo{
-    margin-right:0px;
-}
 
-.col-sub-logo{
-    background-color:#297082;
-    color:#FFF;
-    height:100px;
-    text-align:center;
-}*/
-
-/*.col-sub-logo:hover{
-    background-color: #256676;
-}
-*/
-
-CSS
-);
 
 ?>
 <aside class="main-sidebar">

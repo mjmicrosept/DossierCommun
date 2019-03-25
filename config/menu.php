@@ -70,6 +70,41 @@ return [
         'visible' => Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN])
     ],
     [
+        'label' => '<a href="#"><i class="fas fa-marker"></i>
+                                    <span>Logs</span>
+                                <i class="fa fa-angle-left pull-right"></i></a>',
+        'options' => ['class' => ' treeview'],
+        'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
+        'items' => [
+            [
+                'label' => '<span class="fa fa-flask"></span> Laboratoires<i class="fa fa-angle-left pull-right"></i></a>',
+                'url' => ['/analyse-data/statistique'],
+                'options' => ['class' => ' treeview'],
+                'visible'=>Yii::$app->user->isSuperAdmin ? true : false,
+                //'visible' => true,
+                'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
+                'items' => [
+                    [
+                        'label' => '<i class="fas fa-file-import"></i> Documents envoyés',
+                        'url' => ['/log-labo/document-import'],
+                        'visible' => true,
+                    ],
+                    [
+                        'label' => '<i class="fas fa-file-export"></i> Documents supprimés',
+                        'url' => ['/log-labo/document-delete'],
+                        'visible' => true,
+                    ],
+                    [
+                        'label' => '<i class="fas fa-database"></i> Données envoyées',
+                        'url' => ['/log-labo/data-import'],
+                        'visible' => true,
+                    ],
+                ]
+            ],
+        ],
+        'visile' => Yii::$app->user->isSuperAdmin || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]),
+    ],
+    [
         'label' => '<a href="#"><i class="fa fa-flask"></i>
                                     <span>Laboratoires</span>
                                 <i class="fa fa-angle-left pull-right"></i></a>',
@@ -92,7 +127,7 @@ return [
         'visible'=>$visibleClient
     ],
     [
-        'label' => '<a href="#"><i class="fa fa-file"></i>
+        'label' => '<a href="#"><i class="far fa-file-pdf"></i>
                                     <span>Documents</span>
                                 <i class="fa fa-angle-left pull-right"></i></a>',
         'options' => ['class' => ' treeview'],
@@ -100,7 +135,6 @@ return [
         'items' => [
             ['label' => '<span class="fas fa-cloud-upload-alt"></span> Envoi des documents', 'url' => ['/document/upload']],
             ['label' => '<span class="fa fa-tag"></span> Résultats d\'analyses', 'url' => ['/document/result-analyse-index']],
-            ['label' => '<span class="fas fa-book"></span> Logs', 'url' => ['/log-labo-documents-delete/index']],
         ],
 //        'visible' => Yii::$app->user->isSuperAdmin
     ],
@@ -117,7 +151,7 @@ return [
             ],
             ['label' => '<span class="fas fa-cloud-upload-alt"></span> Envoi des données', 'url' => ['/analyse-data/upload']],
             [
-                'label' => '<span class="fas fa-chart-pie"></span> Statistiques<i class="fa fa-angle-left pull-right"></i></a>',
+                'label' => '<span class="fas fa-chart-pie"></span> Statistiques (Dev)<i class="fa fa-angle-left pull-right"></i></a>',
                 'url' => ['/analyse-data/statistique'],
                 'options' => ['class' => ' treeview'],
                 'visible'=>Yii::$app->user->isSuperAdmin ? true : false,

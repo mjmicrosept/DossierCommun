@@ -1,12 +1,16 @@
 <?php
 
+use yii\helpers\Html;
 use app\models\User;
 use app\models\Labo;
 use app\models\Client;
+use kartik\builder\Form;
 use kartik\builder\FormAsset;
 use app\assets\views\KartikCommonAsset;
+use webvimark\modules\UserManagement\components\GhostHtml;
 use yii\widgets\Pjax;
 use webvimark\extensions\GridPageSize\GridPageSize;
+use yii\helpers\Url;
 use kartik\grid\GridView;
 use app\models\AppCommon;
 use yii\web\View;
@@ -15,84 +19,54 @@ use kartik\date\DatePicker;
 FormAsset::register($this,View::POS_HEAD);
 KartikCommonAsset::register($this,View::POS_HEAD);
 
+/* @var $this yii\web\View */
+/* @var $searchModel app\models\DataPushedSearch */
+/* @var $dataProvider yii\data\ActiveDataProvider */
+
 $this->registerCss(<<<CSS
-    .span-alerte{
-        cursor:pointer;
-        color:#777;
-        margin:0 10px 0 10px;
-    }
-    .li-alerte{
-        margin-bottom:5px;
-    }
-    .li-alerte:hover{
-        cursor:pointer;
-        background-color:#e0e3e9;
-        color:#000;
-    }
-    .li-alerte:hover > span{
-        color:#000;
-    }
-    .filter-header {
-        font-weight:bold;
-        vertical-align: middle;
-    }
-    .table-hover .kv-grouped-row2 {
-        color: #31708f !important;
-        background-color: #d9edf7 !important;
-        padding-left:25px;
-    }
-    .table-hover .kv-grouped-row2:hover{
-        color: #31708f !important;
-        background-color: #d9edf7 !important;
-        /*color: #fff !important;
-        background-color: #00c0ef !important;*/
-    }
-    tbody > tr:hover{
-        background-color:#88c6e5 !important;
-    }
-    
-    .data-error-red:hover{
-        background-color: #f58987 !important;
-    }
-    .data-error-yellow:hover{
-        background-color: #ffc789 !important;
-    }
-    .data-error-green:hover{
-        background-color: #72d29a !important;
-    }
-    #grid-list-document-container{
-        overflow-x: hidden;
-    }
-    
-    
     .filter-header {
         font-weight:bold;
         vertical-align: middle;
     }
     .kv-grouped-row {
         color: #FFF !important;
-        background-color: #009cc1 !important;
+        background-color: #007d90 !important;
         border: 1px solid #f4f4f4;
     }
     .table-hover .kv-grouped-row:hover{
         color: #FFF !important;
-        background-color: #009cc1 !important;
+        background-color: #007d90 !important;
         border: 1px solid #f4f4f4;
         /*color: #fff !important;
         background-color: #00c0ef !important;*/
     }
     
-    .table-hover .kv-grouped-child-row {
-        color: #000 !important;
-        background-color: #d4e2e5 !important;
+    .kv-grouped-child-row {
+        color: #FFF !important;
+        background-color: #009cc1 !important;
         border: 1px solid #f4f4f4;
-        padding-left:50px;
+        padding-left:30px !important;
     }
     .table-hover .kv-grouped-child-row:hover{
-        color: #000 !important;
-        background-color: #d4e2e5 !important;
+        color: #FFF !important;
+        background-color: #009cc1 !important;
         border: 1px solid #f4f4f4;
-        
+        padding-left:30px !important;
+        /*color: #fff !important;
+        background-color: #00c0ef !important;*/
+    }
+    
+    .kv-grouped-labo-row {
+        color: #000 !important;
+        background-color: #8cbeef !important;
+        border: 1px solid #f4f4f4;
+        padding-left:60px !important;
+    }
+    .table-hover .kv-grouped-labo-row:hover{
+        color: #000 !important;
+        background-color: #8cbeef !important;
+        border: 1px solid #f4f4f4;
+        padding-left:60px !important;
         /*color: #fff !important;
         background-color: #00c0ef !important;*/
     }
@@ -105,7 +79,10 @@ $this->registerCss(<<<CSS
         background-color: #d4e2e5 !important;
         border: 1px solid #f4f4f4;
     }
-    
+
+    table.kv-grid-table > tbody > tr:hover{
+        background-color:#ddd !important;
+    }
     .primary-content{
         background-color:#6cc7e6 !important;
     }
@@ -113,14 +90,10 @@ $this->registerCss(<<<CSS
 CSS
 );
 
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\LogLaboDocumentsDeleteSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-
-$this->title = 'Log suppression de documents';
+$this->title = 'Log des données envoyées';
 $this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="log-labo-documents-delete-index">
+<div class="data-pushed-index">
     <div class="panel panel-primary">
         <div class="panel-heading">
             <div class="row">
@@ -130,7 +103,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 <div class="col-sm-6">
                     <div class="form-inline pull-right">
                         <?= GridPageSize::widget([
-                            'pjaxId'=>'user-grid-pjax',
+                            'pjaxId'=>'data-pushed-grid-pjax',
                             'viewFile' => '@app/views/widgets/grid-page-size/index.php',
                             'text'=>Yii::t('microsept','Records per page')
                         ]) ?>
@@ -140,12 +113,12 @@ $this->params['breadcrumbs'][] = $this->title;
         </div>
         <div class="panel-body">
             <?php Pjax::begin([
-                'id'=>'log-grid-pjax',
+                'id'=>'data-pushed-grid-pjax',
             ]) ?>
             <?= GridView::widget([
                 'dataProvider' => $dataProvider,
                 'filterModel' => $searchModel,
-                'id' => 'log-grid',
+                'id' => 'data-pushed-grid',
                 'pjax'=>true,
                 'striped'=>false,
                 'hover'=>true,
@@ -154,18 +127,19 @@ $this->params['breadcrumbs'][] = $this->title;
                 'floatHeader'=>false,
                 'columns' => [
                     [
-                        'attribute'=>'id_client',
+                        'attribute'=>'id_parent',
                         'filter'=>'',
                         'filterWidgetOptions'=>[
                             'pluginOptions'=>['allowClear'=>true],
                         ],
+                        'format' =>'raw',
                         'filterInputOptions'=>['placeholder'=>'Any supplier'],
                         'group'=>true,  // enable grouping,
                         'groupedRow'=>true, // move grouped column to a single grouped row
                         'groupOddCssClass'=>'kv-grouped-row',  // configure odd group cell css class
                         'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
                         'value'=>function($model){
-                            return Client::find()->andFilterWhere(['id'=>$model->id_client])->one()->name;
+                            return '<i class="far fa-building"></i>&nbsp;Client - ' . Client::find()->andFilterWhere(['id'=>$model->id_parent])->one()->name;
                         }
                     ],
                     [
@@ -174,17 +148,14 @@ $this->params['breadcrumbs'][] = $this->title;
                         'filterWidgetOptions'=>[
                             'pluginOptions'=>['allowClear'=>true],
                         ],
+                        'format' =>'raw',
                         'filterInputOptions'=>['placeholder'=>'Any supplier'],
                         'group'=>true,  // enable grouping,
                         'groupedRow'=>true, // move grouped column to a single grouped row
-                        'groupOddCssClass'=>'kv-grouped-row2',  // configure odd group cell css class
-                        'groupEvenCssClass'=>'kv-grouped-row2', // configure even group cell css class
+                        'groupOddCssClass'=>'kv-grouped-child-row',  // configure odd group cell css class
+                        'groupEvenCssClass'=>'kv-grouped-child-row', // configure even group cell css class
                         'value'=>function($model){
-                            $labo = Labo::find()->andFilterWhere(['id'=>$model->id_labo])->one();
-                            if(!is_null($labo))
-                                return $labo->raison_sociale;
-                            else
-                                return '';
+                            return '<i class="fas fa-microscope"></i>&nbsp;Laboratoire - ' . Labo::find()->andFilterWhere(['id'=>$model->id_labo])->one()->raison_sociale;
                         }
                     ],
                     [
@@ -196,11 +167,16 @@ $this->params['breadcrumbs'][] = $this->title;
                         'vAlign' => 'middle',
                         'filterInputOptions'=>['placeholder'=>'Any supplier'],
                         'group'=>true,  // enable grouping,
-                        'groupOddCssClass'=>'kv-grouped-child-row',  // configure odd group cell css class
-                        'groupEvenCssClass'=>'kv-grouped-child-row', // configure even group cell css class
+                        'groupedRow'=>true,
+                        'groupOddCssClass'=>'kv-grouped-labo-row',  // configure odd group cell css class
+                        'groupEvenCssClass'=>'kv-grouped-labo-row', // configure even group cell css class
                         'value'=>function($model){
-                            return Client::find()->andFilterWhere(['id'=>$model->id_etablissement])->one()->name;
-                        }
+                            if($model->id_client != -1)
+                                return 'Etablissement - ' . Client::find()->andFilterWhere(['id'=>$model->id_client])->one()->name;
+                            else
+                                return 'Etablissement - Tous';
+                        },
+                        //'label' => 'Etablissement'
                     ],
                     [
                         'attribute'=>'id_user',
@@ -218,42 +194,50 @@ $this->params['breadcrumbs'][] = $this->title;
                         'label' => 'Fait par'
                     ],
                     [
-                        'attribute'=>'year',
+                        'filter' => DatePicker::widget([
+                            'model' => $searchModel,
+                            'name' => 'start_date',
+                            'value' => 'start_date',
+                            'pluginOptions' => [
+                                'format' => 'yyyy-mm-dd',
+                                'autoclose' => true,
+                            ]
+                        ]),
+                        'attribute'=>'last_push',
                         'vAlign' => 'middle',
-                        'width'=>'100px',
-                        'label' => 'Année'
-                    ],
-                    [
-                        'attribute'=>'month',
-                        'vAlign' => 'middle',
-                        'filter' => $aMonth,
-                        'width'=>'100px',
-                        'value'=>function($model){
-                            return AppCommon::$tMonths[$model->month];
-                        },
-                        'label' => 'Mois'
-                    ],
-                    'raison',
-                    [
-                        'attribute'=>'filename',
-                        'vAlign' => 'middle',
-                        'label' => 'Nom du fichier'
-                    ],
-                    [
-                        'attribute'=>'log_date',
-                        'vAlign' => 'middle',
+                        'width'=>'250px',
                         'filterType' => GridView::FILTER_DATE,
                         'filterWidgetOptions' => [
                             'type' => DatePicker::TYPE_INPUT,
                         ],
                         'value' => function($model) {
-                            $year = substr($model['log_date'], 0, 4);
-                            $month = intval(substr($model['log_date'], 5, 2));
-                            $day = substr($model['log_date'], 8, 2);
+                            $year = substr($model->last_push, 0, 4);
+                            $month = intval(substr($model->last_push, 5, 2));
+                            $day = substr($model->last_push, 8, 2);
 
-                            return $day . ' ' . AppCommon::$tMonthsMin[$month] . ' ' . $year;
+                            $tMonths = [1 => "Jan", 2 => "Fév", 3 => "Mars", 4 => "Avr", 5 => "Mai", 6 => "Juin", 7 => "Juil", 8 => "Août", 9 => "Sept", 10 => "Oct", 11 => "Nov", 12 => "Déc"];
+
+                            return $day . ' ' . $tMonths[$month] . ' ' . $year;
                         },
-                        'label' => 'Supprimé le'
+                        'label' => 'Le'
+                    ],
+                    [
+                        'attribute'=>'nb_lignes',
+                        'vAlign' => 'middle',
+                        'width'=>'200px',
+                        'label' => 'Nb lignes'
+                    ],
+                    [
+                        'attribute'=>'nb_analyses',
+                        'vAlign' => 'middle',
+                        'width'=>'200px',
+                        'label' => 'Nb analyses'
+                    ],
+                    [
+                        'attribute'=>'filename',
+                        'vAlign' => 'middle',
+                        //'width'=>'100px',
+                        'label' => 'Fichier'
                     ],
                 ],
             ]); ?>

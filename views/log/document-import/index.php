@@ -15,6 +15,13 @@ use kartik\date\DatePicker;
 FormAsset::register($this,View::POS_HEAD);
 KartikCommonAsset::register($this,View::POS_HEAD);
 
+/* @var $this yii\web\View */
+/* @var $searchModel app\models\DocumentPushedSearch */
+/* @var $dataProvider yii\data\ActiveDataProvider */
+
+$this->title = 'Document Pusheds';
+$this->params['breadcrumbs'][] = $this->title;
+
 $this->registerCss(<<<CSS
     .span-alerte{
         cursor:pointer;
@@ -35,6 +42,11 @@ $this->registerCss(<<<CSS
     .filter-header {
         font-weight:bold;
         vertical-align: middle;
+    }
+    .kv-grouped-row2 {
+        color: #31708f !important;
+        background-color: #d9edf7 !important;
+        padding-left:25px;
     }
     .table-hover .kv-grouped-row2 {
         color: #31708f !important;
@@ -112,15 +124,8 @@ $this->registerCss(<<<CSS
 
 CSS
 );
-
-/* @var $this yii\web\View */
-/* @var $searchModel app\models\LogLaboDocumentsDeleteSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-
-$this->title = 'Log suppression de documents';
-$this->params['breadcrumbs'][] = $this->title;
 ?>
-<div class="log-labo-documents-delete-index">
+<div class="document-pushed-index">
     <div class="panel panel-primary">
         <div class="panel-heading">
             <div class="row">
@@ -145,13 +150,6 @@ $this->params['breadcrumbs'][] = $this->title;
             <?= GridView::widget([
                 'dataProvider' => $dataProvider,
                 'filterModel' => $searchModel,
-                'id' => 'log-grid',
-                'pjax'=>true,
-                'striped'=>false,
-                'hover'=>true,
-                'bordered'=>true,
-                'bootstrap'=>true,
-                'floatHeader'=>false,
                 'columns' => [
                     [
                         'attribute'=>'id_client',
@@ -188,21 +186,6 @@ $this->params['breadcrumbs'][] = $this->title;
                         }
                     ],
                     [
-                        'attribute'=>'',
-                        'filter'=>'',
-                        'filterWidgetOptions'=>[
-                            'pluginOptions'=>['allowClear'=>true],
-                        ],
-                        'vAlign' => 'middle',
-                        'filterInputOptions'=>['placeholder'=>'Any supplier'],
-                        'group'=>true,  // enable grouping,
-                        'groupOddCssClass'=>'kv-grouped-child-row',  // configure odd group cell css class
-                        'groupEvenCssClass'=>'kv-grouped-child-row', // configure even group cell css class
-                        'value'=>function($model){
-                            return Client::find()->andFilterWhere(['id'=>$model->id_etablissement])->one()->name;
-                        }
-                    ],
-                    [
                         'attribute'=>'id_user',
                         'filter'=>'',
                         'filterWidgetOptions'=>[
@@ -233,27 +216,22 @@ $this->params['breadcrumbs'][] = $this->title;
                         },
                         'label' => 'Mois'
                     ],
-                    'raison',
+                    'nb_doc',
                     [
-                        'attribute'=>'filename',
-                        'vAlign' => 'middle',
-                        'label' => 'Nom du fichier'
-                    ],
-                    [
-                        'attribute'=>'log_date',
+                        'attribute'=>'last_push',
                         'vAlign' => 'middle',
                         'filterType' => GridView::FILTER_DATE,
                         'filterWidgetOptions' => [
                             'type' => DatePicker::TYPE_INPUT,
                         ],
                         'value' => function($model) {
-                            $year = substr($model['log_date'], 0, 4);
-                            $month = intval(substr($model['log_date'], 5, 2));
-                            $day = substr($model['log_date'], 8, 2);
+                            $year = substr($model['last_push'], 0, 4);
+                            $month = intval(substr($model['last_push'], 5, 2));
+                            $day = substr($model['last_push'], 8, 2);
 
                             return $day . ' ' . AppCommon::$tMonthsMin[$month] . ' ' . $year;
                         },
-                        'label' => 'Supprimé le'
+                        'label' => 'Dernier envoi'
                     ],
                 ],
             ]); ?>

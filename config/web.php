@@ -34,8 +34,6 @@ $config = [
             'showScriptName' => true,
             'rules' => [
                 'document/create/<scenario:\w+>' => 'document/create',
-                'tiers/view/<view:\w+>/<id:\w+>' => 'tiers/view',
-                'tiers/view/<id:\d+>' => 'tiers/view'
 
 //                '<controller:\w+>/<id:\d+>'    => '<controller>/update',
             ]

@@ -186,7 +186,7 @@ JS
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <strong>
-                    <span class="fa fa-file"></span> <?= Yii::t('microsept', 'Documents') ?>
+                    <span class="far fa-file-pdf"></span> <?= Yii::t('microsept', 'Documents') ?>
                 </strong>
             </div>
             <div class="panel-body">
