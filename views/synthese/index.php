@@ -31,6 +31,7 @@ $urlSavePrefPrelevement = Url::to(['/synthese/save-pref-prelevement']);
 $urlLoadPrefKeyWord = Url::to(['/synthese/load-pref-key-word']);
 $urlLoadPrefPrelevement = Url::to(['/synthese/load-pref-prelevement']);
 $urlGetSyntheseResult = Url::to(['/synthese/get-synthese-result']);
+$urlSuppAnalyse = Url::to(['/synthese/delete-analyse']);
 
 $list_model = json_encode([]);
 if(isset($modelList))
@@ -39,6 +40,10 @@ $idclient = 0;
 if(isset($idClient))
     $idclient = $idClient;
 
+$idlabo = 0;
+if(isset($idLabo))
+    $idlabo = $idLabo;
+
 $this->registerJS(<<<JS
     var url = {
         savePrefKeyWord:'{$urlSavePrefKeyWord}',
@@ -46,9 +51,11 @@ $this->registerJS(<<<JS
         savePrefPrelevement:'{$urlSavePrefPrelevement}',
         loadPrefPrelevement:'{$urlLoadPrefPrelevement}',
         getSyntheseResult:'{$urlGetSyntheseResult}',
+        suppAnalyse:'{$urlSuppAnalyse}',
     };
 JS
 );
+
 ?>
 
 <div class="loader">
@@ -98,9 +105,19 @@ JS
                 </strong>
             </div>
             <div class="panel-body" style="padding:20px 50px 20px 50px;">
-
-                <div id="synthese-grid"></div>,
-
+                <?php if($is_delete){ ?>
+                <div class="box-tools pull-right" style="margin-top:-5px;">
+                    <button type="button" class="btn btn-danger btn-supp-data"><i class="fas fa-trash-alt"></i>&nbsp;Supprimer
+                    </button>
+                </div>
+                <?php } ?>
+                <div id="synthese-grid" style="clear:both"></div>,
+                <?php if($is_delete){ ?>
+                <div class="box-tools pull-right" style="margin-top:-5px;">
+                    <button type="button" class="btn btn-danger btn-supp-data"><i class="fas fa-trash-alt"></i>&nbsp;Supprimer
+                    </button>
+                </div>
+                <?php } ?>
             </div>
         </div>
     </div>
@@ -131,6 +148,33 @@ CSS
 );
 
 $this->registerJS(<<<JS
+    $('.btn-supp-data').click(function(){
+        var id_analyse = [];
+        $('.chk-data').each(function(){
+            if($(this).prop('checked') == true){
+                id_analyse.push($(this).attr('id'));
+            }
+        });
+        $('.loader').show();
+        var data = JSON.stringify({
+            idAnalyse : id_analyse,
+        })
+        $.post(url.suppAnalyse, {data:data}, function(response) {
+            if(response.error){
+                $('.loader').hide();
+                swal(
+                  'Suppression impossible',
+                  'Une erreur est survenue lors de la suppression, veuillez contacter un administrateur.',
+                  'error'
+                )
+            }
+            else{
+                $('.loader').hide();
+                getResults();
+            }
+        });
+    })
+    
     //Ajout de l'overflow sur les tabs dans le cas de liste select 2 multiple trop longue
     $('.tab-content').each(function(){
         $(this).css({'overflow':'-webkit-paged-x'});        
@@ -550,12 +594,22 @@ $this->registerJS(<<<JS
 
     //Click sur le bouton d'affichage des résultats
     $('.btn-see-results').click(function(){
+        getResults();
+    });
+    
+    function getResults(){
         var error = [];
         var listEtablissement = null;
         var listLabo = null;
         if('{$idclient}' == 0){
-            listEtablissement = $('#kvform-etablissement').val();
-            listLabo = $('#child-id').val();
+            if('{$idlabo}' == 0){
+                listEtablissement = $('#kvform-etablissement').val();
+                listLabo = $('#child-id').val();
+            }
+            else{
+                listEtablissement = $('#kvform-etablissement').val();
+                listLabo = '{$idlabo}';
+            }
         }
         else{
             listEtablissement = '{$idclient}';
@@ -617,7 +671,7 @@ $this->registerJS(<<<JS
                 $('.loader').hide();
             });
         }
-    });
+    }
     
     $('#kvform-client').change(function(){
         $('#hfIdParent').val($(this).val());

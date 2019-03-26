@@ -8,12 +8,11 @@
 
 namespace app\controllers;
 
+use kartik\select2\Select2;
 use Yii;
-use app\models\AppCommon;
 use app\models\User;
 use app\models\Client;
 use app\models\Labo;
-use app\models\LaboSearch;
 use app\models\LaboClientAssign;
 use app\models\AnalyseService;
 use app\models\AnalyseConformite;
@@ -32,6 +31,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yii\web\Response;
 use yii\data\ArrayDataProvider;
+use yii\helpers\Html;
 
 use yii\helpers\Url;
 use kartik\form\ActiveForm;
@@ -64,15 +64,6 @@ class SyntheseController extends Controller
         $laboList = null;
         $modelList = [];
         $idUser = User::getCurrentUser()->id;
-
-        /*$filterList = FilterPrefUser::find()->andFilterWhere(['id_user'=>$idUser])->groupBy('id_model')->all();
-        foreach ($filterList as $filter) {
-            if(!isset($modelList[$filter->id_service]))
-                $modelList[$filter->id_service] = [];
-
-            $model = FilterModel::find()->andFilterWhere(['id'=>$filter->id_model])->one();
-            array_push($modelList[$filter->id_service],['id_model'=>$filter->id_model,'libelle'=>$model->libelle]);
-        }*/
 
         //Génération de la liste des préférences
         $aModelKeyWord = FilterModel::find()
@@ -143,11 +134,28 @@ class SyntheseController extends Controller
                 'content'=>self::getGermeFilterContent(),
             ]
         ];
+        $idLabo = 0;
+        if((User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_LABO_USER])) && !Yii::$app->user->isSuperAdmin){
+            $idUser = User::getCurrentUser()->id;
+            $idLabo = PortailUsers::find()->andFilterWhere(['id_user'=>$idUser])->one()->id_labo;
+        }
+
+        $is_delete = false;
+        if(Yii::$app->user->isSuperAdmin){
+            $is_delete = true;
+        }
+        else{
+           if(User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_LABO_USER]) || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+               $is_delete = true;
+        }
+
 
         return $this->render('index', [
             'items'=>$tItems,
             'modelList'=>$modelList,
             'idClient'=>User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]) ? $idClient : 0,
+            'idLabo'=>$idLabo,
+            'is_delete' => $is_delete
         ]);
     }
 
@@ -267,6 +275,9 @@ class SyntheseController extends Controller
      * @throws \Exception
      */
     private static function getGeneralFilterContent($idClient,$clientList,$laboList){
+        Yii::trace($idClient);
+        Yii::trace($clientList);
+        Yii::trace($laboList);
         $dataEtablissement = null;
         $idTemoin = '';
         if(User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER]))
@@ -285,6 +296,12 @@ class SyntheseController extends Controller
             $dataEtablissement = Client::getAsChildList($idClient);
         }
         elseif (User::getCurrentUser()->hasRole([User::TYPE_CLIENT_USER_GROUP])){
+            $dataEtablissement = Client::getListUserGroup($clientList);
+        }
+        elseif (User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_LABO_USER])){
+            $idUser = User::getCurrentUser()->id;
+            $idLabo = PortailUsers::find()->andFilterWhere(['id_user'=>$idUser])->one()->id_labo;
+            $clientList = LaboClientAssign::getListIdClientFromLabo($idLabo);
             $dataEtablissement = Client::getListUserGroup($clientList);
         }
 
@@ -608,19 +625,33 @@ class SyntheseController extends Controller
                 ]
             ]);
             $result .= '<div class="row"><div class="col-sm-6"><label class="col-sm-3" style="margin-top:20px;" for="child-id">Etablissements</label><div class="col-sm-6 form-control" style="border:none;">';
-            $result .= DepDrop::widget([
-                'type' => DepDrop::TYPE_SELECT2,
-                'data' => [],
-                'name' => 'etablissement',
-                'options' => ['id' => 'kvform-etablissement', 'placeholder' => 'Aucun'],
-                'select2Options' => ['pluginOptions' => ['allowClear' => true, 'multiple' => true]],
-                'pluginOptions' => [
-                    'depends' => ['kvform-client'],
-                    'url' => Url::to(['/synthese/get-etablissement-from-id-client']),
-                    'params' => ['hfIdParent'],
-                    'placeholder' => 'Sélectionner un ou plusieurs établissements'
-                ]
-            ]);
+            if((User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_LABO_USER])) && !Yii::$app->user->isSuperAdmin){
+                $result .= Select2::widget([
+                    'data' => $dataEtablissement,
+                    'name' => 'etablissement',
+                    'options' => [
+                        'id' => 'kvform-etablissement',
+                        'placeholder' => 'Sélectionner un ou plusieurs établissements',
+                        'multiple'=>true
+                    ],
+                ]);
+            }
+            else{
+                $result .= DepDrop::widget([
+                    'type' => DepDrop::TYPE_SELECT2,
+                    'data' => [],
+                    'name' => 'etablissement',
+                    'options' => ['id' => 'kvform-etablissement', 'placeholder' => 'Aucun'],
+                    'select2Options' => ['pluginOptions' => ['allowClear' => true, 'multiple' => true]],
+                    'pluginOptions' => [
+                        'depends' => ['kvform-client'],
+                        'url' => Url::to(['/synthese/get-etablissement-from-id-client']),
+                        'params' => ['hfIdParent'],
+                        'placeholder' => 'Sélectionner un ou plusieurs établissements'
+                    ]
+                ]);
+            }
+
             $result .= '</div></div>';
             $result .= '<div class="col-sm-6">';
             $result .= Form::widget([
@@ -1012,7 +1043,6 @@ class SyntheseController extends Controller
      * @return string
      */
     public function actionGetSyntheseResult(){
-        //$_data = Json::decode($_POST['data']);
         if(isset($_POST['data'])) {
             $_data = Json::decode($_POST['data']);
             $_SESSION['synthese'] = $_POST['data'];
@@ -1031,7 +1061,8 @@ class SyntheseController extends Controller
 
         //On rempli le tableau des établissements par les identifiants des établissements accessible par l'utilisateur connecté (sauf si admin car accès à tout)
         if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !User::getCurrentUser()->hasRole([User::TYPE_CLIENT_ADMIN]) && !Yii::$app->user->isSuperAdmin){
-            $listEtablissement = PortailUsers::getIdClientUserGroup(User::getCurrentUser()->id);
+            if(!User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) && !User::getCurrentUser()->hasRole([User::TYPE_LABO_USER]))
+                $listEtablissement = PortailUsers::getIdClientUserGroup(User::getCurrentUser()->id);
         }
 
         if(!User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]) && !Yii::$app->user->isSuperAdmin)
@@ -1039,6 +1070,15 @@ class SyntheseController extends Controller
                 $listLabo = $_data['listLabo'];
             else
                 $listLabo = [];
+
+        $is_delete = false;
+        if(Yii::$app->user->isSuperAdmin){
+            $is_delete = true;
+        }
+        else{
+            if(User::getCurrentUser()->hasRole([User::TYPE_LABO_ADMIN]) || User::getCurrentUser()->hasRole([User::TYPE_LABO_USER]) || User::getCurrentUser()->hasRole([User::TYPE_PORTAIL_ADMIN]))
+                $is_delete = true;
+        }
 
 
         $listService = $_data['listService'];
@@ -1092,6 +1132,7 @@ class SyntheseController extends Controller
         //Ajout des germes dans la requête
         foreach ($aAnalyseData as $analyseData) {
             if (!isset($data[$analyseData->id])) {
+                $data[$analyseData->id]['id'] = $analyseData->id;
                 $data[$analyseData->id]['num_analyse'] = $analyseData->num_analyse;
                 $data[$analyseData->id]['id_labo'] = $analyseData->id_labo;
                 $data[$analyseData->id]['id_client'] = $analyseData->id_client;
@@ -1148,18 +1189,6 @@ class SyntheseController extends Controller
             ]
         ]);
         $gridColumns = [
-//            [
-//                'label' => 'Service',
-//                'format' => 'raw',
-//                'value' => function($row) {
-//                    return '<i class="fas fa-stream"></i>&nbsp;&nbsp;' . AnalyseService::find()->andFilterWhere(['id'=>$row['id_service']])->one()->libelle;
-//                },
-//                'contentOptions' => ['style'=>'font-weight:bold'],
-//                'group'=>true,  // enable grouping,
-//                'groupedRow'=>true,                    // move grouped column to a single grouped row
-//                'groupOddCssClass'=>'kv-grouped-row',  // configure odd group cell css class
-//                'groupEvenCssClass'=>'kv-grouped-row', // configure even group cell css class
-//            ],
             [
                 'label' => 'client',
                 'format' => 'raw',
@@ -1275,6 +1304,17 @@ class SyntheseController extends Controller
                 'contentOptions' => function($model) {
                     return ['id' => $model['num_analyse']];
                 },
+            ],
+            [
+                'class' => '\kartik\grid\CheckboxColumn',
+                'checkboxOptions' => function($model, $key, $index, $column) {
+                    return [
+                        'class' => 'chk-'.$model['id']. ' chk-data',
+                        'id' => $model['id'],
+                    ];
+                },
+                'pageSummary' => Html::button(\kartik\helpers\Html::icon('save'), ['class' => '', 'id' => 'js-update-doc-ligne']),
+                'visible' => $is_delete ? true : false
             ]
         ];
 
@@ -1282,5 +1322,54 @@ class SyntheseController extends Controller
             'dataProvider' => $dataProvider,
             'gridColumns' => $gridColumns
         ]);
+    }
+
+    public function actionDeleteAnalyse(){
+        $errors = false;
+        $conditionnementList = [];
+        $lieuPrelevementList = [];
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        $_data = Json::decode($_POST['data']);
+        $idAnalyse = $_data['idAnalyse'];
+        Yii::trace($idAnalyse);
+
+        if(count($idAnalyse) != 0) {
+            try {
+                for($i = 0; $i < count($idAnalyse); $i++) {
+                    $analyse = AnalyseData::find()->andFilterWhere(['id' => $idAnalyse[$i]])->one();
+
+                    $transaction = AnalyseData::getDb()->beginTransaction();
+
+                    if (!is_null($analyse)) {
+                        //On supprime les germes pour cette analyse
+                        $germeList = AnalyseDataGerme::find()->andFilterWhere(['id_analyse' => $analyse->id])->all();
+                        if (count($germeList) != 0) {
+                            foreach ($germeList as $germe) {
+                                if (!$germe->delete())
+                                    $errors = true;
+                            }
+                        }
+
+                        if (!$errors) {
+                            //On supprime l'analyse
+                            if (!$analyse->delete())
+                                $errors = true;
+                        }
+
+                        if (!$errors)
+                            $transaction->commit();
+                    }
+                }
+            } catch (\yii\db\IntegrityException $e) {
+                $transaction->rollBack();
+                $errors = true;
+            } catch (\yii\db\Exception $e) {
+                $transaction->rollBack();
+                $errors = true;
+            }
+        }
+
+
+        return ['errors'=>$errors];
     }
 }
