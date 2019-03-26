@@ -49,7 +49,7 @@ return [
         'items' => [
             ['label' => '<span class="fa fa-file-code-o"></span> Gii', 'url' => ['/gii']],
             ['label' => '<span class="fa fa-dashboard"></span> Debug', 'url' => ['/debug']],
-            ['label' => '<span class="fa fa-clock-o"></span> '. Yii::t('microsept','Taches planifiees'), 'url' => ['/cron']],
+            ['label' => '<span class="fa fa-clock-o"></span> '. Yii::t('microsept','Taches planifiees'), 'url' => ['/cron'],'visible'=>false],
         ],
         'visible' => Yii::$app->user->isSuperAdmin
     ],
@@ -155,8 +155,8 @@ return [
                 'label' => '<span class="fas fa-chart-pie"></span> Statistiques (Dev)<i class="fa fa-angle-left pull-right"></i></a>',
                 'url' => ['/analyse-data/statistique'],
                 'options' => ['class' => ' treeview'],
-                'visible'=>Yii::$app->user->isSuperAdmin ? true : false,
-                //'visible' => true,
+//                'visible'=>Yii::$app->user->isSuperAdmin ? true : false,
+                'visible' => false,
                 'submenuTemplate' => '<ul class="treeview-menu">{items}</ul>',
                 'items' => [
                     [
