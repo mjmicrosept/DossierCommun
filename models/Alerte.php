@@ -151,7 +151,7 @@ class Alerte extends \yii\db\ActiveRecord
                 $message->setTo(array(
                     $emailLabo
                 ));
-                $message->setSubject('PCRAM - Documents d\'analyses non présents');
+                $message->setSubject('RFL Portail - Documents d\'analyses non présents');
                 $message->setContentType("text/html");
                 $message->setBody($body);
                 $message->setFrom('maratier.microsept@gmail.com');
@@ -225,7 +225,7 @@ class Alerte extends \yii\db\ActiveRecord
                     $emailLabo
                 ));
                 //$message->setSubject('Dossier commun - Alerte periode missing');
-                $message->setSubject('PCRAM - Documents d\'analyses en attente.');
+                $message->setSubject('RFL Portail - Documents d\'analyses en attente.');
                 $message->setContentType("text/html");
                 $message->setBody($body);
                 $message->setFrom('maratier.microsept@gmail.com');
@@ -291,7 +291,7 @@ class Alerte extends \yii\db\ActiveRecord
                 $message->setTo(array(
                     $emailLabo
                 ));
-                $message->setSubject('PCRAM - Contact client');
+                $message->setSubject('RFL Portail - Contact client');
                 $message->setContentType("text/html");
                 $message->setBody($body);
                 $message->setFrom('maratier.microsept@gmail.com');
