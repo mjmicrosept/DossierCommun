@@ -801,7 +801,7 @@ class SiteController extends Controller
                 $defaultColumns = [
                     [
                         'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                        'filter' => 'Total doc.',
+                        'filter' => 'Total analyses',
                         'hAlign'=>'center',
                         'width'=>'150px',
                         'value' => function($model){
@@ -814,7 +814,7 @@ class SiteController extends Controller
                     ],
                     [
                         'headerOptions' => ['colspan' =>2, 'class'=>'success', 'style' => 'text-align:center;background-color: #00c0ef!important;'],
-                        'label'=>'Dernier envoi',
+                        'label'=>'Dernières analyses',
                         'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
                         'filter' => 'Date',
                         'format'=>'raw',
@@ -840,7 +840,7 @@ class SiteController extends Controller
                     [
                         'headerOptions' => ['style' => 'display:none;','class'=>'skip-export'],
                         'filterOptions' => ['class'=>'bg-gray filter-header', 'style' => 'background-color: #e5e5e5!important;text-align:center;vertical-align:middle'],
-                        'filter' => 'Nombre doc.',
+                        'filter' => 'Nombre analyses',
                         'hAlign'=>'center',
                         'width'=>'150px',
                         'value' => function($model){
