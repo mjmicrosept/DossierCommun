@@ -70,7 +70,7 @@ class SyntheseController extends Controller
             ->leftJoin('filter_pref_keyword','filter_model.id = filter_pref_keyword.id_model')
             ->andFilterWhere(['filter_model.id_user'=>$idUser])
             ->andFilterWhere(['type'=>FilterModel::TYPE_GERME])
-            ->groupBy('id_model')
+            //->groupBy('id_model')
             ->all();
         //Partie mots clés
         foreach ($aModelKeyWord as $item) {
@@ -83,7 +83,7 @@ class SyntheseController extends Controller
             ->leftJoin('filter_pref_prelevement','filter_model.id = filter_pref_prelevement.id_model')
             ->andFilterWhere(['filter_model.id_user'=>$idUser])
             ->andFilterWhere(['type'=>FilterModel::TYPE_PRELEVEMENT])
-            ->groupBy('id_model')
+            //->groupBy('id_model')
             ->all();
         //Partie lieux de prélèvements
         foreach ($aModelPreference as $item) {
