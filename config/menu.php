@@ -96,7 +96,7 @@ return [
                     ],
                     [
                         'label' => '<i class="fas fa-database"></i> Données envoyées',
-                        'url' => ['/log-labo/data-import'],
+                        'url' => ['/data-import'],
                         'visible' => true,
                     ],
                 ]
